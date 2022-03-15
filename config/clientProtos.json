@@ -1,0 +1,16 @@
+{
+	"gate.gateHandler.queryEntry": {
+		"required uInt32 uid": 1
+	},
+
+	"connector.entryHandler.enter": {
+		"required string code": 1,
+		"message UserInfo": {
+			"required string name": 1,
+			"required string avatarUrl": 2,
+			"required uInt32 gender": 3
+		},
+		"optional UserInfo userInfo": 2,
+		"required string platform": 3
+	}
+}

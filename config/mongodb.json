@@ -1,0 +1,22 @@
+{
+	"development": {
+		"host": "127.0.0.1",
+		"port": "27017",
+		"database": "mongo_fly",
+		"options": {
+			"user": "root",
+			"pass": "123456",
+			"poolSize": 5
+		}
+	},
+	"production": {
+		"host": "127.0.0.1",
+		"port": "27017",
+		"database": "mongo_fly",
+		"options": {
+			"user": "root",
+			"pass": "123456",
+			"poolSize": 5
+		}
+	}
+}

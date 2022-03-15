@@ -1,0 +1,5 @@
+{
+	"onReady": {
+		"required uInt32 wChairID": 1
+	}
+}
