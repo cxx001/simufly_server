@@ -27,8 +27,8 @@ handler.queryEntry = function (msg, session, next) {
         return;
     }
 
-    var uid = msg.uid;
-	if(!uid) {
+    var code = msg.code;
+	if(!code) {
 		next(null, {code: consts.Login.FAIL});
 		return;
 	}
@@ -39,7 +39,7 @@ handler.queryEntry = function (msg, session, next) {
 		return;
 	}
 	// select connector
-	var res = dispatcher.dispatch(uid, connectors);
+	var res = dispatcher.dispatch(code, connectors);
 	next(null, {
 		code: consts.Login.OK,
 		host: res.clientHost,

@@ -28,5 +28,10 @@ module.exports = {
         MAINTAIN: 202,  // 维护
         NONSUPPORT: 203, // 不支持平台
         FAIL: 500       // 失败
-    }
+    },
+
+    CheckInResult: {
+        SUCCESS: 0,  		// 成功
+        ALREADY_ONLINE: 1,  // 已经在线
+	},
 }
