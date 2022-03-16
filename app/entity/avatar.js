@@ -50,11 +50,6 @@ pro.updateUserInfo = function (userInfo, bLogin) {
     if (bLogin) {
         this.emit("EventLogin", this);
     }
-
-    // test
-    setTimeout(() => {
-        this.sendMessage('onTest', {code: 123});
-    }, 2000)
 };
 
 // 存盘信息更新
