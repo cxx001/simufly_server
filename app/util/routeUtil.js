@@ -19,12 +19,12 @@ exp.auth = function (session, msg, app, cb) {
     cb(null, serverId);
 };
 
-exp.auth = function (gameId, msg, app, cb) {
-    if(!gameId) {
-        cb(new Error('gameId not nil!'));
+exp.auth = function (idx, msg, app, cb) {
+    if(!idx) {
+        cb(new Error('idx not nil!'));
         return;
     }
 
-    let sid = 'auth-global-server-' + gameId;
+    let sid = 'auth-global-server-' + idx;
     cb(null, sid);
 };

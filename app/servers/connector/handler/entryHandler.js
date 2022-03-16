@@ -2,7 +2,7 @@
 var pomelo = require('pomelo');
 var fly = require('flyio');
 var lodash = require('lodash');
-var logger = require('pomelo-logger').getLogger('game', __filename);
+var logger = require('pomelo-logger').getLogger('cskl', __filename);
 var entityManager = require('../../../services/entityManager');
 var entityFactory = require('../../../entity/entityFactory');
 var consts = require('../../../common/consts');
@@ -96,7 +96,7 @@ var doLogin = function (app, session, next, openid, session_key, userInfo) {
 				else {
 					// 不在同一个进程，告诉客户端重连
 					var server = null;
-					var servers = app.getServersByType('game1');
+					var servers = app.getServersByType('connector');
 					for (var i in servers) {
 						if (servers[i].id === formerSid) {
                             server = servers[i];

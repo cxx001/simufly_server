@@ -9,7 +9,7 @@ let connectToMaster = require('./operationConnect').connectToMaster;
 function kickAvatar(opts) {
     let id = 'pomelo_kick_avatar_' + Date.now();
     connectToMaster(id, opts, function (client) {
-        client.request('gameOperation', {signal: 'kick', uid: opts.uid}, function (err, resp) {
+        client.request('operation', {signal: 'kick', uid: opts.uid}, function (err, resp) {
             if (err) {
                 console.error(err);
             }

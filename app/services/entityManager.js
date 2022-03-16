@@ -4,7 +4,7 @@
  * Description: 所有Entity的管理器
  */
 'use strict';
-var logger = require('pomelo-logger').getLogger('game', __filename);
+var logger = require('pomelo-logger').getLogger('cskl', __filename);
 var utils = require('../util/utils');
 
 var entities = {}

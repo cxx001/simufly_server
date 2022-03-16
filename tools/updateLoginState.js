@@ -8,7 +8,7 @@ let connectToMaster = require('./operationConnect').connectToMaster;
 function updateLoginState(opts) {
     let id = 'pomelo_login_state_' + Date.now();
     connectToMaster(id, opts, function (client) {
-        client.request('gameOperation', {signal: 'updateLogin', canLogin: opts.canLogin}, function (err) {
+        client.request('operation', {signal: 'updateLogin', canLogin: opts.canLogin}, function (err) {
             if(err) {
                 console.error(err);
             }

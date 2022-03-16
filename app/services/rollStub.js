@@ -6,7 +6,7 @@
 'use strict';
 var consts = require('../common/consts');
 var utils = require('../util/utils')
-var logger = require('pomelo-logger').getLogger('game', __filename);
+var logger = require('pomelo-logger').getLogger('cskl', __filename);
 var fly = require('flyio');
 
 var instance = null;

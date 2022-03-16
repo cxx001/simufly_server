@@ -6,7 +6,7 @@
 'use strict';
 let pomelo = require('pomelo');
 var entityManager = require('../../../services/entityManager');
-var logger = require('pomelo-logger').getLogger('game', __filename);
+var logger = require('pomelo-logger').getLogger('cskl', __filename);
 var consts = require('../../../common/consts');
 
 module.exports = function(app) {

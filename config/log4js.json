@@ -96,20 +96,20 @@
     },
     {
       "type": "file",
-      "filename": "${opts:base}/logs/game-${opts:serverId}.log",
+      "filename": "${opts:base}/logs/cfkl-${opts:serverId}.log",
       "maxLogSize": 1048576,
       "layout": {
         "type": "basic"
       }
     ,"backups": 5,
-      "category":"game"
+      "category":"cfkl"
     }
   ],
 
   "levels": {
     "rpc-log" : "ERROR",
     "forward-log": "ERROR",
-    "game": "ALL"
+    "cfkl": "ALL"
   },
 
   "replaceConsole": true,

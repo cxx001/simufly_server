@@ -1,7 +1,7 @@
 'use strict';
 let reload = require('./app/util/require');
 let pomelo = require('pomelo');
-let logger = require('pomelo-logger').getLogger('game', __filename);
+let logger = require('pomelo-logger').getLogger('cskl', __filename);
 let fs = require('fs'), path = require('path');
 let mongodb = require("./app/mongodb/mongodb");
 let entityFactory = require('./app/entity/entityFactory');
