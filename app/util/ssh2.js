@@ -5,7 +5,6 @@ var Client = require("ssh2").Client;
 var fs = require("fs");
 var path = require('path');
  
- 
 /**
 * 描述：连接远程电脑
 * 参数：server 远程电脑凭证；then 回调函数
@@ -43,17 +42,19 @@ function Shell(server, cmd, then){
 				} else {
 					stream.on('close', () => {
 						console.log('conn[close]')
+						resolve(true);
 					}).on('data', data => {
-						console.log('conn[data]: ', data.toString())
+						// console.log('conn[data]: ', data.toString())
+						then && then(err, data.toString())
 					})
 					stream.stderr.on('data', data => {
 						console.log('conn[stderr]: ', data.toString())
 					})
 					stream.stdout.on('data', data => {
-						console.log('conn[stdout]: ', data.toString())
+						// console.log('conn[stdout]: ', data.toString())
 					})
 					stream.stdin.on('data', data => {
-						console.log('conn[stdin]: ', data.toString())
+						// console.log('conn[stdin]: ', data.toString())
 					})
 					stream.end(cmd)
 				}
