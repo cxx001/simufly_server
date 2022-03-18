@@ -32,13 +32,15 @@ handler.enter = function (msg, session, next) {
         return;
 	}
 	
-    let code = msg.code, userInfo = msg.userInfo, platform = msg.platform;
+    let code = msg.code, userInfo = msg.userInfo, platform = msg.platform || consts.Platform.WIN;
+    // code预留字段, 当前没含义
     if (!code) {
         next(null, {code: consts.Login.FAIL});
         return;
 	}
 	
     if (platform === consts.Platform.WIN) {
+        // 当前约定code就是account, code作为openid
         doLogin(this.app, session, next, code, "", userInfo);
     } else {
         next(null, {code: consts.Login.NONSUPPORT});
@@ -47,34 +49,52 @@ handler.enter = function (msg, session, next) {
 };
 
 var doLogin = function (app, session, next, openid, session_key, userInfo) {
+    let account = userInfo.account;
+    let password = userInfo.password;
+    if (account == "undefined" || password == "undefined") {
+        next(null, {code: consts.Login.CHECKFAIL});
+        return;
+    }
+
     // 查db
-    app.db.find("Avatar", {"openid": openid}, ["_id"], null, function (err, docs) {
+    app.db.find("Avatar", {"openid": openid}, ["_id", "account", "password"], null, function (err, docs) {
         if (err) {
             logger.error("db find avatar error" + err);
             next(null, {code: consts.Login.FAIL});
             return;
 		}
-		
-		let uuid = null;
+
+        // 当前不考虑注册, 账号内置
         if (docs.length == 0) {
-            uuid = app.db.genId();
-        } else {
-            uuid = docs[0]["_id"];
+            logger.warn("db find avatar[%s] not exist!", account);
+            next(null, {code: consts.Login.NONACCOUNT});
+            return;
         }
-        app.rpc.auth.authRemote.checkin.toServer('auth-server-1', openid, uuid, app.get('serverId'),
+
+        // 账号校验暂时没做加密处理
+        let srcAccount = docs[0]["account"];
+        let srcPassword = docs[0]["password"];
+        if (account != srcAccount || password != srcPassword) {
+            logger.warn("account or password check fail! account:%s, password:%s.", account, password);
+            next(null, {code: consts.Login.CHECKFAIL});
+            return;
+        }
+
+        let uid = docs[0]["_id"];
+        app.rpc.auth.authRemote.checkin.toServer('auth-server-1', openid, uid, app.get('serverId'),
 			function (result, formerSid, formerUid) {
 			// 已经登录，走顶号流程
 			if (result == consts.CheckInResult.ALREADY_ONLINE) {
-				if (formerUid !== uuid) {
+				if (formerUid !== uid) {
 					// 事件大了！！！
-					logger.error("same account with different uuid, openid[%s] formerUid[%s] newUid[%s]", openid, formerUid, uuid);
+					logger.error("same account with different uid, openid[%s] formerUid[%s] newUid[%s]", openid, formerUid, uid);
 					next(null, {code: consts.Login.FAIL});
 					return;
 				}
 				if (formerSid == app.get('serverId')) {
 					var avatar = entityManager.getEntity(formerUid);
 					if (!avatar) {
-						readyLogin(app, session, uuid, openid, session_key, userInfo, next, false);
+						readyLogin(app, session, uid, openid, session_key, userInfo, next, false);
 					}
 					else {
 						// 刷新session_key和userInfo
@@ -117,15 +137,15 @@ var doLogin = function (app, session, next, openid, session_key, userInfo) {
 				}
 			}
 			else {
-				readyLogin(app, session, uuid, openid, session_key, userInfo, next, false);
+				readyLogin(app, session, uid, openid, session_key, userInfo, next, false);
 			}
 		});
     });
 };
 
-var readyLogin = function (app, session, uuid, openid, session_key, userInfo, next, bRelay) {
+var readyLogin = function (app, session, uid, openid, session_key, userInfo, next, bRelay) {
     // 查db
-    app.db.find("Avatar", {"_id": uuid}, null, null, function (err, docs) {
+    app.db.find("Avatar", {"_id": uid}, null, null, function (err, docs) {
         if (err) {
             logger.error("db find avatar error" + err);
             next(null, {code: consts.Login.FAIL});
@@ -133,7 +153,7 @@ var readyLogin = function (app, session, uuid, openid, session_key, userInfo, ne
         }
         if (docs.length == 0) {
             // 新建号
-            var avatar = entityFactory.createEntity("Avatar", uuid, {
+            var avatar = entityFactory.createEntity("Avatar", uid, {
                 openid: openid,
 				session_key: session_key,
             })
@@ -157,7 +177,7 @@ var readyLogin = function (app, session, uuid, openid, session_key, userInfo, ne
             info: avatar.clientLoginInfo()
         });
         if (bRelay) {
-            app.rpc.auth.authRemote.relayCheckin.toServer('auth-server-1', openid, uuid, app.get('serverId'), null);
+            app.rpc.auth.authRemote.relayCheckin.toServer('auth-server-1', openid, uid, app.get('serverId'), null);
         }
     })
 };

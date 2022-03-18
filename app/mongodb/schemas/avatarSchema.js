@@ -4,9 +4,8 @@ var mongoose = require('mongoose'),
 var AvatarSchema = new Schema({
     _id: String,
     openid: String,
-    name: String,
-    gender: Number,
-    avatarUrl: String,
+    account: String,
+    password: String,
 	createTime: Number,
 	lastOfflineTime: Number,
 });

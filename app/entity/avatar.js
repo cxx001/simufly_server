@@ -15,7 +15,7 @@ var AUTO_SAVE_TICK = 1000 * 60 * 5  // 自动存盘时间
 var Avatar = function (opts) {
     opts = opts || {};
     // avatar组件
-    opts.components = ['avatarProp'];
+    opts.components = ['avatarProp', 'lobby'];
     Entity.call(this, opts);
 
     this.logoutTimer = null;
@@ -44,8 +44,7 @@ pro.initDBModel = function () {
 
 pro.updateUserInfo = function (userInfo, bLogin) {
     this.name = userInfo.name;
-    this.avatarUrl = userInfo.avatarUrl;
-    this.gender = userInfo.gender
+    this.password = userInfo.password;
 
     if (bLogin) {
         this.emit("EventLogin", this);
@@ -82,13 +81,9 @@ pro.save = function (cb) {
 // 登录时发给客户端
 pro.clientLoginInfo = function () {
 	return {
-		uid: this.id,
-		openid: this.openid,
-		name: this.name,
-		gender: this.gender,
-		avatarUrl: this.avatarUrl,
-		createTime: this.createTime,
-		lastOfflineTime: this.lastOfflineTime,
+		nodes: [],
+        edges: [],
+        info: {},
 	}
 };
 

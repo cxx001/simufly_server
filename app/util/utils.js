@@ -199,3 +199,7 @@ utils.judgeTime = function (date) {
 	// console.log('相差天数:', iday);
     return Math.floor(iday);
 };
+
+utils.sleep = ms => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};

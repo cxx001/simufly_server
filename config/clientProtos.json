@@ -6,11 +6,36 @@
 	"connector.entryHandler.enter": {
 		"required string code": 1,
 		"message UserInfo": {
-			"required string name": 1,
-			"required string avatarUrl": 2,
-			"required uInt32 gender": 3
+			"required string account": 1,
+			"required string password": 2
 		},
-		"optional UserInfo userInfo": 2,
-		"required string platform": 3
+		"required UserInfo userInfo": 2,
+		"optional string platform": 3
+	},
+
+	"connector.lobbyHandler.generateCode": {
+		"required string ip": 1,
+		"message GenerateCodeInfo": {
+			"required uInt32 threadType": 1,
+			"repeated string subsystems": 2
+		},
+		"repeated GenerateCodeInfo genCodeInfos": 2
+	},
+
+	"connector.lobbyHandler.deploy": {
+		"required string ip": 1
+	},
+
+	"connector.lobbyHandler.connect": {
+		"required string ip": 1,
+		"required uInt32 port": 2
+	},
+
+	"connector.lobbyHandler.start": {
+		"message SimulationInfo": {
+			"repeated uInt32 nodes": 1,
+			"repeated uInt32 edges": 2
+		},
+		"required SimulationInfo simuInfo": 1
 	}
 }

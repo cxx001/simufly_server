@@ -5,11 +5,9 @@
  */
 'use strict';
 let persistProperties = {
-    openid: "",  // 微信openid
-    uid: 0,  // 角色数字id
-    name: "unknow",  // 名字
-    gender: 0,  // 性别：0：未知 1：男性 2：女性
-    avatarUrl: "",  // 用户头像图片的 URL
+    openid: "",  // openid
+    account: "",  // 账号
+    password: "",  // 密码
 	createTime: 0, //创建时间
 	lastOfflineTime: 0,  //上次下线时间
 };

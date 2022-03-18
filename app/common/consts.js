@@ -27,6 +27,8 @@ module.exports = {
         RELAY: 201,     // 重新登入
         MAINTAIN: 202,  // 维护
         NONSUPPORT: 203, // 不支持平台
+        CHECKFAIL: 204, // 账号密码校验失败
+        NONACCOUNT: 205, // 账号不存在
         FAIL: 500       // 失败
     },
 
