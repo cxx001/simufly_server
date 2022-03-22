@@ -150,7 +150,10 @@ pro.initSimulation = async function (ip, next) {
             return;
         }
 
-        this.entity.sendMessage('onFlowMsg', {code: consts.MsgFlowCode.InitEngine});
+        this.entity.sendMessage('onFlowMsg', {
+            code: consts.MsgFlowCode.InitEngine,
+            data: data
+        });
     });
 
     // 2. 连接
