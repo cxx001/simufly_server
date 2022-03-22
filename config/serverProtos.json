@@ -1,5 +1,14 @@
 {
-	"onReady": {
-		"required uInt32 wChairID": 1
+	"onFlowMsg": {
+		"required uInt32 code": 1,
+		"optional string data": 2
+	},
+	"onMsgTips": {
+		"required uInt32 level": 1,
+		"message Tips": {
+			"required uInt32 code": 1,
+			"required string msg": 2
+		},
+		"required Tips tip": 2
 	}
 }

@@ -36,4 +36,31 @@ module.exports = {
         SUCCESS: 0,  		// 成功
         ALREADY_ONLINE: 1,  // 已经在线
 	},
+
+    MsgFlowCode: {
+        GenCode: 1,  // 生成代码完成
+        DeployUpload: 2, // 上传代码完成
+        DeployDoShell: 3, // 执行解压、编译脚本完成
+        InitEngine: 4, // 初始化引擎完成
+        ConnEngine: 5, // 连接引擎完成
+        StartSimulation: 6,  // 开始仿真
+    },
+
+    TipsLevel: {
+        info: 1,
+        warn: 2,
+        error: 3
+    },
+
+    MsgTipsCode: {
+        NONProjectUUID: {code: 1, msg: '项目UUID不存在'},
+        CreateDirFail: {code: 2, msg: '生成代码目录创建失败'},
+        GenCodeFail: {code: 3, msg: '生成代码失败'},
+        NONDeployPath: {code: 4, msg: '部署上传代码不存在'},
+        DeployUploadFail: {code: 5, msg: '部署上传代码失败'},
+        DeployDoShellFail: {code: 6, msg: '部署执行脚本失败'},
+        InitEngineFail: {code: 7, msg: '初始化引擎失败'}
+    }
+
+
 }

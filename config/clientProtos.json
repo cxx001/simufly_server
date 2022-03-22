@@ -13,25 +13,31 @@
 		"optional string platform": 3
 	},
 
+	"connector.lobbyHandler.enterProject": {
+		"required string id": 1
+	},
+
 	"connector.lobbyHandler.generateCode": {
-		"required string ip": 1,
-		"message GenerateCodeInfo": {
+		"message SplitUnit": {
 			"required uInt32 threadType": 1,
-			"repeated string subsystems": 2
+			"repeated uInt32 subsystems": 2
 		},
-		"repeated GenerateCodeInfo genCodeInfos": 2
+		"message GenCodeInfo": {
+			"required string ip": 1,
+			"repeated SplitUnit unit": 2
+		},
+		"repeated GenCodeInfo genCodeInfos": 1
 	},
 
 	"connector.lobbyHandler.deploy": {
+		"repeated string ip": 1
+	},
+
+	"connector.lobbyHandler.initSimulation": {
 		"required string ip": 1
 	},
 
-	"connector.lobbyHandler.connect": {
-		"required string ip": 1,
-		"required uInt32 port": 2
-	},
-
-	"connector.lobbyHandler.start": {
+	"connector.lobbyHandler.startSimulation": {
 		"message SimulationInfo": {
 			"repeated uInt32 nodes": 1,
 			"repeated uInt32 edges": 2

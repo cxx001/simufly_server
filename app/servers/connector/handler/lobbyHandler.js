@@ -14,18 +14,22 @@ var Handler = function(app) {
 
 var handler = Handler.prototype;
 
+handler.enterProject = function (msg, session, next) {
+	session.avatar.lobby.enterProject(msg.id, next);
+};
+
 handler.generateCode = function (msg, session, next) {
-	session.avatar.lobby.generateCode(msg.ip, msg.genCodeInfos, next);
+	session.avatar.lobby.generateCode(msg.genCodeInfos, next);
 };
 
 handler.deploy = function (msg, session, next) {
 	session.avatar.lobby.deploy(msg.ip, next);
 };
 
-handler.connect = function (msg, session, next) {
-	session.avatar.lobby.connect(msg.ip, msg.port, next);
+handler.initSimulation = function (msg, session, next) {
+	session.avatar.lobby.initSimulation(msg.ip, next);
 };
 
-handler.start = function (msg, session, next) {
-	session.avatar.lobby.start(msg.simuInfo, next);
+handler.startSimulation = function (msg, session, next) {
+	session.avatar.lobby.startSimulation(msg.simuInfo, next);
 };

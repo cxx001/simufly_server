@@ -81,9 +81,9 @@ pro.save = function (cb) {
 // 登录时发给客户端
 pro.clientLoginInfo = function () {
 	return {
-		nodes: [],
-        edges: [],
-        info: {},
+		itemList: [
+            {id: 'demo', name: 'demo'}
+        ]
 	}
 };
 

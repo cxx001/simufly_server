@@ -39,5 +39,25 @@ pro.clearEventListeners = function () {
 
 pro.destroy = function () {
     this.clearEventListeners();
+    this.stopSchedule();
     this.entity = null;
+};
+
+pro.startSchedule = function(step, cb) {
+	this.stopSchedule();
+    let count = 0;
+	this._schedule = setInterval(function () {
+        count = count + step;
+        if(count > 1000 * 10) {
+            this.stopSchedule();
+        }
+        cb();
+    }.bind(this), step);
+};
+
+pro.stopSchedule = function() {
+	if (this._schedule) {
+		clearInterval(this._schedule);
+		this._schedule = null;
+	}
 };
