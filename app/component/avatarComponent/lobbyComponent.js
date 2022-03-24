@@ -16,10 +16,10 @@ let fs = require('fs');
 let SocketClient = require('../../util/websocket-client');
 
 const server = {
-    host: '1.15.46.131',
+    host: '192.168.10.251',
     port: 22,
     username: 'root',
-    password: 'cfgame123',
+    password: 'redhat',
 }
 
 let LobbyComponent = function (entity) {
@@ -32,7 +32,7 @@ module.exports = LobbyComponent;
 let pro = LobbyComponent.prototype;
 
 pro.init = function (opts) {
-    this.projectUUID = null;
+    this.projectUUID = 'yyyb_test';
     if (this.client) {
         this.client.disconnect();
         this.client = null;
@@ -41,7 +41,8 @@ pro.init = function (opts) {
 
 pro.enterProject = function (id, next) {
     this.projectUUID = id;
-    next(null, { 
+    this.entity.logger.info('projectUUID: ', id);
+    next(null, {
         code: consts.Code.OK,
         draw: {
             nodes: [],
@@ -51,6 +52,7 @@ pro.enterProject = function (id, next) {
 }
 
 // 生成代码暂时没做，当前是假设代码已经在远端，这里模拟把代码下载下来的过程。
+// 生成代码名字必须是：projectUUID
 pro.generateCode = async function (genCodeInfos, next) {
     next(null, { code: consts.Code.OK });
 
@@ -65,7 +67,7 @@ pro.generateCode = async function (genCodeInfos, next) {
 
     let userDir = './assets/' + this.entity.id;
     if (!fs.existsSync(userDir)) {
-        if(fs.mkdirSync(userDir)) {
+        if (fs.mkdirSync(userDir)) {
             this.entity.logger.warn("create path[%s] dir fail!", userDir);
             this.entity.sendMessage('onMsgTips', {
                 level: consts.TipsLevel.error,
@@ -75,7 +77,7 @@ pro.generateCode = async function (genCodeInfos, next) {
         }
     }
 
-    let remotePath = '/home/demo.zip'
+    let remotePath = '/home/yyyb_test/yyyb1.zip'
     let localPath = userDir + '/' + this.projectUUID + '.zip'
     ssh2.DownloadFile(server, remotePath, localPath, (err, data) => {
         if (err) {
@@ -86,7 +88,9 @@ pro.generateCode = async function (genCodeInfos, next) {
             });
             return;
         }
-        this.entity.sendMessage('onFlowMsg', {code: consts.MsgFlowCode.GenCode});
+        this.entity.sendMessage('onFlowMsg', {
+            code: consts.MsgFlowCode.GenCode,
+        });
     })
 }
 
@@ -104,8 +108,8 @@ pro.deploy = async function (ip, next) {
         return;
     }
 
-    let remotePath = '/home/' + this.projectUUID + '.zip'
-    ssh2.UploadFile(server, localPath, remotePath , (err, result) => {
+    let remotePath = '/home/cxx/' + this.projectUUID + '.zip'
+    ssh2.UploadFile(server, localPath, remotePath, (err, result) => {
         if (err) {
             this.entity.logger.warn('ssh upload deploy file fail! err: %o', err);
             this.entity.sendMessage('onMsgTips', {
@@ -114,9 +118,13 @@ pro.deploy = async function (ip, next) {
             });
             return;
         }
-        this.entity.sendMessage('onFlowMsg', {code: consts.MsgFlowCode.DeployUpload});
+        this.entity.sendMessage('onFlowMsg', { code: consts.MsgFlowCode.DeployUpload });
 
-        let cmd = "find /home/test -type d" + "\r\nexit\r\n";
+        let pathCmd1 = "cd /home/cxx/;"
+        let unzipCmd = "unzip -o ./" + this.projectUUID + ".zip;"
+        let pathCmd2 = "cd ./" + this.projectUUID + "/bin/linux/;";
+        let compileCmd = "./compile.sh";
+        let cmd = pathCmd1 + unzipCmd + pathCmd2 + compileCmd + "\r\nexit\r\n";
         ssh2.Shell(server, cmd, (err, data) => {
             if (err) {
                 this.entity.logger.warn('ssh shell commond fail! err: %o', err);
@@ -139,8 +147,10 @@ pro.initSimulation = async function (ip, next) {
     next(null, { code: consts.Code.OK });
 
     // 1. 运行(先关闭再运行)
-    let cmd = "find /home/test -type d" + "\r\nexit\r\n";
-    await ssh2.Shell(server, cmd, (err, data) => {
+    let pathCmd = "cd /home/cxx/" + this.projectUUID + "/bin/linux/;";
+    let startCmd = "./start.sh";
+    let cmd = pathCmd + startCmd + "\r\nexit\r\n";
+    ssh2.Shell(server, cmd, (err, data) => {
         if (err) {
             this.entity.logger.warn('ssh shell commond fail! err: %o', err);
             this.entity.sendMessage('onMsgTips', {
@@ -154,27 +164,33 @@ pro.initSimulation = async function (ip, next) {
             code: consts.MsgFlowCode.InitEngine,
             data: data
         });
-    });
 
-    // 2. 连接
-    // this.client = new SocketClient();
-    // this.client.init({host: server.host, port: 0}).then( () => {
-        this.entity.sendMessage('onFlowMsg', {code: consts.MsgFlowCode.ConnEngine});
-    // });
+        let flag = "port=";
+        if(data.indexOf(flag) != -1) {
+            let port = Number(data.split(flag)[1]);
+            this.entity.logger.info('engine start port: %d', port);
+            // 2. 连接
+            this.client = new SocketClient();
+            this.client.init({ host: server.host, port: port }).then(() => {
+                this.entity.sendMessage('onFlowMsg', { code: consts.MsgFlowCode.ConnEngine });
+            });
+        }
+    });
 }
 
 pro.startSimulation = async function (simuInfo, next) {
     next(null, { code: consts.Code.OK });
-    // this.client.request('start', {simuInfo: simuInfo}). then((data) => {
-        // this.entity.sendMessage('onFlowMsg', {
-        //     code: consts.MsgFlowCode.StartSimulation
-        // });
-    // });
-    let index = 0;
-    this.startSchedule(1000, () => {
+    this.client.request('start', {}).then((data) => {
         this.entity.sendMessage('onFlowMsg', {
             code: consts.MsgFlowCode.StartSimulation,
-            data: '开始仿真 ' + index++
+            data: data
         });
     });
+    // let index = 0;
+    // this.startSchedule(1000, () => {
+    //     this.entity.sendMessage('onFlowMsg', {
+    //         code: consts.MsgFlowCode.StartSimulation,
+    //         data: '开始仿真 ' + index++
+    //     });
+    // });
 }

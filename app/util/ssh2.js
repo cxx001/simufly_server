@@ -45,7 +45,10 @@ function Shell(server, cmd, then){
 						resolve(true);
 					}).on('data', data => {
 						// console.log('conn[data]: ', data.toString())
-						then && then(err, data.toString())
+						let tostr = data.toString();
+						if (tostr.length > 1) {
+							then && then(err, tostr);
+						}
 					})
 					stream.stderr.on('data', data => {
 						console.log('conn[stderr]: ', data.toString())

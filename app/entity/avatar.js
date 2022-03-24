@@ -82,7 +82,7 @@ pro.save = function (cb) {
 pro.clientLoginInfo = function () {
 	return {
 		itemList: [
-            {id: 'demo', name: 'demo'}
+            {id: 'yyyb_test', name: 'demo'}
         ]
 	}
 };
