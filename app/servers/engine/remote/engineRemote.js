@@ -14,18 +14,18 @@ var Remote = function (app) {
 
 var pro = Remote.prototype;
 
-pro.generateCode = function (uids, projectUUID, genCodeInfos) {
-    this.app.engineStub.generateCode(uids, projectUUID, genCodeInfos);
+pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
+    this.app.engineStub.generateCode(uids, projectUUID, genCodeInfos, cb);
 }
 
-pro.deploy = function (uids, projectUUID, ip) {
-    this.app.engineStub.deploy(uids, projectUUID, ip);
+pro.deploy = function (uids, projectUUID, ip, cb) {
+    this.app.engineStub.deploy(uids, projectUUID, ip, cb);
 }
 
-pro.initSimulation = function (uids, projectUUID, ip) {
-    this.app.engineStub.initSimulation(uids, projectUUID, ip);
+pro.initSimulation = function (uids, projectUUID, ip, cb) {
+    this.app.engineStub.initSimulation(uids, projectUUID, ip, cb);
 }
 
-pro.startSimulation = function (uids, simuInfo) {
-    this.app.engineStub.startSimulation(uids, simuInfo);
+pro.startSimulation = function (uids, simuInfo, cb) {
+    this.app.engineStub.startSimulation(uids, simuInfo, cb);
 }

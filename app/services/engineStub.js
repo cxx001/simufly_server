@@ -34,7 +34,8 @@ var EngineStub = function (app) {
 
 var pro = EngineStub.prototype;
 
-pro.generateCode = function (uids, projectUUID, genCodeInfos) {
+pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
+    utils.invokeCallback(cb);
     let userDir = './assets/' + uids.uid;
     if (!fs.existsSync(userDir)) {
         if (fs.mkdirSync(userDir)) {
@@ -64,7 +65,8 @@ pro.generateCode = function (uids, projectUUID, genCodeInfos) {
 }
 
 // TODO: ip: 正式场景会去后台数据库中根据ip查找机器账号密码信息
-pro.deploy = function (uids, projectUUID, ip) {
+pro.deploy = function (uids, projectUUID, ip, cb) {
+    utils.invokeCallback(cb);
     // 1.ssh登录 2.上传 3.解压 4.编译
     let localPath = './assets/' + uids.uid + '/' + projectUUID + '.zip';
     if (!fs.existsSync(localPath)) {
@@ -113,7 +115,8 @@ pro.deploy = function (uids, projectUUID, ip) {
     });
 }
 
-pro.initSimulation = function(uids, projectUUID, ip) {
+pro.initSimulation = function(uids, projectUUID, ip, cb) {
+    utils.invokeCallback(cb);
     // 1. 运行(先关闭再运行)
     let pathCmd = "cd /home/" + projectUUID + "/bin/linux/;";
     let startCmd = "./start.sh";
@@ -147,7 +150,7 @@ pro.initSimulation = function(uids, projectUUID, ip) {
     });
 }
 
-pro.startSimulation = function (uids, simuInfo) {
-    
+pro.startSimulation = function (uids, simuInfo, cb) {
+    utils.invokeCallback(cb);
 }
 
