@@ -7,6 +7,7 @@ let mongodb = require("./app/mongodb/mongodb");
 let entityFactory = require('./app/entity/entityFactory');
 let routeUtil = require('./app/util/routeUtil');
 let RollStub = require('./app/services/rollStub');
+let EngineStub = require('./app/services/engineStub');
 
 let avatarFilter = require('./app/servers/connector/filter/avatarFilter');
 
@@ -109,6 +110,10 @@ app.configure('production|development', function () {
 
 app.configure('production|development', 'auth', function () {
     app.set('rollStub', RollStub(app));
+});
+
+app.configure('production|development', 'engine', function () {
+	app.set('engineStub', new EngineStub(app), true);
 });
 
 // start app

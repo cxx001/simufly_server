@@ -40,6 +40,15 @@
 			"localRoot": "", // "${workspaceFolder}",
 			//"remoteRoot": "/home/cfyx/cfyx-server"
 		},
+		{
+			"type": "node",
+			"request": "attach",
+			"name": "engine-server-1",
+			"address": "127.0.0.1",
+			"port": 15150,
+			"localRoot": "", // "${workspaceFolder}",
+			//"remoteRoot": "/home/cfyx/cfyx-server"
+		},
 
         {
             "type": "node",
