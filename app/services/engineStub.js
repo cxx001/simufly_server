@@ -4,14 +4,16 @@
  * Description:
  */
 'use strict';
-var pomelo = require('pomelo');
-var consts = require('../common/consts');
-var utils = require('../util/utils')
-var logger = require('pomelo-logger').getLogger('cskl', '__filename');
-let ssh2 = require('../util/ssh2');
-let fs = require('fs');
-let messageService = require('../services/messageService');
+const pomelo = require('pomelo');
+const consts = require('../common/consts');
+const utils = require('../util/utils')
+const logger = require('pomelo-logger').getLogger('cskl', '__filename');
+const ssh2 = require('../util/ssh2');
+const fs = require('fs');
+const messageService = require('../services/messageService');
+const child_process = require('child_process');
 
+// 配置
 const remotePackagePath = '/home/package/yyyb1.zip';
 const server = {
     host: '192.168.10.251',
@@ -30,9 +32,58 @@ module.exports = function (app) {
 
 var EngineStub = function (app) {
     this.app = app;
+    let engines = app.get('servers').engine;
+    let engineCfg = utils.find2key('id', app.get('serverId'), engines);
+    this.zmqHost =  engineCfg.zmqHost;
+    this.zmqReqPort = engineCfg.zmqReqPort;
+    this.zmqRspPort = engineCfg.zmqRspPort;
+
+    // 创建zmq通信子进程
+    this._createChildProcess();
 };
 
 var pro = EngineStub.prototype;
+
+pro._createChildProcess = function () {
+    let process = child_process.spawn('node', ['./app/util/zmq.js'], {stdio: [null, null, null, 'ipc']});
+    process.stdout.on('data', function (data) {
+        logger.info('zmq进程日志: ' + data);
+    });
+    
+    process.stderr.on('data', function (data) {
+        logger.warn('zmq进程错误: ' + data);
+    });
+    
+    process.on('close', function (code) {
+        logger.info('zmq进程已退出, 退出码: '+ code);
+    });
+    
+    process.on('message', (m) => {
+        // onXxxx
+        let func = 'on' + m.route;
+        if (this[func]) {
+            this[func](m.msg);
+        }
+    });
+
+    let msg = {
+        route: 'init',
+        msg:  {zmqReqPort: this.zmqReqPort, zmqRspPort: this.zmqRspPort}
+    }
+    process.send(msg);
+
+    // 模拟向引擎发送
+    // setInterval(() => {
+    //     process.send({
+    //         uid: "A",
+    //         route: 'ModifyParameter',
+    //         msg: {
+    //             name: "1232343254325",
+    //             value: 100
+    //         }
+    //     });
+    // }, 5000);
+}
 
 pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
     utils.invokeCallback(cb);

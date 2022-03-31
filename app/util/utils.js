@@ -157,33 +157,33 @@ utils.isEmptyObject = function (obj) {
 
 function getMyDate(date) {
     var oDate = new Date(date),
-    oYear = oDate.getFullYear(),
-    oMonth = oDate.getMonth()+1,
-    oDay = oDate.getDate(),
-    oHour = oDate.getHours(),
-    oMin = oDate.getMinutes(),
-    oSen = oDate.getSeconds(),
-    oTime = oYear +'-'+ addZero(oMonth) +'-'+ addZero(oDay) +' '+ addZero(oHour) +':'+addZero(oMin) +':'+addZero(oSen);
+        oYear = oDate.getFullYear(),
+        oMonth = oDate.getMonth() + 1,
+        oDay = oDate.getDate(),
+        oHour = oDate.getHours(),
+        oMin = oDate.getMinutes(),
+        oSen = oDate.getSeconds(),
+        oTime = oYear + '-' + addZero(oMonth) + '-' + addZero(oDay) + ' ' + addZero(oHour) + ':' + addZero(oMin) + ':' + addZero(oSen);
     return oTime;
 }
 
-function addZero(num){
-    if(parseInt(num) < 10){
-        num = '0'+num;
+function addZero(num) {
+    if (parseInt(num) < 10) {
+        num = '0' + num;
     }
     return num;
-} 
+}
 
 /**
  * date: 单位毫秒时间
  * 某时间与今天相差天数
  * 返回0是当天, 为负数，-1为明天,负多少就是差多少,正数相反的道理.
- *  */  
+ *  */
 utils.judgeTime = function (date) {
-	if (!date || date == 0) {
-		return 0;
-	}
-	let dateTime = getMyDate(date);
+    if (!date || date == 0) {
+        return 0;
+    }
+    let dateTime = getMyDate(date);
     let year = dateTime.substring(0, 4);
     let month = dateTime.substring(5, 7);
     let day = dateTime.substring(8, 10);
@@ -193,13 +193,23 @@ utils.judgeTime = function (date) {
     let m = dd.getMonth() + 1;
     let d = dd.getDate();
     let d2 = new Date(y + '/' + m + '/' + d);
-	let iday = parseInt(d2 - d1) / 1000 / 60 / 60 / 24;
-	// console.log('比较时间:', year + '/' + month + '/' + day);
-	// console.log('当前时间:', y + '/' + m + '/' + d);
-	// console.log('相差天数:', iday);
+    let iday = parseInt(d2 - d1) / 1000 / 60 / 60 / 24;
+    // console.log('比较时间:', year + '/' + month + '/' + day);
+    // console.log('当前时间:', y + '/' + m + '/' + d);
+    // console.log('相差天数:', iday);
     return Math.floor(iday);
 };
 
 utils.sleep = ms => {
     return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+utils.find2key = function (key, value, items) {
+    for (let i = 0; i < items.length; i++) {
+        let item = items[i];
+        if (item[key] == value) {
+            return item;
+        }
+    }
+    return null;
 };

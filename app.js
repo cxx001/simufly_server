@@ -113,7 +113,7 @@ app.configure('production|development', 'auth', function () {
 });
 
 app.configure('production|development', 'engine', function () {
-	app.set('engineStub', new EngineStub(app), true);
+	app.set('engineStub', EngineStub(app), true);
 });
 
 // start app
