@@ -49,6 +49,15 @@
 			"localRoot": "", // "${workspaceFolder}",
 			//"remoteRoot": "/home/cfyx/cfyx-server"
 		},
+		{
+			"type": "node",
+			"request": "attach",
+			"name": "assets-server-1",
+			"address": "127.0.0.1",
+			"port": 16150,
+			"localRoot": "", // "${workspaceFolder}",
+			//"remoteRoot": "/home/cfyx/cfyx-server"
+		},
 
         {
             "type": "node",

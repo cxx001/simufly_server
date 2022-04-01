@@ -47,6 +47,15 @@
 				"zmqRspPort": 25151,
 				"args": " --inspect=0.0.0.0:15150"
 			}
+		],
+		"assets": [
+			{
+				"id": "assets-server-1",
+				"host": "127.0.0.1",
+				"port": 6150,
+				"httpPort": 26150,
+				"args": " --inspect=0.0.0.0:16150"
+			}
 		]
 	},
 	"production": {
@@ -91,6 +100,14 @@
 				"zmqHost": "192.168.10.120",
 				"zmqReqPort": 25150,
 				"zmqRspPort": 25151
+			}
+		],
+		"assets": [
+			{
+				"id": "assets-server-1",
+				"host": "127.0.0.1",
+				"port": 6150,
+				"httpPort": 26150
 			}
 		]
 	}

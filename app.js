@@ -8,6 +8,7 @@ let entityFactory = require('./app/entity/entityFactory');
 let routeUtil = require('./app/util/routeUtil');
 let RollStub = require('./app/services/rollStub');
 let EngineStub = require('./app/services/engineStub');
+let AssetsStub = require('./app/services/assetsStub');
 
 let avatarFilter = require('./app/servers/connector/filter/avatarFilter');
 
@@ -114,6 +115,10 @@ app.configure('production|development', 'auth', function () {
 
 app.configure('production|development', 'engine', function () {
 	app.set('engineStub', EngineStub(app), true);
+});
+
+app.configure('production|development', 'assets', function () {
+	app.set('assetsStub', AssetsStub(app), true);
 });
 
 // start app

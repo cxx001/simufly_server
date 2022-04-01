@@ -2,23 +2,29 @@ syntax = "proto3";
 package kl.simufly;
 
 message ControlCmd {
-  enum cmdType {
-    start = 0;
-    stop = 1;
-    terminate = 2;
-  }
-  optional cmdType cmd_type = 1;
+  enum cmdType {
+    start = 0;
+    stop = 1;
+    terminate = 2;
+  }
+  optional cmdType cmd_type = 1;
 }
 
 message ModifyParameter {
-  string name = 1;
-  optional double value = 2;
+  bytes index = 1;
+  optional double value = 2;
+}
+
+message SimuData {
+  fixed32 index = 1;
+  repeated double value = 2;
 }
 
 message Type {
-  // 定义消息类型枚举，区分收到的消息类型
-  enum messageType {
-    ControlCmd = 0; //控制指令，包括开始仿真、暂停仿真、停止仿真等
-    ModifyParameter = 1; //动态调参
-  }
+  // 定义消息类型枚举，区分收到的消息类型
+  enum messageType {
+    ControlCmd = 0; //控制指令，包括开始仿真、暂停仿真、停止仿真等
+    ModifyParameter = 1; //动态调参
+    SimuData = 2;
+  }
 }
