@@ -11,7 +11,7 @@ const logger = require('pomelo-logger').getLogger('cskl', '__filename');
 const fs = require('fs');
 const messageService = require('../services/messageService');
 const EventEmitter = require('events').EventEmitter;
-const HttpServer = require('../util/httpServer');
+const koa = require('../koa/main');
 
 var instance = null;
 module.exports = function (app) {
@@ -26,7 +26,7 @@ var AssetsStub = function (app) {
     let assets = app.get('servers').assets;
     let assetsCfg = utils.find2key('id', app.get('serverId'), assets);
     let httpPort =  assetsCfg.httpPort;
-    HttpServer.start({port: httpPort});
+    koa.start(httpPort);
 }
 
 var pro = AssetsStub.prototype;

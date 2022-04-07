@@ -88,3 +88,8 @@ pro.checkout = function (openid, uid, cb) {
     delete this.uid2sid[uid];
     utils.invokeCallback(cb);
 };
+
+pro.getUid2Sid = function (uid, cb) {
+    let sid = this.uid2sid[uid];
+    utils.invokeCallback(cb, sid);
+}

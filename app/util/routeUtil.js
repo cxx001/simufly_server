@@ -8,23 +8,23 @@
 
 var exp = module.exports
 
-exp.auth = function (session, msg, app, cb) {
-    var serverId = session.get('tableServer');
+// exp.auth = function (session, msg, app, cb) {
+//     var serverId = session.get('tableServer');
 
-    if(!serverId) {
-        cb(new Error('can not find server info for type: ' + msg.serverType));
-        return;
-    }
+//     if(!serverId) {
+//         cb(new Error('can not find server info for type: ' + msg.serverType));
+//         return;
+//     }
 
-    cb(null, serverId);
-};
+//     cb(null, serverId);
+// };
 
-exp.auth = function (idx, msg, app, cb) {
-    if(!idx) {
-        cb(new Error('idx not nil!'));
-        return;
-    }
+// exp.auth = function (idx, msg, app, cb) {
+//     if(!idx) {
+//         cb(new Error('idx not nil!'));
+//         return;
+//     }
 
-    let sid = 'auth-global-server-' + idx;
-    cb(null, sid);
-};
+//     let sid = 'auth-global-server-' + idx;
+//     cb(null, sid);
+// };

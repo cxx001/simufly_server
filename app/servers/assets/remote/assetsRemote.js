@@ -14,6 +14,6 @@ var Remote = function (app) {
 
 var pro = Remote.prototype;
 
-pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
-    this.app.engineStub.generateCode(uids, projectUUID, genCodeInfos, cb);
-}
+// pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
+//     this.app.engineStub.generateCode(uids, projectUUID, genCodeInfos, cb);
+// }

@@ -53,6 +53,7 @@
 				"id": "assets-server-1",
 				"host": "127.0.0.1",
 				"port": 6150,
+				"httpHost": "192.168.10.120",
 				"httpPort": 26150,
 				"args": " --inspect=0.0.0.0:16150"
 			}
@@ -107,6 +108,7 @@
 				"id": "assets-server-1",
 				"host": "127.0.0.1",
 				"port": 6150,
+				"httpHost": "192.168.10.120",
 				"httpPort": 26150
 			}
 		]

@@ -25,6 +25,16 @@ pro.init = function (opts) {
     this.projectUUID = 'yyyb_test';
 }
 
+pro.getHttpSrvInfo = function (next) {
+    let assets = pomelo.app.getServersByType('assets');
+	let res = dispatcher.dispatch(this.entity.id, assets);
+	next(null, {
+        code: consts.Code.OK,
+        host: res.httpHost,
+        port: res.httpPort
+    });
+}
+
 pro.enterProject = function (id, next) {
     this.projectUUID = id;
     this.entity.logger.info('projectUUID: ', id);

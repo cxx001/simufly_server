@@ -38,3 +38,6 @@ nohup xxx >/dev/null 2>&1 &  什么信息也不要
 
 4. windows上安装完mongodb，bin下双击mongod.exe启动马上就退出：
 解决：假设安装在D:\mongodb\bin\mongod.exe这个目录，那么要在D根目录下建一个data目录。
+
+5. 启动报 Last few GCs  ----  JS stacktrace ------ 内存不足错误:
+解决: 管理员权限下启动cmd, 执行 set NODE_OPTIONS=--max_old_space_size=8172

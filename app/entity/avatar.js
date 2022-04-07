@@ -81,9 +81,7 @@ pro.save = function (cb) {
 // 登录时发给客户端
 pro.clientLoginInfo = function () {
 	return {
-		itemList: [
-            {id: 'yyyb_test', name: 'demo'}
-        ]
+		projectList: this.projectList
 	}
 };
 
