@@ -10,7 +10,7 @@ var Entity = require('./entity');
 var messageService = require('../services/messageService');
 var consts = require('../common/consts');
 
-var AUTO_SAVE_TICK = 1000 * 60 * 5  // 自动存盘时间
+var AUTO_SAVE_TICK = 1000 * 60 * 3  // 自动存盘时间
 
 var Avatar = function (opts) {
     opts = opts || {};
@@ -50,6 +50,22 @@ pro.updateUserInfo = function (userInfo, bLogin) {
         this.emit("EventLogin", this);
     }
 };
+
+pro.modifyProList = function (optype, pro_info) {
+    if (optype == 1) {
+        // 新增
+        this.projectList.push(pro_info);
+    } else {
+        // 删除
+        for (let i = 0; i < this.projectList.length; i++) {
+            let item = this.projectList[i];
+            if (pro_info.id == item.id) {
+                this.projectList.splice(i, 1);
+                break;
+            }
+        }
+    }
+}
 
 // 存盘信息更新
 pro.getDBProp = function () {

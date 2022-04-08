@@ -7,7 +7,7 @@
  * 
  * 当前使用http场景并不多(就上传服务)，所以先简单点引入koa提供独立的http服务。
  */
-
+const fs = require('fs');
 const path = require('path')
 const Koa = require('koa');
 const KoaStatic = require('koa-static')
@@ -18,7 +18,7 @@ const KoaBody = require('koa-body')
 const app = new Koa();
 
 const router = require('./router')
-const uploadFolder = path.join(__dirname, '../../assets/upload/');
+const uploadFolder = path.join(__dirname, '../../assets/cache/');
 
 app.use(KoaBody({
     multipart: true,
@@ -32,7 +32,10 @@ app.use(KoaBody({
         //     return mimetype && mimetype.includes("image");
         // }
         onFileBegin: (name, file) => {
-            file.path = `${uploadFolder}${file.name}`
+            if (!fs.existsSync(uploadFolder)) {
+                fs.mkdirSync(uploadFolder);
+            }
+            // file.path = `${uploadFolder}${file.name}`
         },
         onError: (error) => {
             console.warn('上传失败!');
@@ -51,7 +54,9 @@ app.on('error', (err, ctx) => {
     console.warn(err);
 })
 
-exports.start = function(port){
+exports.start = function (opt) {
+    app.assetsStub = opt;
+    let port =  opt.assetsCfg.httpPort;
     app.listen(port, () => {
         console.log(`http server is running on http://localhost:${port}`);
     })

@@ -16,7 +16,6 @@ const callAuthRemote = (uid) => {
         pomelo.app.rpc.auth.authRemote.getUid2Sid(null, uid, (sid) => {
             resolve(sid)
         });
-
     })
 }
 
@@ -34,7 +33,6 @@ const verifyUser = async (ctx, next) => {
     }
     await next()
 }
-
 
 module.exports = {
     userValidator,

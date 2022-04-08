@@ -46,3 +46,12 @@ pro.onFindUserInfo = function (avtID, cb) {
         cb(null);
     }
 };
+
+// optype 1: 添加  2: 删除
+pro.onModifyProjectList = function (avtID, optype, pro_info, cb) {
+    var avatar = entityManager.getEntity(avtID);
+    if (avatar) {
+        avatar.modifyProList(optype, pro_info);
+        cb();
+    }
+}
