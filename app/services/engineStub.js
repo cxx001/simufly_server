@@ -51,7 +51,7 @@ var pro = EngineStub.prototype;
 pro._createChildProcess = function () {
     let process = child_process.spawn('node', ['./app/util/zmq.js'], {stdio: [null, null, null, 'ipc']});
     process.stdout.on('data', function (data) {
-        logger.info('zmq进程日志: ' + data);
+        // logger.info('zmq进程日志: ' + data);
     });
     
     process.stderr.on('data', function (data) {

@@ -127,7 +127,7 @@ pro.getEntry = function (id, createData) {
  * @param {*} proinfo 项目基础信息
  * @returns 
  */
-pro.callAvatarRemote = (uid, sid, optype, proinfo) => {
+pro.callAvatarRemote = function (uid, sid, optype, proinfo) {
     return new Promise((resolve, reject) => {
         pomelo.app.rpc.connector.entryRemote.onModifyProjectList.toServer(sid, uid, optype, proinfo, () => {
             resolve()
@@ -135,7 +135,7 @@ pro.callAvatarRemote = (uid, sid, optype, proinfo) => {
     })
 }
 
-pro.getProject = async (id, cb) => {
+pro.getProject = async function (id, cb) {
     let project = await this.getEntry(id);
     if (!project) {
         logger.warn('get project [%s] not exist!', id);

@@ -36,7 +36,7 @@ pro._onLogin = function (entity) {
     const engines = pomelo.app.getServersByType('engine');
     for (let i = 0; i < engines.length; i++) {
         const res = engines[i];
-        pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, res.id, null);
+        pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, entity.serverId, null);
     }
 };
 
@@ -52,7 +52,7 @@ pro._onReconnect = function (entity) {
 	const engines = pomelo.app.getServersByType('engine');
     for (let i = 0; i < engines.length; i++) {
         const res = engines[i];
-        pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, res.id, null);
+        pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, entity.serverId, null);
     }
 };
 
