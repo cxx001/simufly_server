@@ -34,6 +34,6 @@ handler.initSimulation = function (msg, session, next) {
 	session.avatar.lobby.initSimulation(msg.ip, next);
 }
 
-handler.startSimulation = function (msg, session, next) {
-	session.avatar.lobby.startSimulation(msg.simuInfo, next);
+handler.sendControlCmd = function (msg, session, next) {
+	session.avatar.lobby.sendControlCmd(msg.cmdtype, next);
 }

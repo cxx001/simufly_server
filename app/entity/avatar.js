@@ -97,6 +97,7 @@ pro.save = function (cb) {
 // 登录时发给客户端
 pro.clientLoginInfo = function () {
 	return {
+        uid: this.id,
 		projectList: this.projectList
 	}
 };

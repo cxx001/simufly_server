@@ -42,7 +42,7 @@ module.exports = {
         DeployUpload: 2, // 上传代码完成
         DeployDoShell: 3, // 执行解压、编译脚本完成
         InitEngine: 4, // 初始化引擎完成
-        ConnEngine: 5, // 连接引擎完成
+        ConnEngine: 5, // 握手绑定完成
         StartSimulation: 6,  // 开始仿真
     },
 
@@ -59,6 +59,7 @@ module.exports = {
         NONDeployPath: {code: 4, msg: '部署上传代码不存在'},
         DeployUploadFail: {code: 5, msg: '部署上传代码失败'},
         DeployDoShellFail: {code: 6, msg: '部署执行脚本失败'},
-        InitEngineFail: {code: 7, msg: '初始化引擎失败'}
+        InitEngineFail: {code: 7, msg: '初始化引擎失败'},
+        UserBindedEngine: {code: 8, msg: '用户已经绑定引擎了'},
     }
 }

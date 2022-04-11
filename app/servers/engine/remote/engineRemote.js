@@ -14,6 +14,10 @@ var Remote = function (app) {
 
 var pro = Remote.prototype;
 
+pro.updateUserState = function (uid, sid, cb) {
+    this.app.engineStub.updateUserState(uid, sid, cb);
+}
+
 pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
     this.app.engineStub.generateCode(uids, projectUUID, genCodeInfos, cb);
 }
@@ -26,6 +30,6 @@ pro.initSimulation = function (uids, projectUUID, ip, cb) {
     this.app.engineStub.initSimulation(uids, projectUUID, ip, cb);
 }
 
-pro.startSimulation = function (uids, simuInfo, cb) {
-    this.app.engineStub.startSimulation(uids, simuInfo, cb);
+pro.sendControlCmd = function (uids, cmdtype, cb) {
+    this.app.engineStub.sendControlCmd(uids, cmdtype, cb);
 }

@@ -23,7 +23,38 @@ let pro = LobbyComponent.prototype;
 
 pro.init = function (opts) {
     this.projectUUID = 'yyyb_test';
+    this._bindEvent();
 }
+
+pro._bindEvent = function () {
+    this.entity.safeBindEvent("EventLogin", this._onLogin.bind(this));
+    this.entity.safeBindEvent("EventLogout", this._onLogout.bind(this));
+    this.entity.safeBindEvent("EventReconnect", this._onReconnect.bind(this));
+};
+
+pro._onLogin = function (entity) {
+    const engines = pomelo.app.getServersByType('engine');
+    for (let i = 0; i < engines.length; i++) {
+        const res = engines[i];
+        pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, res.id, null);
+    }
+};
+
+pro._onLogout = function (entity) {
+	const engines = pomelo.app.getServersByType('engine');
+    for (let i = 0; i < engines.length; i++) {
+        const res = engines[i];
+        pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, null, null);
+    }
+};
+
+pro._onReconnect = function (entity) {
+	const engines = pomelo.app.getServersByType('engine');
+    for (let i = 0; i < engines.length; i++) {
+        const res = engines[i];
+        pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, res.id, null);
+    }
+};
 
 pro.getHttpSrvInfo = function (next) {
     let assets = pomelo.app.getServersByType('assets');
@@ -38,12 +69,9 @@ pro.getHttpSrvInfo = function (next) {
 pro.enterProject = function (id, next) {
     this.projectUUID = id;
     this.entity.logger.info('projectUUID: ', id);
-    next(null, {
-        code: consts.Code.OK,
-        draw: {
-            nodes: [],
-            edges: [],
-        }
+
+    pomelo.app.rpc.assets.assetsRemote.getProject(null, id, (rsp) => {
+        next(null, rsp);
     });
 }
 
@@ -102,13 +130,8 @@ pro.initSimulation = async function (ip, next) {
     this._callRemote('initSimulation', this.projectUUID, ip, null);
 }
 
-pro.startSimulation = async function (simuInfo, next) {
+pro.sendControlCmd = async function (cmdtype, next) {
     next(null, { code: consts.Code.OK });
     
-    // this.client.request('start', {}).then((data) => {
-    //     this.entity.sendMessage('onFlowMsg', {
-    //         code: consts.MsgFlowCode.StartSimulation,
-    //         data: data
-    //     });
-    // });
+    this._callRemote('sendControlCmd', cmdtype, null);
 }
