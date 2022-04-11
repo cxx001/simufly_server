@@ -28,7 +28,7 @@ pro.init = function (opts) {
 
 pro._bindEvent = function () {
     this.entity.safeBindEvent("EventLogin", this._onLogin.bind(this));
-    this.entity.safeBindEvent("EventLogout", this._onLogout.bind(this));
+    this.entity.safeBindEvent("EventDisconnect", this._onDisconnect.bind(this));
     this.entity.safeBindEvent("EventReconnect", this._onReconnect.bind(this));
 };
 
@@ -40,7 +40,7 @@ pro._onLogin = function (entity) {
     }
 };
 
-pro._onLogout = function (entity) {
+pro._onDisconnect = function (entity) {
 	const engines = pomelo.app.getServersByType('engine');
     for (let i = 0; i < engines.length; i++) {
         const res = engines[i];
