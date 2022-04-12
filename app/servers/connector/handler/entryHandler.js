@@ -117,6 +117,7 @@ var doLogin = function (app, session, next, openid, session_key, userInfo) {
 					// 不在同一个进程，告诉客户端重连
 					var server = null;
 					var servers = app.getServersByType('connector');
+                    console.warn('connector servers info: ', servers);
 					for (var i in servers) {
 						if (servers[i].id === formerSid) {
                             server = servers[i];
@@ -195,7 +196,7 @@ var onAvatarLeave = function (app, session, reason) {
     }
     if (reason == "relay") {
         // 顶号
-        console.log("xxxxxxxxxxxxxxx", "onAvatarLeave relay")
+        console.warn("xxxxxxxxxxxxxxx", "onAvatarLeave relay")
         return;
     }
     var avtID = session.uid;

@@ -95,7 +95,7 @@ pro.updateUserState = function (uid, sid, cb) {
     logger.info('更新用户状态. uid-sid: ', uid, sid);
 }
 
-pro.bindEngine = (uid, opt) => {
+pro.bindEngine = function (uid, opt) {
     if (this.uid2engine[uid]) {
         logger.warn("用户[%s]已经绑定引擎!", uid);
         return;
@@ -105,12 +105,12 @@ pro.bindEngine = (uid, opt) => {
     logger.info("用户[%s]已经和引擎绑定.", uid);
 }
 
-pro.unbindEngine = (uid) => {
+pro.unbindEngine = function (uid) {
     delete this.uid2engine[uid];
     logger.info("用户[%s]已经和引擎解绑.", uid);
 }
 
-pro.checkIsBind = (uid) => {
+pro.checkIsBind = function (uid) {
     if (this.uid2engine[uid]) {
         return true;
     }
@@ -256,7 +256,7 @@ pro.initSimulation = function(uids, projectUUID, ip, cb) {
  * 2. 引擎发送一条握手消息确定已经绑定启动成功
  * @param {*} msg 内容要包含 uid reqport rspport
  */
-pro.onEngineHandler = (msg) => {
+pro.onEngineHandler = function (msg) {
     logger.info(msg);
     let uid = msg[0];
     this.bindEngine(uid, true);
@@ -273,7 +273,7 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
 }
 
 // 引擎运行推送
-pro.onEngineCmd = (msg) => {
+pro.onEngineCmd = function (msg) {
     logger.info(msg);
     let uid = msg[0];
 
