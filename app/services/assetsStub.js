@@ -1111,3 +1111,66 @@ pro.getProject = async function (id, cb) {
         sysList: sysList
     });
 }
+
+pro._getShapeType = function (nodeType) {
+    let shape = "my-rect"
+    if (nodeType == 6) {
+        // 子系统
+        shape = "my-rect"
+    } else if (nodeType == 0) {
+        // 最小模型
+        shape = "my-rect"
+    } else if (nodeType == 2) {
+        // 加法器, 圆形
+        shape = "my-circle"
+    }
+    return shape;
+}
+
+pro._formatDB2Vue = function (dbjson) {
+    let sysList = [];
+    for (let i = 0; i < dbjson.data.length; i++) {
+        const itemSys = dbjson.data[i];
+        let item = {};
+        item.pid = itemSys.pid;
+        item.id = itemSys.id;
+        item.label = itemSys.name;
+        item.data = {};
+        item.data.cells = [];
+        // 模块
+        for (let j = 0; j < itemSys.block.length; j++) {
+            const unit = element.block[j];
+            let model = {};
+            model.position = unit.position;
+            model.size = unit.size;
+            model.attrs = { text: { text: unit.name} };
+            model.shape = this._getShapeType(unit.nodeType);
+            model.ports = {};
+            model.items = unit.items;
+            model.id = unit.id;
+            model.child = unit.child;
+            model.name = unit.name;
+            model.nodeType = unit.nodeType;
+            model.zIndex = j;
+            item.data.cells.push(model);
+        }
+
+        // 连线
+        for (let j = 0; j < itemSys.line.length; j++) {
+            const unit = element.line[j];
+            let line = {};
+            if (unit.dim > 1) {
+                line.shape = "double-edge";
+            } else {
+                line.shape = "dag-edge";
+            }
+            line.id = unit.id;
+            line.source = unit.source;
+            line.target = unit.target;
+            line.zIndex = j + itemSys.block.length;
+        }
+        
+        sysList.push(item);
+    }
+    return sysList;
+}

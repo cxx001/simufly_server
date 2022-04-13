@@ -33,7 +33,7 @@ app.configure('production|development', 'gate', function () {
     app.set('connectorConfig',
         {
             connector: pomelo.connectors.hybridconnector,
-			heartbeat: 60,
+			heartbeat: 10,
 			useDict: true,
             // ssl: {
             //     type: 'wss',
@@ -51,7 +51,7 @@ app.configure('production|development', 'connector', function () {
     app.set('connectorConfig',
     {
 		connector: pomelo.connectors.hybridconnector,
-		heartbeat: 60,
+		heartbeat: 10,
 		useDict: true,
 		// ssl: {
 		//     type: 'wss',

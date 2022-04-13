@@ -30,7 +30,7 @@ pro._bindEvent = function () {
     this.entity.safeBindEvent("EventLogin", this._onLogin.bind(this));
     this.entity.safeBindEvent("EventDisconnect", this._onDisconnect.bind(this));
     this.entity.safeBindEvent("EventReconnect", this._onReconnect.bind(this));
-};
+}
 
 pro._onLogin = function (entity) {
     const engines = pomelo.app.getServersByType('engine');
@@ -38,7 +38,7 @@ pro._onLogin = function (entity) {
         const res = engines[i];
         pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, entity.serverId, null);
     }
-};
+}
 
 pro._onDisconnect = function (entity) {
 	const engines = pomelo.app.getServersByType('engine');
@@ -46,7 +46,7 @@ pro._onDisconnect = function (entity) {
         const res = engines[i];
         pomelo.app.rpc.engine.engineRemote.updateUserState.toServer(res.id, entity.id, null, null);
     }
-};
+}
 
 pro._onReconnect = function (entity) {
 	const engines = pomelo.app.getServersByType('engine');
@@ -68,7 +68,7 @@ pro.getHttpSrvInfo = function (next) {
 
 pro.enterProject = function (id, next) {
     this.projectUUID = id;
-    this.entity.logger.info('projectUUID: ', id);
+    this.entity.logger.info('进入项目=> ', id);
 
     pomelo.app.rpc.assets.assetsRemote.getProject(null, id, (rsp) => {
         next(null, rsp);

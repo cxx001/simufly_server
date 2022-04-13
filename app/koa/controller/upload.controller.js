@@ -20,7 +20,11 @@ const getModelChildId = function (unitArray, id, sysIndex) {
         }
 
         if (unit._attributes.id == id) {
-            return index + sysIndex;
+            if (unit.SubBlock) {
+                return index + sysIndex;
+            } else {
+                return null;
+            }
         }
     }
     return null;
@@ -52,7 +56,7 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
         model.position = {"x": unit.Rect._attributes.left, "y": unit.Rect._attributes.top};
         model.size = { "width": unit.Rect._attributes.width, "height": unit.Rect._attributes.height };
         model.items = [];
-        const lineArray = sysjson.LineGroup.Line;
+        const lineArray = sysjson.Model.LineGroup.Line;
         for (let n = 0; n < lineArray.length; n++) {
             const line = lineArray[n];
             if (model.id == line.Data._attributes.in || model.id == line.Data._attributes.out) {
@@ -69,7 +73,7 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
 
     // 连线
     item.line = [];
-    const lineArray = sysjson.LineGroup.Line;
+    const lineArray = sysjson.Model.LineGroup.Line;
     for (let i = 0; i < lineArray.length; i++) {
         const line = lineArray[i];
         item.line.push({
@@ -77,14 +81,15 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
             dim: line.Data._attributes.dim,
             source: {
                 "cell": line.Data._attributes.in,
-                "port": line.Data._attributes.inport
+                "port": 'out_' + line.Data._attributes.inport
             },
             target: {
                 "cell": line.Data._attributes.out,
-                "port": line.Data._attributes.export
+                "port": 'in_' + line.Data._attributes.export
             }
         });
     }
+
     return item;
 }
 
@@ -95,12 +100,18 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
  * @param {*} sysJson  子系统json描述
  * @param {*} sysId    子系统ID
  * @param {*} sysPid   子系统父ID
+ * @param {*} sysCpid   子系统在其父系统中的ID
  * @param {*} sysIndex 当前层系统头位置(为了定义子系统ID, ID为顺序递增, 所以要记录每层ID的头位置)
  */
-const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysIndex) {
+const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysCpid, sysIndex) {
     // 当前层系统解析
-    let item = splitItem(sysjson, sysId, sysPid, sysIndex);
+    let item = splitItem(sysJson, sysId, sysPid, sysIndex);
     sysArray.push(item);
+
+    // 子系统中转器件
+    if (sysCpid) {
+        
+    }
 
     // 记录当前层子系统
     let childSys = [];
@@ -116,12 +127,55 @@ const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysI
     sysIndex = sysIndex + childSys.length;
     for (let i = 0; i < childSys.length; i++) {
         const item = childSys[i];
-        let filepath = rootpath + '/' + item.SubBlock._attributes.File;
+        let filepath = rootPath + '\\' + item.SubBlock._attributes.File;
         let childjson = xml2json(filepath);
         let id = sysId++;
         let pid = curSysId;
-        splitChildSys(rootPath, sysArray, childjson, id, pid, sysIndex);
+        let cpid = item._attributes.id;
+        splitChildSys(rootPath, sysArray, childjson, id, pid, cpid, sysIndex);
     }
+}
+
+const splitInOut = function (sysArray, item, sysJson) {
+    // 输入、输出模块
+    let parentSys = sysArray[item.pid - 1];
+    let inCount = 0;
+    let outCount = 0;
+    for (let i = 0; i < parentSys.line.length; i++) {
+        const element = parentSys.line[i];
+        if (element.target.cell == sysCpid) {
+            inCount++;
+        }
+        if (element.source.cell == sysCpid) {
+            outCount++;
+        }
+    }
+
+    // 中转器模块
+    let inRouteCount = 0;
+    let outRouteCount = 0;
+    let inRouteID = sysJson.Model.IoportGroup.Ioport[0]._attributes.id;
+    let outRouteID = sysJson.Model.IoportGroup.Ioport[1]._attributes.id;
+    for (let i = 0; i < item.line.length; i++) {
+        const element = item.line[i];
+        if (element.source.cell == inRouteID) {
+            inRouteCount++;
+        }
+        if (element.target.cell == outRouteID) {
+            outRouteCount++;
+        }
+    }
+
+    if (inCount > inRouteCount) {
+        console.warn('解析gra4格式错误!');
+    }
+
+    if (inCount < inRouteCount) {
+        // 把inRouteCount分成inCount组
+
+    }
+
+    // 连线
 }
 
 /**
@@ -133,10 +187,10 @@ const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysI
  * @returns 
  */
 const parseXml2DB = function (rootpath) {
-    let filepath = rootpath + '/main.gra4';
+    let filepath = rootpath + '\\main.gra4';
     let mainjson = xml2json(filepath);
     let data = [];
-    splitChildSys(rootpath, data, mainjson, 1, null, 1);
+    splitChildSys(rootpath, data, mainjson, 1, null, null, 1);
     return data;
 }
 
@@ -154,54 +208,12 @@ class UploadController {
 
                 // 读取解析
                 let foldername = path.basename(file.name, '.zip');
-                let rootpath = dirpath + '/' + foldername;
-                console.log('xxxxxxxxx', rootpath);
+                let rootpath = dirpath + '\\' + foldername;
                 let data = parseXml2DB(rootpath);
                 let db = {
                     uid: uid,
                     data: data
                 }
-
-                console.log('====================', db);
-                
-
-                // 写数据库
-                // let db = {
-                //     uid: uid,
-                //     data: [
-                //         {
-                //             id: 1,
-                //             pid: null,
-                //             name: 'sysname',
-                //             block: [
-                //                 {
-                //                     id: "1",
-                //                     child: 1,
-                //                     name: 'model_1',
-                //                     nodeType: 1,
-                //                     position: { "x": 0, "y": 0 },
-                //                     size: { "width": 0, "height": 0 },
-                //                     items: [{ "id": "0", "group": "in" }, { "id": "0", "group": "out" }],
-                //                     model: 'model_name.json',
-                //                     order: 1
-                //                 }
-                //             ],
-                //             line: [
-                //                 {
-                //                     id: "srand",
-                //                     source: {
-                //                         "cell": "1",
-                //                         "port": "1"
-                //                     },
-                //                     target: {
-                //                         "cell": "2",
-                //                         "port": "0"
-                //                     },
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
                 let id = pomelo.app.db.genId();
                 await ctx.app.assetsStub.getEntry(id, db);
 
@@ -209,7 +221,7 @@ class UploadController {
                 let sid = ctx.userdata.sid;
                 let proinfo = {
                     id: id,
-                    name: 'test_pro'
+                    name: data[0].name
                 }
                 await ctx.app.assetsStub.callAvatarRemote(uid, sid, 1, proinfo);
 
