@@ -42,5 +42,55 @@
 
 	"connector.lobbyHandler.sendControlCmd": {
 		"required uInt32 cmdtype": 1
+	},
+
+	"connector.lobbyHandler.savePanel": {
+		"message PosInfo": {
+			"required uInt32 x": 1,
+			"required uInt32 y": 2
+		},
+
+		"message SizeInfo": {
+			"required uInt32 width": 1,
+			"required uInt32 height": 2
+		},
+
+		"message PortInfo": {
+			"required string id": 1,
+			"required string group": 2
+		},
+		
+		"message BlockInfo": {
+			"required string id": 1,
+			"optional uInt32 child": 2,
+			"required string name": 3,
+			"required uInt32 nodeType": 4,
+			"required PosInfo position": 5,
+			"required SizeInfo size": 6,
+			"repeated PortInfo items": 7
+		},
+
+		"message LineDes": {
+			"required string cell": 1,
+			"required string port": 2
+		},
+
+		"message LineInfo": {
+			"required string id": 1,
+			"required uInt32 lineType": 2,
+			"required LineDes source": 3,
+			"required LineDes target": 4
+		},
+
+		"message PanelInfo": {
+			"required uInt32 id": 1,
+			"optional uInt32 pid": 2,
+			"required string name": 3,
+			"repeated BlockInfo block": 4,
+			"repeated LineInfo line": 5
+		},
+		
+		"required string projectId": 1,
+		"repeated PanelInfo panelDatas": 2
 	}
 }

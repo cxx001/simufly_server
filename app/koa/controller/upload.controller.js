@@ -53,8 +53,8 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
         model.child = getModelChildId(unitArray, model.id, sysIndex);
         model.name = unit.Title._attributes.name;
         model.nodeType = unit.Looking._attributes.Shape;
-        model.position = {"x": unit.Rect._attributes.left, "y": unit.Rect._attributes.top};
-        model.size = { "width": unit.Rect._attributes.width, "height": unit.Rect._attributes.height };
+        model.position = {"x": Number(unit.Rect._attributes.left), "y": Number(unit.Rect._attributes.top)};
+        model.size = { "width": Number(unit.Rect._attributes.width), "height": Number(unit.Rect._attributes.height) };
         model.items = [];
         const lineArray = sysjson.Model.LineGroup.Line;
         for (let n = 0; n < lineArray.length; n++) {
@@ -66,8 +66,6 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
                 });
             }
         }
-        model.model = 'dllname_funcname.json';
-        model.order = 0;
         item.block.push(model);
     }
 
@@ -77,8 +75,8 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
     for (let i = 0; i < lineArray.length; i++) {
         const line = lineArray[i];
         item.line.push({
-            id: line._attributes.id,
-            dim: line.Data._attributes.dim,
+            id: pomelo.app.db.genId(),
+            lineType: line.Data._attributes.dim > 1 ? 2 : 1,
             source: {
                 "cell": line.Data._attributes.in,
                 "port": 'out_' + line.Data._attributes.inport
@@ -86,7 +84,8 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
             target: {
                 "cell": line.Data._attributes.out,
                 "port": 'in_' + line.Data._attributes.export
-            }
+            },
+            subline: subline
         });
     }
 
@@ -106,12 +105,11 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
 const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysCpid, sysIndex) {
     // 当前层系统解析
     let item = splitItem(sysJson, sysId, sysPid, sysIndex);
-    sysArray.push(item);
-
-    // 子系统中转器件
+    // 插入子系统中转器件
     if (sysCpid) {
         
     }
+    sysArray.push(item);
 
     // 记录当前层子系统
     let childSys = [];
@@ -129,13 +127,14 @@ const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysC
         const item = childSys[i];
         let filepath = rootPath + '\\' + item.SubBlock._attributes.File;
         let childjson = xml2json(filepath);
-        let id = sysId++;
+        let id = ++sysId;
         let pid = curSysId;
         let cpid = item._attributes.id;
         splitChildSys(rootPath, sysArray, childjson, id, pid, cpid, sysIndex);
     }
 }
 
+// TODO: 组合线详细信息gra4文件没有描述，进行不下去(需要用户提供中转器的描述)
 const splitInOut = function (sysArray, item, sysJson) {
     // 输入、输出模块
     let parentSys = sysArray[item.pid - 1];
@@ -170,10 +169,18 @@ const splitInOut = function (sysArray, item, sysJson) {
         console.warn('解析gra4格式错误!');
     }
 
-    if (inCount < inRouteCount) {
-        // 把inRouteCount分成inCount组
-
+    // 把inRouteCount分成inCount组
+    let inputModel = {};
+    inputModel.items = [];
+    for (let i = 0; i < parentSys.line.length; i++) {
+        const element = parentSys.line[i];
+        if (element.target.cell == sysCpid) {
+            inputModel.items.push({id: "0", group: "in"});
+        }
     }
+
+
+    item.block.push();
 
     // 连线
 }
