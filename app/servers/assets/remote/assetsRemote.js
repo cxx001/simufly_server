@@ -17,3 +17,15 @@ var pro = Remote.prototype;
 pro.getProject = function (id, cb) {
     this.app.assetsStub.getProject(id, cb);
 }
+
+pro.savePanel = function (projectId, panelDatas, cb) {
+    this.app.assetsStub.savePanel(projectId, panelDatas, cb);
+}
+
+pro.deletePanel = function (projectId, panelId, cb) {
+    this.app.assetsStub.deletePanel(projectId, panelId, cb);
+}
+
+pro.deleteProject = function (projectId, cb) {
+    this.app.assetsStub.deleteProject(projectId, cb);
+}

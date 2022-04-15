@@ -135,3 +135,28 @@ pro.sendControlCmd = async function (cmdtype, next) {
     
     this._callRemote('sendControlCmd', cmdtype, null);
 }
+
+pro.savePanel = function (projectId, panelDatas, next) {
+    this.entity.logger.info('保存项目=> ', projectId);
+
+    pomelo.app.rpc.assets.assetsRemote.savePanel(null, projectId, panelDatas, (rsp) => {
+        next(null, rsp);
+    });
+}
+
+pro.deletePanel = function (projectId, panelId, next) {
+    this.entity.logger.info('删除面板=> ', projectId, panelId);
+
+    pomelo.app.rpc.assets.assetsRemote.deletePanel(null, projectId, panelId, (rsp) => {
+        next(null, rsp);
+    });
+}
+
+pro.deleteProject = function (projectId, next) {
+    this.entity.logger.info('删除项目=> ', projectId);
+
+    this.entity.modifyProList(consts.ControlProjectType.Delete, {id: projectId});
+    pomelo.app.rpc.assets.assetsRemote.deleteProject(null, projectId, (rsp) => {
+        next(null, rsp);
+    });
+}

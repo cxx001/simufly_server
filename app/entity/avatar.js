@@ -52,10 +52,10 @@ pro.updateUserInfo = function (userInfo, bLogin) {
 };
 
 pro.modifyProList = function (optype, pro_info) {
-    if (optype == 1) {
+    if (optype == consts.ControlProjectType.Add) {
         // 新增
         this.projectList.push(pro_info);
-    } else {
+    } else if(optype == consts.ControlProjectType.Delete) {
         // 删除
         for (let i = 0; i < this.projectList.length; i++) {
             let item = this.projectList[i];

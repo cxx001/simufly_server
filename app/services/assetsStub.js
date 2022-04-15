@@ -189,3 +189,64 @@ pro._formatDB2Vue = function (dbjson) {
     }
     return sysList;
 }
+
+pro.savePanel = async function (projectId, panelDatas, cb) {
+    let project = await this.getEntry(projectId);
+    if (!project) {
+        logger.warn('get project [%s] not exist!', projectId);
+        cb({code: consts.Code.FAIL});
+        return;
+    }
+
+    // 只有新建、修改，删除另提供接口
+    for (let i = 0; i < panelDatas.length; i++) {
+        const item = panelDatas[i];
+        let isCreate = true;
+        for (let j = 0; j < project.data.length; j++) {
+            const dbitem = project.data[j];
+            if (item.id == dbitem.id) {
+                project.data[j] = item;
+                isCreate = false;
+                break;
+            }
+        }
+        if (isCreate) {
+            project.data.push(item);
+            logger.warn('save panel for new control!');
+        }
+    }
+
+    this.projectsById[projectId] = project;
+    this.waitToUpdateDB.add(projectId);
+    cb({code: consts.Code.OK});
+}
+
+pro.deletePanel = async function (projectId, panelId, cb) {
+    let project = await this.getEntry(projectId);
+    if (!project) {
+        logger.warn('get project [%s] not exist!', projectId);
+        cb({code: consts.Code.FAIL});
+        return;
+    }
+
+    for (let i = 0; i < project.data.length; i++) {
+        let item = project.data[i];
+        if (item.id == panelId) {
+            project.data.splice(i, 1);
+            break;
+        }
+    }
+
+    this.projectsById[projectId] = project;
+    this.waitToUpdateDB.add(projectId);
+    cb({code: consts.Code.OK});
+}
+
+pro.deleteProject = async function(projectId, cb) {
+    if (this.projectsById[projectId]) {
+        delete this.projectsById[projectId]
+    }
+    this.waitToUpdateDB.delete(projectId);
+    this.db.remove({_id: projectId});
+    cb({code: consts.Code.OK});
+}

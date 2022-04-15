@@ -37,3 +37,16 @@ handler.initSimulation = function (msg, session, next) {
 handler.sendControlCmd = function (msg, session, next) {
 	session.avatar.lobby.sendControlCmd(msg.cmdtype, next);
 }
+
+// 保存和新建
+handler.savePanel = function (msg, session, next) {
+	session.avatar.lobby.savePanel(msg.projectId, msg.panelDatas, next);
+}
+
+handler.deletePanel = function (msg, session, next) {
+	session.avatar.lobby.deletePanel(msg.projectId, msg.panelId, next);
+}
+
+handler.deleteProject = function (msg, session, next) {
+	session.avatar.lobby.deleteProject(msg.projectId, next);
+}

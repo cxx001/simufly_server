@@ -3,7 +3,8 @@ const path = require('path');
 const unzip = require("unzip-stream");
 const pomelo = require('pomelo');
 const convert = require('xml-js');
-const { fileUploadError } = require('../constant/err.type')
+const { fileUploadError } = require('../constant/err.type');
+const consts = require('../../common/consts');
 
 const xml2json = function (filepath) {
     let xml = fs.readFileSync(filepath, 'utf-8');
@@ -230,7 +231,7 @@ class UploadController {
                     id: id,
                     name: data[0].name
                 }
-                await ctx.app.assetsStub.callAvatarRemote(uid, sid, 1, proinfo);
+                await ctx.app.assetsStub.callAvatarRemote(uid, sid, consts.ControlProjectType.Add, proinfo);
 
                 // 回给前端数据
                 ctx.body = {

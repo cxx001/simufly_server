@@ -89,8 +89,17 @@
 			"repeated BlockInfo block": 4,
 			"repeated LineInfo line": 5
 		},
-		
+
 		"required string projectId": 1,
 		"repeated PanelInfo panelDatas": 2
+	},
+
+	"connector.lobbyHandler.deletePanel": {
+		"required string projectId": 1,
+		"required uInt32 panelId": 2
+	},
+
+	"connector.lobbyHandler.deleteProject": {
+		"required string projectId": 1
 	}
 }
