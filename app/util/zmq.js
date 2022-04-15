@@ -87,10 +87,27 @@ function getFuncName(field, type) {
     return sub;
 }
 
+/**
+ * 
+ * @param {*} buffer 用户名 + 消息类型 + proto内容
+ * @returns 
+ */
 function decode(buffer) {
     let buffLen = buffer.length;
-    let dataLen = buffLen - 1;
+    let uidLen = 24;
+    let dataLen = buffLen - uidLen - 1;
+    if (dataLen < 0) {
+        console.warn('收到消息格式异常!', buffLen, dataLen);
+        return;
+    }
+    
+    // 用户名
     let offset = 0;
+    let uidBuffer = new Buffer.alloc(uidLen);
+    for (var i = 0; i < uidLen; i++) {
+        uidBuffer[offset++] = buffer[i];
+    }
+    let uid = uidBuffer.toString();
     let routeId = buffer[offset++];
     let routeName = null;
     for (const key in basepb.Type.messageType) {
@@ -107,10 +124,13 @@ function decode(buffer) {
     }
 
     if (!routeName) {
-        console.warn('路由错误! routeId: ', routeId);
+        console.warn('路由错误! uid: %s routeId: %d ', uid, routeId);
         return;
     }
 
+    let msg = {}
+    msg.route = routeName;
+    msg.uid = uid;
     if (dataLen > 0) {
         let data = new Buffer.alloc(dataLen);
         for (var i = 0; i < dataLen; i++) {
@@ -118,15 +138,12 @@ function decode(buffer) {
         }
 
         try {
-            let msg = basepb[routeName].deserializeBinary(data);
-            return {
-                route: routeName,
-                msg: msg.array
-            };
+            let probuf = basepb[routeName].deserializeBinary(data);
+            msg.msg = probuf.array;
         } catch (error) {
             console.error('引擎推送数据格式错误!');
         }
     }
 
-    return null;
+    return msg;
 }

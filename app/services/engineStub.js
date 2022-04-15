@@ -39,9 +39,10 @@ var EngineStub = function (app) {
     this.zmqRspPort = engineCfg.zmqRspPort;
 
     // 创建zmq通信子进程
+    this.zmqProcess = null;
     this._createChildProcess();
 
-    // 绑定列表
+    // 绑定列表, TODO: 如果引擎已经起来了，服务器重启，如果关联？
     this.uid2engine = {};
     this.uid2sid = {};
 };
@@ -49,24 +50,24 @@ var EngineStub = function (app) {
 var pro = EngineStub.prototype;
 
 pro._createChildProcess = function () {
-    let process = child_process.spawn('node', ['./app/util/zmq.js'], {stdio: [null, null, null, 'ipc']});
-    process.stdout.on('data', function (data) {
-        // logger.info('zmq进程日志: ' + data);
+    this.zmqProcess = child_process.spawn('node', ['./app/util/zmq.js'], {stdio: [null, null, null, 'ipc']});
+    this.zmqProcess.stdout.on('data', function (data) {
+        logger.info('zmq进程日志: ' + data);
     });
     
-    process.stderr.on('data', function (data) {
+    this.zmqProcess.stderr.on('data', function (data) {
         logger.warn('zmq进程错误: ' + data);
     });
     
-    process.on('close', function (code) {
+    this.zmqProcess.on('close', function (code) {
         logger.info('zmq进程已退出, 退出码: '+ code);
     });
     
-    process.on('message', (m) => {
+    this.zmqProcess.on('message', (m) => {
         // onXxxx
         let func = 'on' + m.route;
         if (this[func]) {
-            this[func](m.msg);
+            this[func](m.uid, m.msg);
         }
     });
 
@@ -74,11 +75,11 @@ pro._createChildProcess = function () {
         route: 'init',
         msg:  {zmqReqPort: this.zmqReqPort, zmqRspPort: this.zmqRspPort}
     }
-    process.send(msg);
+    this.zmqProcess.send(msg);
 
     // 模拟向引擎发送
     // setInterval(() => {
-    //     process.send({
+    //     this.zmqProcess.send({
     //         uid: "A",
     //         route: 'ModifyParameter',
     //         msg: {
@@ -93,6 +94,10 @@ pro.updateUserState = function (uid, sid, cb) {
     utils.invokeCallback(cb);
     this.uid2sid[uid] = sid;
     logger.info('更新用户状态. uid-sid: ', uid, sid);
+}
+
+pro.getSidByUid = function (uid) {
+    return this.uid2sid[uid];
 }
 
 pro.bindEngine = function (uid, opt) {
@@ -254,28 +259,52 @@ pro.initSimulation = function(uids, projectUUID, ip, cb) {
 
 /**
  * 2. 引擎发送一条握手消息确定已经绑定启动成功
- * @param {*} msg 内容要包含 uid reqport rspport
+ * @param {*} msg
  */
-pro.onEngineHandler = function (msg) {
-    logger.info(msg);
-    let uid = msg[0];
+pro.onConnectSuccess = function (uid, msg) {
     this.bindEngine(uid, true);
 
     // 结果推送给前端
-
+    let sid = this.getSidByUid(uid);
+    if (sid) {
+        let uids = {uid: uid, sid: sid}
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.ConnEngine
+        });
+    }
 }
 
 pro.sendControlCmd = function (uids, cmdtype, cb) {
     utils.invokeCallback(cb);
+
+    if (!this.checkIsBind(uids.uid)) {
+        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
+        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+            level: consts.TipsLevel.warn,
+            tip: consts.MsgTipsCode.UserNoBindedEngine
+        });
+        return;
+    }
     
     // 向引擎发命令
-
+    this.zmqProcess.send({
+        uid: uids.uid,
+        route: 'ControlCmd',
+        msg: {
+            cmd_type: cmdtype,
+        }
+    });
 }
 
 // 引擎运行推送
-pro.onEngineCmd = function (msg) {
-    logger.info(msg);
-    let uid = msg[0];
-
+pro.onSimuData = function (uid, msg) {
+    let sid = this.getSidByUid(uid);
+    if (sid) {
+        let uids = {uid: uid, sid: sid}
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.StartSimulation,
+            data: msg
+        });
+    }
 }
 

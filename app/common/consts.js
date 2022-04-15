@@ -61,6 +61,7 @@ module.exports = {
         DeployDoShellFail: {code: 6, msg: '部署执行脚本失败'},
         InitEngineFail: {code: 7, msg: '初始化引擎失败'},
         UserBindedEngine: {code: 8, msg: '用户已经绑定引擎了'},
+        UserNoBindedEngine: {code: 9, msg: '用户没有绑定引擎了'},
     },
 
     ControlProjectType: {
