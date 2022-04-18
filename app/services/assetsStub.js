@@ -199,6 +199,7 @@ pro.savePanel = async function (projectId, panelDatas, cb) {
     }
 
     // 只有新建、修改，删除另提供接口
+    logger.info('用户修改: ', panelDatas);
     for (let i = 0; i < panelDatas.length; i++) {
         const item = panelDatas[i];
         let isCreate = true;

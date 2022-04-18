@@ -34,7 +34,7 @@ var EngineStub = function (app) {
     this.app = app;
     let engines = app.get('servers').engine;
     let engineCfg = utils.find2key('id', app.get('serverId'), engines);
-    this.zmqHost =  engineCfg.zmqHost;
+    this.zmqHost = engineCfg.zmqHost;
     this.zmqReqPort = engineCfg.zmqReqPort;
     this.zmqRspPort = engineCfg.zmqRspPort;
 
@@ -50,30 +50,31 @@ var EngineStub = function (app) {
 var pro = EngineStub.prototype;
 
 pro._createChildProcess = function () {
-    this.zmqProcess = child_process.spawn('node', ['./app/util/zmq.js'], {stdio: [null, null, null, 'ipc']});
+    this.zmqProcess = child_process.spawn('node', ['./app/util/zmq.js'], { stdio: [null, null, null, 'ipc'] });
     this.zmqProcess.stdout.on('data', function (data) {
         logger.info('zmq进程日志: ' + data);
     });
-    
+
     this.zmqProcess.stderr.on('data', function (data) {
         logger.warn('zmq进程错误: ' + data);
     });
-    
+
     this.zmqProcess.on('close', function (code) {
-        logger.info('zmq进程已退出, 退出码: '+ code);
+        logger.info('zmq进程已退出, 退出码: ' + code);
     });
-    
+
     this.zmqProcess.on('message', (m) => {
         // onXxxx
-        let func = 'on' + m.route;
-        if (this[func]) {
-            this[func](m.uid, m.msg);
+        let funcName = 'on' + m.route;
+        let fn = pro[funcName];
+        if (fn) {
+            fn.call(this, m.uid, m.msg);
         }
     });
 
     let msg = {
         route: 'init',
-        msg:  {zmqReqPort: this.zmqReqPort, zmqRspPort: this.zmqRspPort}
+        msg: { zmqReqPort: this.zmqReqPort, zmqRspPort: this.zmqRspPort }
     }
     this.zmqProcess.send(msg);
 
@@ -217,14 +218,14 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
 
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.DeployDoShell,
-                data: data
+                des: data
             });
         });
     });
 }
 
 // 1. 启动引擎
-pro.initSimulation = function(uids, projectUUID, ip, cb) {
+pro.initSimulation = function (uids, projectUUID, ip, cb) {
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -252,7 +253,7 @@ pro.initSimulation = function(uids, projectUUID, ip, cb) {
 
         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
             code: consts.MsgFlowCode.InitEngine,
-            data: data
+            des: data
         });
     });
 }
@@ -267,7 +268,7 @@ pro.onConnectSuccess = function (uid, msg) {
     // 结果推送给前端
     let sid = this.getSidByUid(uid);
     if (sid) {
-        let uids = {uid: uid, sid: sid}
+        let uids = { uid: uid, sid: sid }
         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
             code: consts.MsgFlowCode.ConnEngine
         });
@@ -285,7 +286,7 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
         });
         return;
     }
-    
+
     // 向引擎发命令
     this.zmqProcess.send({
         uid: uids.uid,
@@ -300,11 +301,9 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
 pro.onSimuData = function (uid, msg) {
     let sid = this.getSidByUid(uid);
     if (sid) {
-        let uids = {uid: uid, sid: sid}
+        let uids = { uid: uid, sid: sid }
         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
             code: consts.MsgFlowCode.StartSimulation,
-            data: msg
         });
     }
 }
-

@@ -391,8 +391,8 @@ proto.kl.simufly.ModifyParameter.prototype.serializeBinary = function() {
  */
 proto.kl.simufly.ModifyParameter.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getIndex_asU8();
-  if (f.length > 0) {
+  f = /** @type {!(string|Uint8Array)} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
     writer.writeBytes(
       1,
       f
@@ -446,7 +446,25 @@ proto.kl.simufly.ModifyParameter.prototype.getIndex_asU8 = function() {
  * @return {!proto.kl.simufly.ModifyParameter} returns this
  */
 proto.kl.simufly.ModifyParameter.prototype.setIndex = function(value) {
-  return jspb.Message.setProto3BytesField(this, 1, value);
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.ModifyParameter} returns this
+ */
+proto.kl.simufly.ModifyParameter.prototype.clearIndex = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.ModifyParameter.prototype.hasIndex = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
@@ -602,8 +620,8 @@ proto.kl.simufly.SimuData.prototype.serializeBinary = function() {
  */
 proto.kl.simufly.SimuData.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getIndex();
-  if (f !== 0) {
+  f = /** @type {number} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
     writer.writeFixed32(
       1,
       f
@@ -633,7 +651,25 @@ proto.kl.simufly.SimuData.prototype.getIndex = function() {
  * @return {!proto.kl.simufly.SimuData} returns this
  */
 proto.kl.simufly.SimuData.prototype.setIndex = function(value) {
-  return jspb.Message.setProto3IntField(this, 1, value);
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.SimuData} returns this
+ */
+proto.kl.simufly.SimuData.prototype.clearIndex = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.SimuData.prototype.hasIndex = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 

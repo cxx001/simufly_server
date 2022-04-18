@@ -1,7 +1,7 @@
 {
 	"onFlowMsg": {
 		"required uInt32 code": 1,
-		"optional string data": 2
+		"optional string des": 2
 	},
 	"onMsgTips": {
 		"required uInt32 level": 1,

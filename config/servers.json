@@ -26,15 +26,6 @@
 				"clientPort": 8687,
 				"frontend": true,
 				"args": " --inspect=0.0.0.0:13150"
-			},
-			{
-				"id": "connector-server-2",
-				"host": "127.0.0.1",
-				"port": 3250,
-				"clientHost": "192.168.10.120",
-				"clientPort": 8688,
-				"frontend": true,
-				"args": " --inspect=0.0.0.0:13250"
 			}
 		],
 		"engine": [
@@ -82,14 +73,6 @@
 				"port": 3150,
 				"clientHost": "192.168.10.120",
 				"clientPort": 8687,
-				"frontend": true
-			},
-			{
-				"id": "connector-server-2",
-				"host": "127.0.0.1",
-				"port": 3250,
-				"clientHost": "192.168.10.120",
-				"clientPort": 8688,
 				"frontend": true
 			}
 		],

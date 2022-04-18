@@ -53,7 +53,7 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
         model.id = unit._attributes.id;
         model.child = getModelChildId(unitArray, model.id, sysIndex);
         model.name = unit.Title._attributes.name;
-        model.nodeType = unit.Looking._attributes.Shape;
+        model.nodeType = Number(unit.Looking._attributes.Shape);
         model.position = {"x": Number(unit.Rect._attributes.left), "y": Number(unit.Rect._attributes.top)};
         model.size = { "width": Number(unit.Rect._attributes.width), "height": Number(unit.Rect._attributes.height) };
         model.items = [];
@@ -86,7 +86,6 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
                 "cell": line.Data._attributes.out,
                 "port": 'in_' + line.Data._attributes.export
             },
-            subline: subline
         });
     }
 
