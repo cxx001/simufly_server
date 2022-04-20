@@ -38,6 +38,14 @@ handler.sendControlCmd = function (msg, session, next) {
 	session.avatar.lobby.sendControlCmd(msg.cmdtype, next);
 }
 
+handler.modifyParameter = function (msg, session, next) {
+	session.avatar.lobby.modifyParameter(msg.parameter, next);
+}
+
+handler.signalManage = function (msg, session, next) {
+	session.avatar.lobby.signalManage(msg.signal, next);
+}
+
 // 保存和新建
 handler.savePanel = function (msg, session, next) {
 	session.avatar.lobby.savePanel(msg.projectId, msg.panelDatas, next);

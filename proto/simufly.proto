@@ -1,6 +1,10 @@
 syntax = "proto3";
+
+option cc_enable_arenas = true;
+
 package kl.simufly;
 
+//仿真指令，上位机---->下位机
 message ControlCmd {
   enum cmdType {
     start = 0;
@@ -10,26 +14,41 @@ message ControlCmd {
   optional cmdType cmd_type = 1;
 }
 
+//动态调参，上位机---->下位机
 message ModifyParameter {
-  optional bytes index = 1;
-  optional double value = 2;
+  message Parameter {
+    optional double value = 1;
+    optional string path = 2;
+  }
+  repeated Parameter parameter = 1;
 }
 
+//信号监控、录制，上位机---->下位机
+message SignalManage {
+  message Signal {
+    optional bool monitor = 1; //是否监控
+    optional bool record = 2;  //是否录制
+    optional string path = 3;  //来源（路径）
+  }
+  repeated Signal signal = 1;
+}
+
+//仿真数据，下位机---->上位机
 message SimuData {
   optional fixed32 index = 1;
   repeated double value = 2;
 }
 
-message ConnectSuccess {
-  
-}
+// 握手消息，下位机---->上位机
+message ConnectSuccess {}
 
 message Type {
   // 定义消息类型枚举，区分收到的消息类型
   enum messageType {
     ControlCmd = 0; //控制指令，包括开始仿真、暂停仿真、停止仿真等
     ModifyParameter = 1; //动态调参
-    SimuData = 2;
-    ConnectSuccess = 3;
+    SignalManage = 2;    //信号监控、录制
+    SimuData = 3;        //仿真数据
+    ConnectSuccess = 4;
   }
 }

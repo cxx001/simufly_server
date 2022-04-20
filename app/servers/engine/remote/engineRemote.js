@@ -33,3 +33,11 @@ pro.initSimulation = function (uids, projectUUID, ip, cb) {
 pro.sendControlCmd = function (uids, cmdtype, cb) {
     this.app.engineStub.sendControlCmd(uids, cmdtype, cb);
 }
+
+pro.modifyParameter = function (uids, parameter, cb) {
+    this.app.engineStub.modifyParameter(uids, parameter, cb);
+}
+
+pro.signalManage = function (uids, signal, cb) {
+    this.app.engineStub.signalManage(uids, signal, cb);
+}

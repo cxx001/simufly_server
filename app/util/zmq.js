@@ -51,17 +51,68 @@ async function send(uid, route, msg) {
     await zmqReqSock.send([uid, buffer]);
 }
 
+function recursiveEncode(struct, msg) {
+    let message = new struct();
+    for (let key in msg) {
+        if (key == '_type') {
+            continue;
+        }
+
+        let value = msg[key];
+        // 是否是数组
+        if (value.constructor === Array) {
+            if (value[0].constructor === Object) {
+                // 嵌套对象
+                let array = [];
+                for (let i = 0; i < value.length; i++) {
+                    const item = value[i];
+                    let _type = item._type;
+                    if (!_type) {
+                        console.error('格式错误, 没有带嵌套消息类型!');
+                        return null;
+                    }
+                    let obj = recursiveEncode(struct[_type], item);
+                    array.push(obj);
+                }
+                let func = getFuncName(key);
+                func = func + 'List';
+                if (message[func]) {
+                    message[func](array);
+                }
+            } else {
+                // 简单类型元素
+                let func = getFuncName(key);
+                func = func + 'List';
+                if (message[func]) {
+                    message[func](value);
+                }
+            }
+        } else {
+            // 是否嵌套自定义结构
+            if (value.constructor === Object) {
+                let _type = value._type;
+                if (!_type) {
+                    console.error('格式错误, 没有带嵌套消息类型!');
+                    return null;
+                }
+                recursiveEncode(struct[_type], item);
+
+            } else {
+                let func = getFuncName(key);
+                if (message[func]) {
+                    message[func](value);
+                }
+            }
+        }
+    }
+
+    return message;
+}
+
 function encode(route, msg) {
     let buffer = null;
     if (msg) {
-        let message = new basepb[route]();
-        for (let key in msg) {
-            let value = msg[key];
-            let func = getFuncName(key);
-            if (message[func]) {
-                message[func](value);
-            }
-        }
+        let message = recursiveEncode(basepb[route], msg);
         buffer = message.serializeBinary();
     }
 
@@ -114,6 +165,7 @@ function decode(buffer) {
         const value = basepb.Type.messageType[key];
         if (value == routeId) {
             for (const req in basepb) {
+                // 这里没有匹配说明定义了消息类型但是没有定义对应消息的结构
                 if (key == req.toUpperCase()) {
                     routeName = req;
                     break;

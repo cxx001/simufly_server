@@ -14,7 +14,7 @@ const messageService = require('../services/messageService');
 const child_process = require('child_process');
 
 // 配置
-const remotePackagePath = '/home/package/yyyb1.zip';   // 文件夹目录名要为项目对应的UUID
+const remotePackagePath = '/home/test.zip';   // 文件夹目录名要为项目对应的UUID
 const server = {
     host: '192.168.10.251',
     port: 22,
@@ -124,6 +124,7 @@ pro.checkIsBind = function (uid) {
 }
 
 pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
+    projectUUID = 'test'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -165,6 +166,7 @@ pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
 
 // TODO: ip: 正式场景会去后台数据库中根据ip查找机器账号密码信息
 pro.deploy = function (uids, projectUUID, ip, cb) {
+    projectUUID = 'test'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -226,6 +228,7 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
 
 // 1. 启动引擎
 pro.initSimulation = function (uids, projectUUID, ip, cb) {
+    projectUUID = 'test'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -295,15 +298,64 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
             cmd_type: cmdtype,
         }
     });
-}
 
-// 引擎运行推送
-pro.onSimuData = function (uid, msg) {
-    let sid = this.getSidByUid(uid);
-    if (sid) {
-        let uids = { uid: uid, sid: sid }
+    if (cmdtype == 0) {
         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
             code: consts.MsgFlowCode.StartSimulation,
         });
+    } else if (cmdtype == 1) {
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.StopSimulation,
+        });
     }
+}
+
+// 引擎推送监控数据
+pro.onSimuData = function (uid, msg) {
+    // 结果推送给前端
+    let sid = this.getSidByUid(uid);
+    if (sid) {
+        let uids = { uid: uid, sid: sid }
+        messageService.pushMessageToPlayer(uids, 'onSimuData', {
+            modelId: msg[0],
+            portId: 0,
+            value: msg[1][0]
+        });
+    }
+}
+
+pro.modifyParameter = function(uids, parameter, cb) {
+    utils.invokeCallback(cb);
+
+    for (let i = 0; i < parameter.length; i++) {
+        let item = parameter[i];
+        item._type = 'Parameter';
+    }
+
+    this.zmqProcess.send({
+        uid: uids.uid,
+        route: 'ModifyParameter',
+        msg: {
+            parameter: parameter,
+        }
+    });
+}
+
+pro.signalManage = function (uids, signal, cb) {
+    utils.invokeCallback(cb);
+
+    for (let i = 0; i < signal.length; i++) {
+        let item = signal[i];
+        item._type = 'Signal';
+        item.monitor = item.monitor ? true : false;
+        item.record = item.record ? true : false;
+    }
+
+    this.zmqProcess.send({
+        uid: uids.uid,
+        route: 'SignalManage',
+        msg: {
+            signal: signal,
+        }
+    });
 }

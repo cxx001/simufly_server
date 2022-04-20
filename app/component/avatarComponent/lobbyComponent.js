@@ -160,3 +160,13 @@ pro.deleteProject = function (projectId, next) {
         next(null, rsp);
     });
 }
+
+pro.modifyParameter = function(parameter, next) {
+    next(null, { code: consts.Code.OK });
+    this._callRemote('modifyParameter', parameter, null);
+}
+
+pro.signalManage = function (signal, next) {
+    next(null, { code: consts.Code.OK });
+    this._callRemote('signalManage', signal, null);
+}

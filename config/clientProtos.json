@@ -101,5 +101,22 @@
 
 	"connector.lobbyHandler.deleteProject": {
 		"required string projectId": 1
+	},
+
+	"connector.lobbyHandler.modifyParameter": {
+		"message Parameter": {
+			"required double value": 1,
+			"required string path": 2
+		},
+		"repeated Parameter parameter": 1
+	},
+
+	"connector.lobbyHandler.signalManage": {
+		"message Signal": {
+			"required int32 monitor": 1,
+			"required int32 record": 2,
+			"required string path": 3
+		},
+		"repeated Signal signal": 1
 	}
 }

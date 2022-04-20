@@ -44,6 +44,7 @@ module.exports = {
         InitEngine: 4, // 初始化引擎完成
         ConnEngine: 5, // 握手绑定完成
         StartSimulation: 6,  // 开始仿真
+        StopSimulation: 7,  // 停止仿真
     },
 
     TipsLevel: {

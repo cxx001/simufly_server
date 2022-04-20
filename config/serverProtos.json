@@ -10,5 +10,10 @@
 			"required string msg": 2
 		},
 		"required Tips tip": 2
+	},
+	"onSimuData": {
+		"required uInt32 modelId": 1,
+		"required uInt32 portId": 2,
+		"required double value": 3
 	}
 }
