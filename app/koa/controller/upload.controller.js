@@ -58,6 +58,15 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
         model.nodeType = Number(unit.Looking._attributes.Shape);
         model.position = { "x": Number(unit.Rect._attributes.left), "y": Number(unit.Rect._attributes.top) };
         model.size = { "width": Number(unit.Rect._attributes.width), "height": Number(unit.Rect._attributes.height) };
+        
+        // 关联数字模型ID
+        if (unit.UserFct) {
+            let dllFile = unit.UserFct._attributes.Dllfile;
+            let fctName = unit.UserFct._attributes.Fctname;
+            dllFile = path.basename(dllFile, '.dll');
+            model.modelId = dllFile + '_' + fctName;
+        }
+        
         model.items = [];
         const lineArray = sysjson.Model.LineGroup.Line;
         for (let n = 0; n < lineArray.length; n++) {
@@ -153,6 +162,7 @@ const parseXml2DB = function (rootpath) {
 }
 
 class UploadController {
+    // TODO: 后面有时间统一用AdmZip, 不需要解压
     async importProject(ctx, next) {
         const { uid } = ctx.request.body;
         const { file } = ctx.request.files   // 上传的文件key

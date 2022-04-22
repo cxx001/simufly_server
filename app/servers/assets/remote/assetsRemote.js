@@ -14,8 +14,12 @@ var Remote = function (app) {
 
 var pro = Remote.prototype;
 
-pro.getProject = function (id, cb) {
-    this.app.assetsStub.getProject(id, cb);
+pro.getProject = function (uid, projectId, cb) {
+    this.app.assetsStub.getProject(uid, projectId, cb);
+}
+
+pro.getDBProject = function (projectId, cb) {
+    this.app.assetsStub.getDBProject(projectId, cb);
 }
 
 pro.savePanel = function (projectId, panelDatas, cb) {
@@ -29,6 +33,12 @@ pro.deletePanel = function (projectId, panelId, cb) {
 pro.deleteProject = function (projectId, cb) {
     this.app.assetsStub.deleteProject(projectId, cb);
 }
+
+pro.modifyBlockInfo = function (projectId, blockId, modifyInfo, cb) {
+    this.app.assetsStub.modifyBlockInfo(projectId, blockId, modifyInfo, cb);
+}
+
+//*********************************************************************************** */
 
 pro.getModelInfo = function (modelId, cb) {
     this.app.assetsModelStub.getModelInfo(modelId, cb);

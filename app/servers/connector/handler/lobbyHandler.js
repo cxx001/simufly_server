@@ -63,10 +63,20 @@ handler.getModelList = function (msg, session, next) {
 	session.avatar.lobby.getModelList(next);
 }
 
+// 数字模型查看
 handler.getModelInfo = function (msg, session, next) {
 	session.avatar.lobby.getModelInfo(msg.modelId, next);
 }
 
 handler.modifyModelInfo = function (msg, session, next) {
 	session.avatar.lobby.modifyModelInfo(msg.modelId, msg.modifyInfo, next);
+}
+
+// 画板模型查看
+handler.getBlockInfo = function (msg, session, next) {
+	session.avatar.lobby.getBlockInfo(msg.modelId, next);
+}
+
+handler.modifyBlockInfo = function (msg, session, next) {
+	session.avatar.lobby.modifyBlockInfo(msg.modelId, msg.modifyInfo, next);
 }

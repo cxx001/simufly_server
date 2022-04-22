@@ -105,17 +105,19 @@
 
 	"connector.lobbyHandler.modifyParameter": {
 		"message Parameter": {
-			"required double value": 1,
-			"required string path": 2
+			"required uInt32 block_id": 1,
+			"required uInt32 port_index": 2,
+			"required double value": 3
 		},
 		"repeated Parameter parameter": 1
 	},
 
 	"connector.lobbyHandler.signalManage": {
 		"message Signal": {
-			"required int32 monitor": 1,
-			"required int32 record": 2,
-			"required string path": 3
+			"required uInt32 monitor": 1,
+			"required uInt32 record": 2,
+			"required uInt32 block_id": 3,
+			"required uInt32 port_index": 4
 		},
 		"repeated Signal signal": 1
 	},
@@ -138,6 +140,29 @@
 
 			"optional string name": 1,
 			"optional string groupName": 2,
+			"optional string des": 3,
+			"repeated Parameter parameter": 4,
+			"repeated Parameter x_state": 5,
+			"repeated Parameter y_output": 6,
+			"repeated Parameter u_input": 7
+		},
+
+		"required string modelId": 1,
+		"required ModifyInfo modifyInfo": 2
+	},
+
+	"connector.lobbyHandler.getBlockInfo": {
+		"required string modelId": 1
+	},
+
+	"connector.lobbyHandler.modifyBlockInfo": {
+		"message ModifyInfo": {
+			"message Parameter": {
+				"required uInt32 index": 1,
+				"optional string value": 2
+			},
+
+			"optional string name": 1,
 			"optional string des": 3,
 			"repeated Parameter parameter": 4,
 			"repeated Parameter x_state": 5,

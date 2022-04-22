@@ -99,19 +99,33 @@ pro.callAvatarRemote = function (uid, sid, optype, proinfo) {
     })
 }
 
-pro.getProject = async function (id, cb) {
-    let project = await this.getEntry(id);
+pro.getProject = async function (uid, projectId, cb) {
+    let project = await this.getEntry(projectId);
     if (!project) {
-        logger.warn('get project [%s] not exist!', id);
+        logger.warn('get project [%s] not exist!', projectId);
         cb({code: consts.Code.FAIL});
         return;
     }
 
     // dbjson -> vuejson
-    let sysList = this._formatDB2Vue(project);
+    let sysList = this._formatDB2Vue(uid, project);
     cb({
         code: consts.Code.OK,
         sysList: sysList
+    });
+}
+
+pro.getDBProject = async function (projectId, cb) {
+    let project = await this.getEntry(projectId);
+    if (!project) {
+        logger.warn('get project [%s] not exist!', projectId);
+        cb({code: consts.Code.FAIL});
+        return;
+    }
+
+    cb({
+        code: consts.Code.OK,
+        project: project
     });
 }
 
@@ -140,7 +154,7 @@ pro._getLineShapeType = function (lineType) {
     return shape;
 }
 
-pro._formatDB2Vue = function (dbjson) {
+pro._formatDB2Vue = function (uid, dbjson) {
     let sysList = [];
     for (let i = 0; i < dbjson.data.length; i++) {
         const itemSys = dbjson.data[i];
@@ -162,6 +176,7 @@ pro._formatDB2Vue = function (dbjson) {
             model.ports.items = unit.items;
             model.id = unit.id;
             model.child = unit.child;
+            model.modelId = uid + '_' + unit.modelId;
             model.name = unit.name;
             model.nodeType = unit.nodeType;
             model.zIndex = j;
@@ -245,4 +260,26 @@ pro.deleteProject = async function(projectId, cb) {
     this.waitToUpdateDB.delete(projectId);
     this.db.remove({_id: projectId});
     cb({code: consts.Code.OK});
+}
+
+pro.modifyBlockInfo = async function (projectId, blockId, modifyInfo, cb) {
+    let project = await this.getEntry(projectId);
+    if (!project) {
+        logger.warn('get project [%s] not exist!', projectId);
+        cb({code: consts.Code.FAIL});
+        return;
+    }
+
+    for (let i = 0; i < project.data.length; i++) {
+        let item = project.data[i];
+        for (let j = 0; j < item.block.length; j++) {
+            const element = item.block[j];
+            if (element.id == blockId) {
+                // TOOD: ~~~~~~~~~~~~~~~~~  未完成
+
+
+                break;
+            }
+        }
+    }
 }

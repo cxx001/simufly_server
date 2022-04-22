@@ -243,7 +243,7 @@ pro.initSimulation = function (uids, projectUUID, ip, cb) {
     // 1. 运行(先关闭再运行)
     let pathCmd = "cd /home/cxx/" + projectUUID + "/demo2/;";
     let startCmd = "./demo " + this.zmqHost + " " + this.zmqReqPort + " " + this.zmqRspPort + " " + uids.uid;
-    let cmd = pathCmd + startCmd + "\r\nexit\r\n";
+    let cmd = pathCmd + startCmd + "\r\nexit\r\n";     // 引擎起来后所有的日志都会在这里触发, 直至引擎程序kill。
     ssh2.Shell(server, cmd, (err, data) => {
         if (err) {
             logger.warn('ssh shell commond fail! err: %o', err);
@@ -359,8 +359,8 @@ pro.onSimuData = function (uid, msg) {
         let uids = { uid: uid, sid: sid }
         messageService.pushMessageToPlayer(uids, 'onSimuData', {
             modelId: msg[0],
-            portId: 0,
-            value: msg[1][0]
+            portId: msg[1],
+            value: msg[2][0]
         });
     }
 }

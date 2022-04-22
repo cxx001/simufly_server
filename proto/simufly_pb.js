@@ -505,8 +505,9 @@ proto.kl.simufly.ModifyParameter.Parameter.prototype.toObject = function(opt_inc
  */
 proto.kl.simufly.ModifyParameter.Parameter.toObject = function(includeInstance, msg) {
   var f, obj = {
-    value: jspb.Message.getFloatingPointFieldWithDefault(msg, 1, 0.0),
-    path: jspb.Message.getFieldWithDefault(msg, 2, "")
+    blockId: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    portIndex: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    value: jspb.Message.getFloatingPointFieldWithDefault(msg, 3, 0.0)
   };
 
   if (includeInstance) {
@@ -544,12 +545,16 @@ proto.kl.simufly.ModifyParameter.Parameter.deserializeBinaryFromReader = functio
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readDouble());
-      msg.setValue(value);
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setBlockId(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setPath(value);
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setPortIndex(value);
+      break;
+    case 3:
+      var value = /** @type {number} */ (reader.readDouble());
+      msg.setValue(value);
       break;
     default:
       reader.skipField();
@@ -582,15 +587,22 @@ proto.kl.simufly.ModifyParameter.Parameter.serializeBinaryToWriter = function(me
   var f = undefined;
   f = /** @type {number} */ (jspb.Message.getField(message, 1));
   if (f != null) {
-    writer.writeDouble(
+    writer.writeUint32(
       1,
       f
     );
   }
-  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  f = /** @type {number} */ (jspb.Message.getField(message, 2));
   if (f != null) {
-    writer.writeString(
+    writer.writeUint32(
       2,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeDouble(
+      3,
       f
     );
   }
@@ -598,11 +610,11 @@ proto.kl.simufly.ModifyParameter.Parameter.serializeBinaryToWriter = function(me
 
 
 /**
- * optional double value = 1;
+ * optional uint32 block_id = 1;
  * @return {number}
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.getValue = function() {
-  return /** @type {number} */ (jspb.Message.getFloatingPointFieldWithDefault(this, 1, 0.0));
+proto.kl.simufly.ModifyParameter.Parameter.prototype.getBlockId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
@@ -610,7 +622,7 @@ proto.kl.simufly.ModifyParameter.Parameter.prototype.getValue = function() {
  * @param {number} value
  * @return {!proto.kl.simufly.ModifyParameter.Parameter} returns this
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.setValue = function(value) {
+proto.kl.simufly.ModifyParameter.Parameter.prototype.setBlockId = function(value) {
   return jspb.Message.setField(this, 1, value);
 };
 
@@ -619,7 +631,7 @@ proto.kl.simufly.ModifyParameter.Parameter.prototype.setValue = function(value) 
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.ModifyParameter.Parameter} returns this
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.clearValue = function() {
+proto.kl.simufly.ModifyParameter.Parameter.prototype.clearBlockId = function() {
   return jspb.Message.setField(this, 1, undefined);
 };
 
@@ -628,25 +640,25 @@ proto.kl.simufly.ModifyParameter.Parameter.prototype.clearValue = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.hasValue = function() {
+proto.kl.simufly.ModifyParameter.Parameter.prototype.hasBlockId = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional string path = 2;
- * @return {string}
+ * optional uint32 port_index = 2;
+ * @return {number}
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.getPath = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.kl.simufly.ModifyParameter.Parameter.prototype.getPortIndex = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
 };
 
 
 /**
- * @param {string} value
+ * @param {number} value
  * @return {!proto.kl.simufly.ModifyParameter.Parameter} returns this
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.setPath = function(value) {
+proto.kl.simufly.ModifyParameter.Parameter.prototype.setPortIndex = function(value) {
   return jspb.Message.setField(this, 2, value);
 };
 
@@ -655,7 +667,7 @@ proto.kl.simufly.ModifyParameter.Parameter.prototype.setPath = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.ModifyParameter.Parameter} returns this
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.clearPath = function() {
+proto.kl.simufly.ModifyParameter.Parameter.prototype.clearPortIndex = function() {
   return jspb.Message.setField(this, 2, undefined);
 };
 
@@ -664,8 +676,44 @@ proto.kl.simufly.ModifyParameter.Parameter.prototype.clearPath = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.ModifyParameter.Parameter.prototype.hasPath = function() {
+proto.kl.simufly.ModifyParameter.Parameter.prototype.hasPortIndex = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional double value = 3;
+ * @return {number}
+ */
+proto.kl.simufly.ModifyParameter.Parameter.prototype.getValue = function() {
+  return /** @type {number} */ (jspb.Message.getFloatingPointFieldWithDefault(this, 3, 0.0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.kl.simufly.ModifyParameter.Parameter} returns this
+ */
+proto.kl.simufly.ModifyParameter.Parameter.prototype.setValue = function(value) {
+  return jspb.Message.setField(this, 3, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.ModifyParameter.Parameter} returns this
+ */
+proto.kl.simufly.ModifyParameter.Parameter.prototype.clearValue = function() {
+  return jspb.Message.setField(this, 3, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.ModifyParameter.Parameter.prototype.hasValue = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -863,7 +911,8 @@ proto.kl.simufly.SignalManage.Signal.toObject = function(includeInstance, msg) {
   var f, obj = {
     monitor: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
     record: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
-    path: jspb.Message.getFieldWithDefault(msg, 3, "")
+    blockId: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    portIndex: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -909,8 +958,12 @@ proto.kl.simufly.SignalManage.Signal.deserializeBinaryFromReader = function(msg,
       msg.setRecord(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setPath(value);
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setBlockId(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setPortIndex(value);
       break;
     default:
       reader.skipField();
@@ -955,10 +1008,17 @@ proto.kl.simufly.SignalManage.Signal.serializeBinaryToWriter = function(message,
       f
     );
   }
-  f = /** @type {string} */ (jspb.Message.getField(message, 3));
+  f = /** @type {number} */ (jspb.Message.getField(message, 3));
   if (f != null) {
-    writer.writeString(
+    writer.writeUint32(
       3,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeUint32(
+      4,
       f
     );
   }
@@ -1038,19 +1098,19 @@ proto.kl.simufly.SignalManage.Signal.prototype.hasRecord = function() {
 
 
 /**
- * optional string path = 3;
- * @return {string}
+ * optional uint32 block_id = 3;
+ * @return {number}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.getPath = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.kl.simufly.SignalManage.Signal.prototype.getBlockId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
 };
 
 
 /**
- * @param {string} value
+ * @param {number} value
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.setPath = function(value) {
+proto.kl.simufly.SignalManage.Signal.prototype.setBlockId = function(value) {
   return jspb.Message.setField(this, 3, value);
 };
 
@@ -1059,7 +1119,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.setPath = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.clearPath = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.clearBlockId = function() {
   return jspb.Message.setField(this, 3, undefined);
 };
 
@@ -1068,8 +1128,44 @@ proto.kl.simufly.SignalManage.Signal.prototype.clearPath = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.hasPath = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.hasBlockId = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional uint32 port_index = 4;
+ * @return {number}
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.getPortIndex = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.kl.simufly.SignalManage.Signal} returns this
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.setPortIndex = function(value) {
+  return jspb.Message.setField(this, 4, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.SignalManage.Signal} returns this
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.clearPortIndex = function() {
+  return jspb.Message.setField(this, 4, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.hasPortIndex = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -1117,7 +1213,7 @@ proto.kl.simufly.SignalManage.prototype.clearSignalList = function() {
  * @private {!Array<number>}
  * @const
  */
-proto.kl.simufly.SimuData.repeatedFields_ = [2];
+proto.kl.simufly.SimuData.repeatedFields_ = [3];
 
 
 
@@ -1150,8 +1246,9 @@ proto.kl.simufly.SimuData.prototype.toObject = function(opt_includeInstance) {
  */
 proto.kl.simufly.SimuData.toObject = function(includeInstance, msg) {
   var f, obj = {
-    index: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    valueList: (f = jspb.Message.getRepeatedFloatingPointField(msg, 2)) == null ? undefined : f
+    blockId: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    portIndex: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    valueList: (f = jspb.Message.getRepeatedFloatingPointField(msg, 3)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -1189,10 +1286,14 @@ proto.kl.simufly.SimuData.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readFixed32());
-      msg.setIndex(value);
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setBlockId(value);
       break;
     case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setPortIndex(value);
+      break;
+    case 3:
       var values = /** @type {!Array<number>} */ (reader.isDelimited() ? reader.readPackedDouble() : [reader.readDouble()]);
       for (var i = 0; i < values.length; i++) {
         msg.addValue(values[i]);
@@ -1229,15 +1330,22 @@ proto.kl.simufly.SimuData.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = /** @type {number} */ (jspb.Message.getField(message, 1));
   if (f != null) {
-    writer.writeFixed32(
+    writer.writeUint32(
       1,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeUint32(
+      2,
       f
     );
   }
   f = message.getValueList();
   if (f.length > 0) {
     writer.writePackedDouble(
-      2,
+      3,
       f
     );
   }
@@ -1245,10 +1353,10 @@ proto.kl.simufly.SimuData.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional fixed32 index = 1;
+ * optional uint32 block_id = 1;
  * @return {number}
  */
-proto.kl.simufly.SimuData.prototype.getIndex = function() {
+proto.kl.simufly.SimuData.prototype.getBlockId = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
@@ -1257,7 +1365,7 @@ proto.kl.simufly.SimuData.prototype.getIndex = function() {
  * @param {number} value
  * @return {!proto.kl.simufly.SimuData} returns this
  */
-proto.kl.simufly.SimuData.prototype.setIndex = function(value) {
+proto.kl.simufly.SimuData.prototype.setBlockId = function(value) {
   return jspb.Message.setField(this, 1, value);
 };
 
@@ -1266,7 +1374,7 @@ proto.kl.simufly.SimuData.prototype.setIndex = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.SimuData} returns this
  */
-proto.kl.simufly.SimuData.prototype.clearIndex = function() {
+proto.kl.simufly.SimuData.prototype.clearBlockId = function() {
   return jspb.Message.setField(this, 1, undefined);
 };
 
@@ -1275,17 +1383,53 @@ proto.kl.simufly.SimuData.prototype.clearIndex = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.SimuData.prototype.hasIndex = function() {
+proto.kl.simufly.SimuData.prototype.hasBlockId = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * repeated double value = 2;
+ * optional uint32 port_index = 2;
+ * @return {number}
+ */
+proto.kl.simufly.SimuData.prototype.getPortIndex = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.kl.simufly.SimuData} returns this
+ */
+proto.kl.simufly.SimuData.prototype.setPortIndex = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.SimuData} returns this
+ */
+proto.kl.simufly.SimuData.prototype.clearPortIndex = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.SimuData.prototype.hasPortIndex = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * repeated double value = 3;
  * @return {!Array<number>}
  */
 proto.kl.simufly.SimuData.prototype.getValueList = function() {
-  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedFloatingPointField(this, 2));
+  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedFloatingPointField(this, 3));
 };
 
 
@@ -1294,7 +1438,7 @@ proto.kl.simufly.SimuData.prototype.getValueList = function() {
  * @return {!proto.kl.simufly.SimuData} returns this
  */
 proto.kl.simufly.SimuData.prototype.setValueList = function(value) {
-  return jspb.Message.setField(this, 2, value || []);
+  return jspb.Message.setField(this, 3, value || []);
 };
 
 
@@ -1304,7 +1448,7 @@ proto.kl.simufly.SimuData.prototype.setValueList = function(value) {
  * @return {!proto.kl.simufly.SimuData} returns this
  */
 proto.kl.simufly.SimuData.prototype.addValue = function(value, opt_index) {
-  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+  return jspb.Message.addToRepeatedField(this, 3, value, opt_index);
 };
 
 

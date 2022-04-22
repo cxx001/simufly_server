@@ -70,7 +70,8 @@ pro.enterProject = function (id, next) {
     this.projectUUID = id;
     this.entity.logger.info('进入项目=> ', id);
 
-    pomelo.app.rpc.assets.assetsRemote.getProject(null, id, (rsp) => {
+    let uid = this.entity.id;
+    pomelo.app.rpc.assets.assetsRemote.getProject(null, uid, id, (rsp) => {
         next(null, rsp);
     });
 }
@@ -194,4 +195,40 @@ pro.modifyModelInfo = function (modelId, modifyInfo, next) {
     pomelo.app.rpc.assets.assetsRemote.modifyModelInfo(null, modelId, modifyInfo, (rsp) => {
         next(null, rsp);
     });
+}
+
+pro.getBlockInfo = function (modelId, next) {
+    // 1. 先project表中找修改字段
+    pomelo.app.rpc.assets.assetsRemote.getDBProject(null, this.projectUUID, (resp) => {
+        if (resp.code == consts.Code.OK) {
+            let project = resp.project;
+
+            // 2. 如果没有再去model表中取默认字段
+            pomelo.app.rpc.assets.assetsRemote.getModelInfo(null, modelId, (rsp) => {
+                if (rsp.code == consts.Code.OK) {
+                    next(null, {
+                        code: consts.Code.OK,
+                        modelId: modelId,
+                        name: rsp.name,
+                        des: rsp.des,
+                        Parameters: rsp.Parameters,
+                        X_State: rsp.X_State,
+                        Y_Output: rsp.Y_Output,
+                        U_Input: rsp.U_Input,
+                    });
+                } else {
+                    this.entity.logger.warn('获取模块[%s]信息失败!', modelId);
+                    next(null, {code: rsp.code});
+                }
+            });
+
+        } else {
+            this.entity.logger.warn('获取项目[%s]信息失败!', this.projectUUID);
+            next(null, {code: resp.code});
+        }
+    });
+}
+
+pro.modifyBlockInfo = function (modelId, modifyInfo, next) {
+    
 }
