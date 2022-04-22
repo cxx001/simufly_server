@@ -8,7 +8,9 @@ var AvatarSchema = new Schema({
     password: String,
 	createTime: Number,
 	lastOfflineTime: Number,
-    projectList: []
+    projectList: [],
+    modelList: [],
+    groupList: [],
 });
 
 AvatarSchema.set('toObject', { getters: true });

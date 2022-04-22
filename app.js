@@ -3,12 +3,15 @@ let reload = require('./app/util/require');
 let pomelo = require('pomelo');
 let logger = require('pomelo-logger').getLogger('cskl', __filename);
 let fs = require('fs'), path = require('path');
+let utils = require('./app/util/utils');
+let koa = require('./app/koa/main');
 let mongodb = require("./app/mongodb/mongodb");
 let entityFactory = require('./app/entity/entityFactory');
 let routeUtil = require('./app/util/routeUtil');
 let RollStub = require('./app/services/rollStub');
 let EngineStub = require('./app/services/engineStub');
 let AssetsStub = require('./app/services/assetsStub');
+let AssetsModelStub = require('./app/services/assetsModelStub');
 
 let avatarFilter = require('./app/servers/connector/filter/avatarFilter');
 
@@ -20,46 +23,46 @@ app.set('name', 'simu-fly');
 app.set('reload', reload, true);
 
 var initDB = function (app) {
-    app.loadConfig('mongodb', app.getBase() + '/config/mongodb.json');
-    var db = mongodb(app);
-    db.init();
-    app.set('db', db, true);
+	app.loadConfig('mongodb', app.getBase() + '/config/mongodb.json');
+	var db = mongodb(app);
+	db.init();
+	app.set('db', db, true);
 };
 
 // app configuration
 app.configure('production|development', 'gate', function () {
-    app.set('canLogin', true);
-    let curFilePath = path.resolve(__dirname);
-    app.set('connectorConfig',
-        {
-            connector: pomelo.connectors.hybridconnector,
+	app.set('canLogin', true);
+	let curFilePath = path.resolve(__dirname);
+	app.set('connectorConfig',
+		{
+			connector: pomelo.connectors.hybridconnector,
 			heartbeat: 10,
 			useDict: true,
-            // ssl: {
-            //     type: 'wss',
-            //     key: fs.readFileSync(curFilePath + '/keys/server.key'),
-            //     cert: fs.readFileSync(curFilePath + '/keys/server.crt')
-            // },
-            useProtobuf: true,
-        });
+			// ssl: {
+			//     type: 'wss',
+			//     key: fs.readFileSync(curFilePath + '/keys/server.key'),
+			//     cert: fs.readFileSync(curFilePath + '/keys/server.crt')
+			// },
+			useProtobuf: true,
+		});
 });
 
 app.configure('production|development', 'connector', function () {
-    app.set('canLogin', true);
-    app.before(avatarFilter());
-    let curFilePath = path.resolve(__dirname);
-    app.set('connectorConfig',
-    {
-		connector: pomelo.connectors.hybridconnector,
-		heartbeat: 10,
-		useDict: true,
-		// ssl: {
-		//     type: 'wss',
-		//     key: fs.readFileSync(curFilePath + '/keys/server.key'),
-		//     cert: fs.readFileSync(curFilePath + '/keys/server.crt')
-		// },
-		useProtobuf: true,
-	});
+	app.set('canLogin', true);
+	app.before(avatarFilter());
+	let curFilePath = path.resolve(__dirname);
+	app.set('connectorConfig',
+		{
+			connector: pomelo.connectors.hybridconnector,
+			heartbeat: 10,
+			useDict: true,
+			// ssl: {
+			//     type: 'wss',
+			//     key: fs.readFileSync(curFilePath + '/keys/server.key'),
+			//     cert: fs.readFileSync(curFilePath + '/keys/server.crt')
+			// },
+			useProtobuf: true,
+		});
 
 	// setInterval(()=>{
 	// 	let s = app.components.__connection__.getStatisticsInfo();
@@ -71,16 +74,16 @@ app.configure('production|development', function () {
 	app.filter(pomelo.filters.timeout());  // 超时警告(beforeFilter->afterFilter),默认3s
 	app.before(pomelo.filters.toobusy());  // 请求等待队列过长，超过一个阀值时，就会触发
 	// app.enable('systemMonitor');
-    if (typeof app.registerAdmin === 'function') {
-        let onlineUser = require('./app/modules/onlineUser');
-        app.registerAdmin(onlineUser, {app: app});
-    }
-	
+	if (typeof app.registerAdmin === 'function') {
+		let onlineUser = require('./app/modules/onlineUser');
+		app.registerAdmin(onlineUser, { app: app });
+	}
+
 	initDB(app);
 	app.route('auth', routeUtil.auth);
-	
-    // message缓冲
-	app.set('pushSchedulerConfig', {scheduler: pomelo.pushSchedulers.buffer, flushInterval: 20});
+
+	// message缓冲
+	app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer, flushInterval: 20 });
 
 	// proxy configures
 	app.set('proxyConfig', {
@@ -95,22 +98,22 @@ app.configure('production|development', function () {
 		bufferMsg: true,
 		interval: 20
 	});
-	
-	// handler 热更新开关
-    app.set('serverConfig',
-	{
-		reloadHandlers: false
-	});
 
-    // remote 热更新开关
-    app.set('remoteConfig',
-	{
-		reloadRemotes: false
-	});
+	// handler 热更新开关
+	app.set('serverConfig',
+		{
+			reloadHandlers: false
+		});
+
+	// remote 热更新开关
+	app.set('remoteConfig',
+		{
+			reloadRemotes: false
+		});
 });
 
 app.configure('production|development', 'auth', function () {
-    app.set('rollStub', RollStub(app));
+	app.set('rollStub', RollStub(app));
 });
 
 app.configure('production|development', 'engine', function () {
@@ -118,12 +121,21 @@ app.configure('production|development', 'engine', function () {
 });
 
 app.configure('production|development', 'assets', function () {
-	app.set('assetsStub', AssetsStub(app), true);
+	let assets = app.get('servers').assets;
+	let assetsCfg = utils.find2key('id', app.get('serverId'), assets);
+	let assetsStub = AssetsStub(app);
+	let assetsModelStub = AssetsModelStub(app);
+	app.set('assetsStub', assetsStub, true);
+	app.set('assetsModelStub', assetsModelStub, true);
+	koa.start(assetsCfg, [
+		{name: 'assetsStub', classStub: assetsStub},
+		{name: 'assetsModelStub', classStub: assetsModelStub}
+	]);
 });
 
 // start app
 app.start();
 
 process.on('uncaughtException', function (err) {
-  console.error(' Caught exception: ' + err.stack);
+	console.error(' Caught exception: ' + err.stack);
 });

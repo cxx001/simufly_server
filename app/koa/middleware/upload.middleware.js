@@ -1,4 +1,5 @@
 const pomelo = require('pomelo');
+const consts = require('../../common/consts');
 const { commonError } = require('../constant/err.type')
 
 const userValidator = async (ctx, next) => {
@@ -34,7 +35,22 @@ const verifyUser = async (ctx, next) => {
     await next()
 }
 
+const validator = async (ctx, next) => {
+    try {
+        ctx.verifyParams({
+            uid: { type: 'string', required: true },
+            groupName: { type: 'string', required: true },
+        });
+    } catch (error) {
+        commonError.result = error
+        ctx.app.emit('error', commonError, ctx)
+        return
+    }
+    await next()
+ }
+
 module.exports = {
     userValidator,
-    verifyUser
+    verifyUser,
+    validator,
 }

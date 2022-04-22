@@ -52,10 +52,10 @@ pro.updateUserInfo = function (userInfo, bLogin) {
 };
 
 pro.modifyProList = function (optype, pro_info) {
-    if (optype == consts.ControlProjectType.Add) {
+    if (optype == consts.ControlType.Add) {
         // 新增
         this.projectList.push(pro_info);
-    } else if(optype == consts.ControlProjectType.Delete) {
+    } else if(optype == consts.ControlType.Delete) {
         // 删除
         for (let i = 0; i < this.projectList.length; i++) {
             let item = this.projectList[i];
@@ -65,6 +65,55 @@ pro.modifyProList = function (optype, pro_info) {
             }
         }
     }
+}
+
+/**
+ * 
+ * @param {*} groupName 
+ * @param {*} modelInfo 
+ * modelInfo = {
+    id: string,
+    name: string,
+    groupId: int 
+  }
+ * @returns 
+ */
+pro.setModelGroup = function (groupName, modelInfo) {
+    // 添加分组信息
+    let groupId = null;
+    for (let i = 0; i < this.groupList.length; i++) {
+        const item = this.groupList[i];
+        if (item == groupName) {
+            groupId = i;
+        }
+    }
+    if (!groupId && groupId != 0) {
+        this.groupList.push(groupName);
+        groupId = this.groupList.length - 1;
+    }
+    
+    // 添加模型信息
+    let isModify = false;
+    modelInfo.groupId = groupId;
+    for (let i = 0; i < this.modelList.length; i++) {
+        let item = this.modelList[i];
+        if (item.id == modelInfo.id) {
+            if (modelInfo.name) {
+                // 覆盖修改
+                this.modelList[i] = modelInfo;
+            } else {
+                // 如果modelInfo只传了id, 则只是修改分组信息
+                item.groupId = groupId;
+                this.modelList[i] = item;
+            }
+            isModify = true;
+            break;
+        }
+    }
+    if (!isModify) {
+        this.modelList.push(modelInfo);
+    }
+    return groupId;
 }
 
 // 存盘信息更新
@@ -98,7 +147,9 @@ pro.save = function (cb) {
 pro.clientLoginInfo = function () {
 	return {
         uid: this.id,
-		projectList: this.projectList
+		projectList: this.projectList,
+        groupList: this.groupList,
+        modelList: this.modelList,
 	}
 };
 

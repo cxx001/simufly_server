@@ -155,7 +155,7 @@ pro.deletePanel = function (projectId, panelId, next) {
 pro.deleteProject = function (projectId, next) {
     this.entity.logger.info('删除项目=> ', projectId);
 
-    this.entity.modifyProList(consts.ControlProjectType.Delete, {id: projectId});
+    this.entity.modifyProList(consts.ControlType.Delete, {id: projectId});
     pomelo.app.rpc.assets.assetsRemote.deleteProject(null, projectId, (rsp) => {
         next(null, rsp);
     });
@@ -169,4 +169,29 @@ pro.modifyParameter = function(parameter, next) {
 pro.signalManage = function (signal, next) {
     next(null, { code: consts.Code.OK });
     this._callRemote('signalManage', signal, null);
+}
+
+pro.getModelList = function (next) {
+    next(null, {
+        code: consts.Code.OK,
+        groupList: this.entity.groupList,
+        modelList: this.entity.modelList
+    });
+}
+
+pro.getModelInfo = function (modelId, next) {
+    pomelo.app.rpc.assets.assetsRemote.getModelInfo(null, modelId, (rsp) => {
+        next(null, rsp);
+    });
+}
+
+pro.modifyModelInfo = function (modelId, modifyInfo, next) {
+    let groupName = modifyInfo.modifyInfo;
+    if (groupName) {
+        let groupId = this.entity.setModelGroup(groupName, {id: modelId});
+        modifyInfo.groupId = groupId;
+    }
+    pomelo.app.rpc.assets.assetsRemote.modifyModelInfo(null, modelId, modifyInfo, (rsp) => {
+        next(null, rsp);
+    });
 }

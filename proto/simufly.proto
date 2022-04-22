@@ -39,16 +39,25 @@ message SimuData {
   repeated double value = 2;
 }
 
-// 握手消息，下位机---->上位机
-message ConnectSuccess {}
+// 状态响应（所有需要下位机回复上位机是否成功这种状态而不带其他内容的情况），下位机---->上位机
+message StateResponse {
+  enum stateType {
+    connectRep = 0;
+    startRep = 1;
+    stopRep = 2;
+    terminateRep = 3;
+  }
+  optional stateType state_type = 1;
+  bool ret = 2;
+}
 
+// 定义消息类型枚举，区分收到的消息类型
 message Type {
-  // 定义消息类型枚举，区分收到的消息类型
   enum messageType {
     ControlCmd = 0; //控制指令，包括开始仿真、暂停仿真、停止仿真等
     ModifyParameter = 1; //动态调参
     SignalManage = 2;    //信号监控、录制
     SimuData = 3;        //仿真数据
-    ConnectSuccess = 4;
+    StateResponse = 4;
   }
 }

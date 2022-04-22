@@ -45,6 +45,7 @@ module.exports = {
         ConnEngine: 5, // 握手绑定完成
         StartSimulation: 6,  // 开始仿真
         StopSimulation: 7,  // 停止仿真
+        ExitSimulation: 8,  // 退出仿真
     },
 
     TipsLevel: {
@@ -63,9 +64,14 @@ module.exports = {
         InitEngineFail: {code: 7, msg: '初始化引擎失败'},
         UserBindedEngine: {code: 8, msg: '用户已经绑定引擎了'},
         UserNoBindedEngine: {code: 9, msg: '用户没有绑定引擎了'},
+        SimulationExitFail: {code: 10, msg: '仿真退出失败'},
+        EngineHandleFail: {code: 11, msg: '引擎握手消息失败'},
+        StartSimulationFail: {code: 12, msg: '开始仿真失败'},
+        StopSimulationFail: {code: 13, msg: '停止仿真失败'},
+        ExitSimulationFail: {code: 14, msg: '退出仿真失败'},
     },
 
-    ControlProjectType: {
+    ControlType: {
         Add: 1,
         Delete: 2,
     }

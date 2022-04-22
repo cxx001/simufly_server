@@ -58,3 +58,15 @@ handler.deletePanel = function (msg, session, next) {
 handler.deleteProject = function (msg, session, next) {
 	session.avatar.lobby.deleteProject(msg.projectId, next);
 }
+
+handler.getModelList = function (msg, session, next) {
+	session.avatar.lobby.getModelList(next);
+}
+
+handler.getModelInfo = function (msg, session, next) {
+	session.avatar.lobby.getModelInfo(msg.modelId, next);
+}
+
+handler.modifyModelInfo = function (msg, session, next) {
+	session.avatar.lobby.modifyModelInfo(msg.modelId, msg.modifyInfo, next);
+}

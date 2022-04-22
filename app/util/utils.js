@@ -1,4 +1,7 @@
 'use strict';
+const fs = require('fs');
+const path = require('path');
+
 var utils = module.exports;
 
 // control variable of func "myPrint"
@@ -213,3 +216,15 @@ utils.find2key = function (key, value, items) {
     }
     return null;
 };
+
+// 递归创建目录 同步方法
+utils.mkdirsSync = function (dirname) {
+    if (fs.existsSync(dirname)) {
+        return true;
+    } else {
+        if (utils.mkdirsSync(path.dirname(dirname))) {
+            fs.mkdirSync(dirname);
+            return true;
+        }
+    }
+}

@@ -10,7 +10,6 @@ const utils = require('../util/utils')
 const logger = require('pomelo-logger').getLogger('cskl', '__filename');
 const fs = require('fs');
 const messageService = require('../services/messageService');
-const koa = require('../koa/main');
 
 const SAVE_DB_TIME = 60 * 1000 * 5;
 
@@ -24,10 +23,6 @@ module.exports = function (app) {
 
 var AssetsStub = function (app) {
     this.app = app;
-    let assets = app.get('servers').assets;
-    this.assetsCfg = utils.find2key('id', app.get('serverId'), assets);
-    koa.start(this);
-
     this.db = pomelo.app.db.getModel('Project');
     this.waitToUpdateDB = new Set();
     this.projectsById = {};

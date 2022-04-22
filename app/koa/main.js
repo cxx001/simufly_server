@@ -50,13 +50,16 @@ app.use(router.routes())
 app.use(router.allowedMethods())
 app.on('error', (err, ctx) => {
     ctx.status = 200;
-    ctx.body = err
+    ctx.body = err;
     console.warn(err);
 })
 
-exports.start = function (opt) {
-    app.assetsStub = opt;
-    let port =  opt.assetsCfg.httpPort;
+exports.start = function (svrCfg, bindStubs) {
+    for (let i = 0; i < bindStubs.length; i++) {
+        const item = bindStubs[i];
+        app[item.name] = item.classStub;
+    }
+    let port =  svrCfg.httpPort;
     app.listen(port, () => {
         console.log(`http server is running on http://localhost:${port}`);
     })

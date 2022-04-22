@@ -3,6 +3,8 @@ const path = require('path');
 const unzip = require("unzip-stream");
 const pomelo = require('pomelo');
 const convert = require('xml-js');
+const AdmZip = require("adm-zip");
+const utils = require('../../util/utils');
 const { fileUploadError } = require('../constant/err.type');
 const consts = require('../../common/consts');
 
@@ -43,7 +45,7 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
     item.id = id;
     item.pid = pid;
     item.name = sysjson.Model.Title._text;
-    
+
     // 模块
     item.block = [];
     let unitArray = sysjson.Model.UnitGroup.Unit;
@@ -54,7 +56,7 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
         model.child = getModelChildId(unitArray, model.id, sysIndex);
         model.name = unit.Title._attributes.name;
         model.nodeType = Number(unit.Looking._attributes.Shape);
-        model.position = {"x": Number(unit.Rect._attributes.left), "y": Number(unit.Rect._attributes.top)};
+        model.position = { "x": Number(unit.Rect._attributes.left), "y": Number(unit.Rect._attributes.top) };
         model.size = { "width": Number(unit.Rect._attributes.width), "height": Number(unit.Rect._attributes.height) };
         model.items = [];
         const lineArray = sysjson.Model.LineGroup.Line;
@@ -107,7 +109,7 @@ const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysC
     let item = splitItem(sysJson, sysId, sysPid, sysIndex);
     // 插入子系统中转器件
     if (sysCpid) {
-        
+
     }
     sysArray.push(item);
 
@@ -132,57 +134,6 @@ const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysC
         let cpid = item._attributes.id;
         splitChildSys(rootPath, sysArray, childjson, id, pid, cpid, sysIndex);
     }
-}
-
-// TODO: 组合线详细信息gra4文件没有描述，进行不下去(需要用户提供中转器的描述)
-const splitInOut = function (sysArray, item, sysJson) {
-    // 输入、输出模块
-    let parentSys = sysArray[item.pid - 1];
-    let inCount = 0;
-    let outCount = 0;
-    for (let i = 0; i < parentSys.line.length; i++) {
-        const element = parentSys.line[i];
-        if (element.target.cell == sysCpid) {
-            inCount++;
-        }
-        if (element.source.cell == sysCpid) {
-            outCount++;
-        }
-    }
-
-    // 中转器模块
-    let inRouteCount = 0;
-    let outRouteCount = 0;
-    let inRouteID = sysJson.Model.IoportGroup.Ioport[0]._attributes.id;
-    let outRouteID = sysJson.Model.IoportGroup.Ioport[1]._attributes.id;
-    for (let i = 0; i < item.line.length; i++) {
-        const element = item.line[i];
-        if (element.source.cell == inRouteID) {
-            inRouteCount++;
-        }
-        if (element.target.cell == outRouteID) {
-            outRouteCount++;
-        }
-    }
-
-    if (inCount > inRouteCount) {
-        console.warn('解析gra4格式错误!');
-    }
-
-    // 把inRouteCount分成inCount组
-    let inputModel = {};
-    inputModel.items = [];
-    for (let i = 0; i < parentSys.line.length; i++) {
-        const element = parentSys.line[i];
-        if (element.target.cell == sysCpid) {
-            inputModel.items.push({id: "0", group: "in"});
-        }
-    }
-
-
-    item.block.push();
-
-    // 连线
 }
 
 /**
@@ -211,7 +162,7 @@ class UploadController {
             try {
                 // 解压
                 let dirpath = path.dirname(file.path);
-                fs.createReadStream(file.path).pipe(unzip.Extract({ path: dirpath}));
+                fs.createReadStream(file.path).pipe(unzip.Extract({ path: dirpath }));
 
                 // 读取解析
                 let foldername = path.basename(file.name, '.zip');
@@ -230,7 +181,7 @@ class UploadController {
                     id: id,
                     name: data[0].name
                 }
-                await ctx.app.assetsStub.callAvatarRemote(uid, sid, consts.ControlProjectType.Add, proinfo);
+                await ctx.app.assetsStub.callAvatarRemote(uid, sid, consts.ControlType.Add, proinfo);
 
                 // 回给前端数据
                 ctx.body = {
@@ -238,6 +189,69 @@ class UploadController {
                     message: '项目导入成功',
                     result: {
                         proinfo: proinfo
+                    }
+                }
+            } catch (e) {
+                console.log('error', e)
+                ctx.app.emit('error', fileUploadError, ctx)
+                return
+            }
+        } else {
+            ctx.app.emit('error', fileUploadError, ctx)
+            return
+        }
+
+        await next()
+    }
+
+    async importModel(ctx, next) {
+        const { uid, groupName } = ctx.request.body;
+        const { file } = ctx.request.files   // 上传的文件key
+        if (file && file.size > 0) {
+            console.log('[%s]上传文件: %s 路径: %s', uid, file.name, file.path);
+            try {
+                // 解析zip json
+                let foldername = path.basename(file.name, '.zip');
+                let zip = new AdmZip(file.path);
+                let data = zip.readAsText(foldername + "/" + foldername + '.json');
+                data = JSON.parse(data.trim());
+                let id = uid + '_' + foldername;
+
+                // 获取/设置组, 同步用户表
+                let sid = ctx.userdata.sid;
+                let modelInfo = {
+                    id: id,
+                    name: data.Name,
+                }
+                let groupId = await ctx.app.assetsModelStub.callAvatarGroupInfo(uid, sid, groupName, modelInfo);
+
+                // 存数据库
+                let db = {
+                    uid: uid,
+                    groupId: groupId,
+                    data: data
+                }
+                await ctx.app.assetsModelStub.getEntry(id, db);
+
+                // zip移动
+                let destPath = path.join(__dirname, '../../../assets/' + uid + '/model/');
+                utils.mkdirsSync(destPath);
+                destPath = destPath + foldername + '.zip';
+                fs.rename(file.path, destPath, function (err) {
+                    if (err) throw err;
+                    fs.stat(destPath, function (err, stats) {
+                        if (err) throw err;
+                        console.log('stats: ' + JSON.stringify(stats));
+                    });
+                });
+
+                // 回给前端数据
+                modelInfo.groupId = groupId;
+                ctx.body = {
+                    code: 200,
+                    message: '模型导入成功',
+                    result: {
+                        modelInfo: modelInfo
                     }
                 }
             } catch (e) {

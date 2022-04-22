@@ -29,3 +29,11 @@ pro.deletePanel = function (projectId, panelId, cb) {
 pro.deleteProject = function (projectId, cb) {
     this.app.assetsStub.deleteProject(projectId, cb);
 }
+
+pro.getModelInfo = function (modelId, cb) {
+    this.app.assetsModelStub.getModelInfo(modelId, cb);
+}
+
+pro.modifyModelInfo = function (modelId, modifyInfo, cb) {
+    this.app.assetsModelStub.modifyModelInfo(modelId, modifyInfo, cb);
+}

@@ -14,7 +14,7 @@ const messageService = require('../services/messageService');
 const child_process = require('child_process');
 
 // 配置
-const remotePackagePath = '/home/test.zip';   // 文件夹目录名要为项目对应的UUID
+const remotePackagePath = '/home/package/simufly_engine.zip';   // 文件夹目录名要为项目对应的UUID
 const server = {
     host: '192.168.10.251',
     port: 22,
@@ -124,7 +124,7 @@ pro.checkIsBind = function (uid) {
 }
 
 pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
-    projectUUID = 'test'
+    projectUUID = 'simufly_engine'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -166,7 +166,7 @@ pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
 
 // TODO: ip: 正式场景会去后台数据库中根据ip查找机器账号密码信息
 pro.deploy = function (uids, projectUUID, ip, cb) {
-    projectUUID = 'test'
+    projectUUID = 'simufly_engine'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -189,7 +189,7 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
         return;
     }
 
-    let remotePath = '/home/' + projectUUID + '.zip'
+    let remotePath = '/home/cxx/' + projectUUID + '.zip'
     ssh2.UploadFile(server, localPath, remotePath, (err, result) => {
         if (err) {
             logger.warn('ssh upload deploy file fail! err: %o', err);
@@ -203,9 +203,9 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
             code: consts.MsgFlowCode.DeployUpload
         });
 
-        let pathCmd1 = "cd /home/;"
+        let pathCmd1 = "cd /home/cxx/;"
         let unzipCmd = "unzip -o ./" + projectUUID + ".zip;"
-        let pathCmd2 = "cd ./" + projectUUID + "/bin/linux/;";
+        let pathCmd2 = "cd ./" + projectUUID + "/demo2/;";
         let compileCmd = "./compile.sh";
         let cmd = pathCmd1 + unzipCmd + pathCmd2 + compileCmd + "\r\nexit\r\n";
         ssh2.Shell(server, cmd, (err, data) => {
@@ -228,7 +228,7 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
 
 // 1. 启动引擎
 pro.initSimulation = function (uids, projectUUID, ip, cb) {
-    projectUUID = 'test'
+    projectUUID = 'simufly_engine'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -241,8 +241,8 @@ pro.initSimulation = function (uids, projectUUID, ip, cb) {
     }
 
     // 1. 运行(先关闭再运行)
-    let pathCmd = "cd /home/" + projectUUID + "/bin/linux/;";
-    let startCmd = "./start.sh";   // uid reqport rspport
+    let pathCmd = "cd /home/cxx/" + projectUUID + "/demo2/;";
+    let startCmd = "./demo " + this.zmqHost + " " + this.zmqReqPort + " " + this.zmqRspPort + " " + uids.uid;
     let cmd = pathCmd + startCmd + "\r\nexit\r\n";
     ssh2.Shell(server, cmd, (err, data) => {
         if (err) {
@@ -265,16 +265,67 @@ pro.initSimulation = function (uids, projectUUID, ip, cb) {
  * 2. 引擎发送一条握手消息确定已经绑定启动成功
  * @param {*} msg
  */
-pro.onConnectSuccess = function (uid, msg) {
-    this.bindEngine(uid, true);
+pro.onStateResponse = function (uid, msg) {
+    let state_type = msg[0];
+    let ret = msg[1];
 
-    // 结果推送给前端
     let sid = this.getSidByUid(uid);
-    if (sid) {
-        let uids = { uid: uid, sid: sid }
-        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.ConnEngine
-        });
+    if (!sid) {
+        logger.warn('用户[%s]不在线!', uid);
+        return;
+    }
+
+    let uids = { uid: uid, sid: sid };
+    if (state_type == 0) {
+        // connectRep
+        if (ret == true) {
+            this.bindEngine(uid, true);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.ConnEngine
+            });
+        } else {
+            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+                level: consts.TipsLevel.error,
+                tip: consts.MsgTipsCode.EngineHandleFail
+            });
+        }
+    } else if(state_type == 1) {
+        // startRep
+        if (ret == true) {
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.StartSimulation,
+            });
+        } else {
+            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+                level: consts.TipsLevel.error,
+                tip: consts.MsgTipsCode.StartSimulationFail
+            });
+        }
+    } else if(state_type == 2) {
+        // stopRep
+        if (ret == true) {
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.StopSimulation,
+            });
+        } else {
+            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+                level: consts.TipsLevel.error,
+                tip: consts.MsgTipsCode.StopSimulationFail
+            });
+        }
+    } else if(state_type == 3) {
+        // terminateRep
+        if (ret == true) {
+            this.unbindEngine(uid);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.ExitSimulation,
+            });
+        } else {
+            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+                level: consts.TipsLevel.error,
+                tip: consts.MsgTipsCode.ExitSimulationFail
+            });
+        }
     }
 }
 
@@ -298,16 +349,6 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
             cmd_type: cmdtype,
         }
     });
-
-    if (cmdtype == 0) {
-        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.StartSimulation,
-        });
-    } else if (cmdtype == 1) {
-        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.StopSimulation,
-        });
-    }
 }
 
 // 引擎推送监控数据
@@ -327,6 +368,15 @@ pro.onSimuData = function (uid, msg) {
 pro.modifyParameter = function(uids, parameter, cb) {
     utils.invokeCallback(cb);
 
+    if (!this.checkIsBind(uids.uid)) {
+        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
+        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+            level: consts.TipsLevel.warn,
+            tip: consts.MsgTipsCode.UserNoBindedEngine
+        });
+        return;
+    }
+
     for (let i = 0; i < parameter.length; i++) {
         let item = parameter[i];
         item._type = 'Parameter';
@@ -343,6 +393,15 @@ pro.modifyParameter = function(uids, parameter, cb) {
 
 pro.signalManage = function (uids, signal, cb) {
     utils.invokeCallback(cb);
+
+    if (!this.checkIsBind(uids.uid)) {
+        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
+        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+            level: consts.TipsLevel.warn,
+            tip: consts.MsgTipsCode.UserNoBindedEngine
+        });
+        return;
+    }
 
     for (let i = 0; i < signal.length; i++) {
         let item = signal[i];

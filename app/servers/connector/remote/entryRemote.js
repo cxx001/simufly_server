@@ -55,3 +55,11 @@ pro.onModifyProjectList = function (avtID, optype, pro_info, cb) {
         cb();
     }
 }
+
+pro.onSetModelGroup = function (avtID, groupName, modelInfo, cb) {
+    var avatar = entityManager.getEntity(avtID);
+    if (avatar) {
+        let groupId = avatar.setModelGroup(groupName, modelInfo);
+        cb(groupId);
+    }
+}
