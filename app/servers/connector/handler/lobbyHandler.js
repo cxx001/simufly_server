@@ -74,9 +74,9 @@ handler.modifyModelInfo = function (msg, session, next) {
 
 // 画板模型查看
 handler.getBlockInfo = function (msg, session, next) {
-	session.avatar.lobby.getBlockInfo(msg.modelId, next);
+	session.avatar.lobby.getBlockInfo(msg.panelId, msg.blockId, next);
 }
 
 handler.modifyBlockInfo = function (msg, session, next) {
-	session.avatar.lobby.modifyBlockInfo(msg.modelId, msg.modifyInfo, next);
+	session.avatar.lobby.modifyBlockInfo(msg.panelId, msg.blockId, msg.modifyInfo, next);
 }

@@ -197,11 +197,33 @@ pro.modifyModelInfo = function (modelId, modifyInfo, next) {
     });
 }
 
-pro.getBlockInfo = function (modelId, next) {
+pro.getBlockInfo = function (panelId, blockId, next) {
+    if (!this.projectUUID) {
+        this.entity.logger.warn("项目ID不存在!");
+        next(null, {code: consts.Code.FAIL});
+        return;
+    }
+
     // 1. 先project表中找修改字段
     pomelo.app.rpc.assets.assetsRemote.getDBProject(null, this.projectUUID, (resp) => {
         if (resp.code == consts.Code.OK) {
             let project = resp.project;
+            let modifyAttr = {};
+            let modelId = null;
+            for (let i = 0; i < project.data.length; i++) {
+                const item = project.data[i];
+                if (item.id == panelId) {
+                    for (let j = 0; j < item.block.length; j++) {
+                        const element = item.block[j];
+                        if (element.id == blockId) {
+                            modifyAttr = element.modifyAttr;
+                            modelId = element.modelId;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
 
             // 2. 如果没有再去model表中取默认字段
             pomelo.app.rpc.assets.assetsRemote.getModelInfo(null, modelId, (rsp) => {
@@ -209,12 +231,12 @@ pro.getBlockInfo = function (modelId, next) {
                     next(null, {
                         code: consts.Code.OK,
                         modelId: modelId,
-                        name: rsp.name,
-                        des: rsp.des,
-                        Parameters: rsp.Parameters,
-                        X_State: rsp.X_State,
-                        Y_Output: rsp.Y_Output,
-                        U_Input: rsp.U_Input,
+                        name: modifyAttr.name ? modifyAttr.name : rsp.name,
+                        des: modifyAttr.des ? modifyAttr.des : rsp.des,
+                        Parameters: this._splitBlockParameters(rsp.Parameters, modifyAttr.parameter),
+                        X_State: this._splitBlockParameters(rsp.X_State, modifyAttr.x_state),
+                        Y_Output: this._splitBlockParameters(rsp.Y_Output, modifyAttr.y_output),
+                        U_Input: this._splitBlockParameters(rsp.U_Input, modifyAttr.u_input),
                     });
                 } else {
                     this.entity.logger.warn('获取模块[%s]信息失败!', modelId);
@@ -229,6 +251,23 @@ pro.getBlockInfo = function (modelId, next) {
     });
 }
 
-pro.modifyBlockInfo = function (modelId, modifyInfo, next) {
-    
+pro._splitBlockParameters = function(srcParams, modifyParams) {
+    modifyParams = modifyParams || [];
+    for (let i = 0; i < modifyParams.length; i++) {
+        const item = modifyParams[i];
+        srcParams[item.index].Default = item.value;
+    }
+    return srcParams;
+}
+
+pro.modifyBlockInfo = function (panelId, blockId, modifyInfo, next) {
+    if (!this.projectUUID) {
+        this.entity.logger.warn("项目ID不存在!");
+        next(null, {code: consts.Code.FAIL});
+        return;
+    }
+
+    pomelo.app.rpc.assets.assetsRemote.modifyBlockInfo(null, this.projectUUID, panelId, blockId, modifyInfo, (rsp) => {
+        next(null, rsp);
+    });
 }

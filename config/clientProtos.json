@@ -152,7 +152,8 @@
 	},
 
 	"connector.lobbyHandler.getBlockInfo": {
-		"required string modelId": 1
+		"required uInt32 panelId": 1,
+		"required string blockId": 2
 	},
 
 	"connector.lobbyHandler.modifyBlockInfo": {
@@ -170,7 +171,8 @@
 			"repeated Parameter u_input": 7
 		},
 
-		"required string modelId": 1,
-		"required ModifyInfo modifyInfo": 2
+		"required uInt32 panelId": 1,
+		"required string blockId": 2,
+		"required ModifyInfo modifyInfo": 3
 	}
 }

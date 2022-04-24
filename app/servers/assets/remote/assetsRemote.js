@@ -34,8 +34,8 @@ pro.deleteProject = function (projectId, cb) {
     this.app.assetsStub.deleteProject(projectId, cb);
 }
 
-pro.modifyBlockInfo = function (projectId, blockId, modifyInfo, cb) {
-    this.app.assetsStub.modifyBlockInfo(projectId, blockId, modifyInfo, cb);
+pro.modifyBlockInfo = function (projectId, panelId, blockId, modifyInfo, cb) {
+    this.app.assetsStub.modifyBlockInfo(projectId, panelId, blockId, modifyInfo, cb);
 }
 
 //*********************************************************************************** */

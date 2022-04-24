@@ -262,7 +262,7 @@ pro.deleteProject = async function(projectId, cb) {
     cb({code: consts.Code.OK});
 }
 
-pro.modifyBlockInfo = async function (projectId, blockId, modifyInfo, cb) {
+pro.modifyBlockInfo = async function (projectId, panelId, blockId, modifyInfo, cb) {
     let project = await this.getEntry(projectId);
     if (!project) {
         logger.warn('get project [%s] not exist!', projectId);
@@ -270,16 +270,56 @@ pro.modifyBlockInfo = async function (projectId, blockId, modifyInfo, cb) {
         return;
     }
 
+    logger.info('修改画板模型属性: ', panelId, blockId, modifyInfo);
     for (let i = 0; i < project.data.length; i++) {
         let item = project.data[i];
-        for (let j = 0; j < item.block.length; j++) {
-            const element = item.block[j];
-            if (element.id == blockId) {
-                // TOOD: ~~~~~~~~~~~~~~~~~  未完成
+        if (item.id == panelId) {
+            for (let j = 0; j < item.block.length; j++) {
+                let element = item.block[j];
+                if (element.id == blockId) {
+                    // 覆盖替换
+                    if (modifyInfo.name) {
+                        item.block[j].modifyAttr.name = modifyInfo.name;
+                    } else if(modifyInfo.des) {
+                        item.block[j].modifyAttr.des = modifyInfo.des;
+                    } else if(modifyInfo.parameter && modifyInfo.parameter.length > 0) {
+                        item.block[j].modifyAttr.parameter = item.block[j].modifyAttr.parameter || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.parameter, modifyInfo.parameter);
+                    } else if(modifyInfo.x_state && modifyInfo.x_state.length > 0) {
+                        item.block[j].modifyAttr.x_state = item.block[j].modifyAttr.x_state || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.x_state, modifyInfo.x_state);
+                    } else if(modifyInfo.y_output && modifyInfo.y_output.length > 0) {
+                        item.block[j].modifyAttr.y_output = item.block[j].modifyAttr.y_output || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.y_output, modifyInfo.y_output);
+                    } else if(modifyInfo.u_input && modifyInfo.u_input.length > 0) {
+                        item.block[j].modifyAttr.u_input = item.block[j].modifyAttr.u_input || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.u_input, modifyInfo.u_input);
+                    }
+                    break;
+                }
+            }
+        }
+    }
 
+    this.projectsById[projectId] = project;
+    this.waitToUpdateDB.add(projectId);
+    cb({code: consts.Code.OK});
+}
 
+pro._modifyBlockParameter = function (db_params, modify_params) {
+    for (let i = 0; i < modify_params.length; i++) {
+        let modify_item = modify_params[i];
+        let isCreate = true;
+        for (let j = 0; j < db_params.length; j++) {
+            let db_item = db_params[j];
+            if (db_item.index == modify_item.index) {
+                db_item.value = modify_item.value;
+                isCreate = false;
                 break;
             }
+        }
+        if (isCreate) {
+            db_params.push(modify_item);
         }
     }
 }
