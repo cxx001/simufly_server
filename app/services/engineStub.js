@@ -406,6 +406,7 @@ pro.signalManage = function (uids, signal, cb) {
     for (let i = 0; i < signal.length; i++) {
         let item = signal[i];
         item._type = 'Signal';
+        item.cancel = item.cancel ? true : false;
         item.monitor = item.monitor ? true : false;
         item.record = item.record ? true : false;
     }

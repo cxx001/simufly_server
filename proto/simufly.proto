@@ -8,8 +8,9 @@ package kl.simufly;
 message ControlCmd {
   enum cmdType {
     start = 0;
-    stop = 1;
-    terminate = 2;
+    pause = 1;
+    stop = 2;
+    terminate = 3;
   }
   optional cmdType cmd_type = 1;
 }
@@ -30,10 +31,11 @@ message ModifyParameter {
 message SignalManage {
   message Signal {
     //通过模块id以及端口索引（数组下标）来确定参数来源
-    optional bool monitor = 1; //是否监控
-    optional bool record = 2;  //是否录制
-    optional uint32 block_id = 3;
-    optional uint32 port_index = 4;
+    optional bool cancel = 1; //是否取消该信号的监控
+    optional bool monitor = 2; //是否监控
+    optional bool record = 3;  //是否录制
+    optional uint32 block_id = 4;
+    optional uint32 port_index = 5;
   }
   repeated Signal signal = 1;
 }

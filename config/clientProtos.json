@@ -114,10 +114,11 @@
 
 	"connector.lobbyHandler.signalManage": {
 		"message Signal": {
-			"required uInt32 monitor": 1,
-			"required uInt32 record": 2,
-			"required uInt32 block_id": 3,
-			"required uInt32 port_index": 4
+			"required uInt32 cancel": 1,
+			"required uInt32 monitor": 2,
+			"required uInt32 record": 3,
+			"required uInt32 block_id": 4,
+			"required uInt32 port_index": 5
 		},
 		"repeated Signal signal": 1
 	},

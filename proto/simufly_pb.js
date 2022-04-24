@@ -311,8 +311,9 @@ proto.kl.simufly.ControlCmd.serializeBinaryToWriter = function(message, writer) 
  */
 proto.kl.simufly.ControlCmd.cmdType = {
   START: 0,
-  STOP: 1,
-  TERMINATE: 2
+  PAUSE: 1,
+  STOP: 2,
+  TERMINATE: 3
 };
 
 /**
@@ -909,10 +910,11 @@ proto.kl.simufly.SignalManage.Signal.prototype.toObject = function(opt_includeIn
  */
 proto.kl.simufly.SignalManage.Signal.toObject = function(includeInstance, msg) {
   var f, obj = {
-    monitor: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
-    record: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
-    blockId: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    portIndex: jspb.Message.getFieldWithDefault(msg, 4, 0)
+    cancel: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+    monitor: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
+    record: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+    blockId: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    portIndex: jspb.Message.getFieldWithDefault(msg, 5, 0)
   };
 
   if (includeInstance) {
@@ -951,17 +953,21 @@ proto.kl.simufly.SignalManage.Signal.deserializeBinaryFromReader = function(msg,
     switch (field) {
     case 1:
       var value = /** @type {boolean} */ (reader.readBool());
-      msg.setMonitor(value);
+      msg.setCancel(value);
       break;
     case 2:
       var value = /** @type {boolean} */ (reader.readBool());
-      msg.setRecord(value);
+      msg.setMonitor(value);
       break;
     case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRecord(value);
+      break;
+    case 4:
       var value = /** @type {number} */ (reader.readUint32());
       msg.setBlockId(value);
       break;
-    case 4:
+    case 5:
       var value = /** @type {number} */ (reader.readUint32());
       msg.setPortIndex(value);
       break;
@@ -1008,9 +1014,9 @@ proto.kl.simufly.SignalManage.Signal.serializeBinaryToWriter = function(message,
       f
     );
   }
-  f = /** @type {number} */ (jspb.Message.getField(message, 3));
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 3));
   if (f != null) {
-    writer.writeUint32(
+    writer.writeBool(
       3,
       f
     );
@@ -1022,14 +1028,21 @@ proto.kl.simufly.SignalManage.Signal.serializeBinaryToWriter = function(message,
       f
     );
   }
+  f = /** @type {number} */ (jspb.Message.getField(message, 5));
+  if (f != null) {
+    writer.writeUint32(
+      5,
+      f
+    );
+  }
 };
 
 
 /**
- * optional bool monitor = 1;
+ * optional bool cancel = 1;
  * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.getMonitor = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.getCancel = function() {
   return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 1, false));
 };
 
@@ -1038,7 +1051,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.getMonitor = function() {
  * @param {boolean} value
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.setMonitor = function(value) {
+proto.kl.simufly.SignalManage.Signal.prototype.setCancel = function(value) {
   return jspb.Message.setField(this, 1, value);
 };
 
@@ -1047,7 +1060,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.setMonitor = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.clearMonitor = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.clearCancel = function() {
   return jspb.Message.setField(this, 1, undefined);
 };
 
@@ -1056,16 +1069,16 @@ proto.kl.simufly.SignalManage.Signal.prototype.clearMonitor = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.hasMonitor = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.hasCancel = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional bool record = 2;
+ * optional bool monitor = 2;
  * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.getRecord = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.getMonitor = function() {
   return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
 };
 
@@ -1074,7 +1087,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.getRecord = function() {
  * @param {boolean} value
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.setRecord = function(value) {
+proto.kl.simufly.SignalManage.Signal.prototype.setMonitor = function(value) {
   return jspb.Message.setField(this, 2, value);
 };
 
@@ -1083,7 +1096,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.setRecord = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.clearRecord = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.clearMonitor = function() {
   return jspb.Message.setField(this, 2, undefined);
 };
 
@@ -1092,25 +1105,25 @@ proto.kl.simufly.SignalManage.Signal.prototype.clearRecord = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.hasRecord = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.hasMonitor = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional uint32 block_id = 3;
- * @return {number}
+ * optional bool record = 3;
+ * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.getBlockId = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+proto.kl.simufly.SignalManage.Signal.prototype.getRecord = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
 };
 
 
 /**
- * @param {number} value
+ * @param {boolean} value
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.setBlockId = function(value) {
+proto.kl.simufly.SignalManage.Signal.prototype.setRecord = function(value) {
   return jspb.Message.setField(this, 3, value);
 };
 
@@ -1119,7 +1132,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.setBlockId = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.clearBlockId = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.clearRecord = function() {
   return jspb.Message.setField(this, 3, undefined);
 };
 
@@ -1128,16 +1141,16 @@ proto.kl.simufly.SignalManage.Signal.prototype.clearBlockId = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.hasBlockId = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.hasRecord = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * optional uint32 port_index = 4;
+ * optional uint32 block_id = 4;
  * @return {number}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.getPortIndex = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.getBlockId = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
 };
 
@@ -1146,7 +1159,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.getPortIndex = function() {
  * @param {number} value
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.setPortIndex = function(value) {
+proto.kl.simufly.SignalManage.Signal.prototype.setBlockId = function(value) {
   return jspb.Message.setField(this, 4, value);
 };
 
@@ -1155,7 +1168,7 @@ proto.kl.simufly.SignalManage.Signal.prototype.setPortIndex = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.kl.simufly.SignalManage.Signal} returns this
  */
-proto.kl.simufly.SignalManage.Signal.prototype.clearPortIndex = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.clearBlockId = function() {
   return jspb.Message.setField(this, 4, undefined);
 };
 
@@ -1164,8 +1177,44 @@ proto.kl.simufly.SignalManage.Signal.prototype.clearPortIndex = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.kl.simufly.SignalManage.Signal.prototype.hasPortIndex = function() {
+proto.kl.simufly.SignalManage.Signal.prototype.hasBlockId = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional uint32 port_index = 5;
+ * @return {number}
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.getPortIndex = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.kl.simufly.SignalManage.Signal} returns this
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.setPortIndex = function(value) {
+  return jspb.Message.setField(this, 5, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.SignalManage.Signal} returns this
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.clearPortIndex = function() {
+  return jspb.Message.setField(this, 5, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.SignalManage.Signal.prototype.hasPortIndex = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
