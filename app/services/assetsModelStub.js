@@ -100,10 +100,10 @@ pro.getModelInfo = async function (id, cb) {
 
     cb({
         code: consts.Code.OK,
-        name: model.data.Name,
+        Name: model.data.Name,
         groupId: model.groupId,
         iconUrl: '',
-        des: model.data.Description,
+        Description: model.data.Description,
         Parameters: model.data.Parameters.Datas,
         X_State: model.data.X_State.Datas,
         Y_Output: model.data.Y_Output.Datas,
@@ -121,25 +121,22 @@ pro.modifyModelInfo = async function (modelId, modifyInfo, cb) {
 
     for (const key in modifyInfo) {
         let value = modifyInfo[key];
-        if (key == 'name') {
+        if (key == 'Name') {
             model.data.Name = value;
         } else if(key == 'groupId') {
-            // 在connector服已经把groupName转换为groupId
             model.groupId = value;
-        } else if(key == 'des') {
+        } else if(key == 'Description') {
             model.data.Description = value;
-        } else if(key == 'parameter') {
+        } else if(key == 'Parameters') {
             this._modifyModelData(model, value, 'Parameters');
-        } else if(key == 'x_state') {
+        } else if(key == 'X_State') {
             this._modifyModelData(model, value, 'X_State');
-        } else if(key == 'y_output') {
+        } else if(key == 'Y_Output') {
             this._modifyModelData(model, value, 'Y_Output');
-        } else if(key == 'u_input') {
+        } else if(key == 'U_Input') {
             this._modifyModelData(model, value, 'U_Input');
         } else {
-            if (key != 'groupName') {
-                logger.warn('修改模型信息未处理字段: ', key, value);
-            }
+            logger.warn('修改模型信息未处理字段: ', key, value);
         }
     }
     await this.getEntry(modelId, model);
@@ -150,11 +147,11 @@ pro._modifyModelData = function (dbdata, values, fieldName) {
     for (let i = 0; i < values.length; i++) {
         const element = values[i];
         if (element.name) {
-            dbdata.data[fieldName].Datas[element.index]['Name'] = element.name;
+            dbdata.data[fieldName].Datas[element.index]['Name'] = element.Name;
         } else if(element.type) {
-            dbdata.data[fieldName].Datas[element.index]['Type'] = element.type;
+            dbdata.data[fieldName].Datas[element.index]['Type'] = element.Type;
         } else if(element.default) {
-            dbdata.data[fieldName].Datas[element.index]['Default'] = element.default;
+            dbdata.data[fieldName].Datas[element.index]['Default'] = element.Default;
         }
     }
 }

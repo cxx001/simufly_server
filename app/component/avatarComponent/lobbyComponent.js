@@ -187,10 +187,9 @@ pro.getModelInfo = function (modelId, next) {
 }
 
 pro.modifyModelInfo = function (modelId, modifyInfo, next) {
-    let groupName = modifyInfo.modifyInfo;
-    if (groupName) {
-        let groupId = this.entity.setModelGroup(groupName, {id: modelId});
-        modifyInfo.groupId = groupId;
+    let groupId = modifyInfo.groupId;
+    if (groupId) {
+        this.entity.modifyModelGroup(modelId, groupId);
     }
     pomelo.app.rpc.assets.assetsRemote.modifyModelInfo(null, modelId, modifyInfo, (rsp) => {
         next(null, rsp);

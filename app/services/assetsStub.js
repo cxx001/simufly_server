@@ -278,22 +278,22 @@ pro.modifyBlockInfo = async function (projectId, panelId, blockId, modifyInfo, c
                 let element = item.block[j];
                 if (element.id == blockId) {
                     // 覆盖替换
-                    if (modifyInfo.name) {
-                        item.block[j].modifyAttr.name = modifyInfo.name;
-                    } else if(modifyInfo.des) {
-                        item.block[j].modifyAttr.des = modifyInfo.des;
-                    } else if(modifyInfo.parameter && modifyInfo.parameter.length > 0) {
-                        item.block[j].modifyAttr.parameter = item.block[j].modifyAttr.parameter || [];
-                        this._modifyBlockParameter(item.block[j].modifyAttr.parameter, modifyInfo.parameter);
-                    } else if(modifyInfo.x_state && modifyInfo.x_state.length > 0) {
-                        item.block[j].modifyAttr.x_state = item.block[j].modifyAttr.x_state || [];
-                        this._modifyBlockParameter(item.block[j].modifyAttr.x_state, modifyInfo.x_state);
-                    } else if(modifyInfo.y_output && modifyInfo.y_output.length > 0) {
-                        item.block[j].modifyAttr.y_output = item.block[j].modifyAttr.y_output || [];
-                        this._modifyBlockParameter(item.block[j].modifyAttr.y_output, modifyInfo.y_output);
-                    } else if(modifyInfo.u_input && modifyInfo.u_input.length > 0) {
-                        item.block[j].modifyAttr.u_input = item.block[j].modifyAttr.u_input || [];
-                        this._modifyBlockParameter(item.block[j].modifyAttr.u_input, modifyInfo.u_input);
+                    if (modifyInfo.Name) {
+                        item.block[j].modifyAttr.Name = modifyInfo.Name;
+                    } else if(modifyInfo.Description) {
+                        item.block[j].modifyAttr.Description = modifyInfo.Description;
+                    } else if(modifyInfo.Parameters && modifyInfo.Parameters.length > 0) {
+                        item.block[j].modifyAttr.Parameters = item.block[j].modifyAttr.Parameters || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.Parameters, modifyInfo.Parameters);
+                    } else if(modifyInfo.X_State && modifyInfo.X_State.length > 0) {
+                        item.block[j].modifyAttr.X_State = item.block[j].modifyAttr.X_State || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.X_State, modifyInfo.X_State);
+                    } else if(modifyInfo.Y_Output && modifyInfo.Y_Output.length > 0) {
+                        item.block[j].modifyAttr.Y_Output = item.block[j].modifyAttr.Y_Output || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.Y_Output, modifyInfo.Y_Output);
+                    } else if(modifyInfo.U_Input && modifyInfo.U_Input.length > 0) {
+                        item.block[j].modifyAttr.U_Input = item.block[j].modifyAttr.U_Input || [];
+                        this._modifyBlockParameter(item.block[j].modifyAttr.U_Input, modifyInfo.U_Input);
                     }
                     break;
                 }
@@ -313,7 +313,7 @@ pro._modifyBlockParameter = function (db_params, modify_params) {
         for (let j = 0; j < db_params.length; j++) {
             let db_item = db_params[j];
             if (db_item.index == modify_item.index) {
-                db_item.value = modify_item.value;
+                db_item.Default = modify_item.Default;
                 isCreate = false;
                 break;
             }

@@ -116,6 +116,15 @@ pro.setModelGroup = function (groupName, modelInfo) {
     return groupId;
 }
 
+pro.modifyModelGroup = function (modelId, groupId) {
+    for (let i = 0; i < this.modelList.length; i++) {
+        let item = this.modelList[i];
+        if (item.id == modelId) {
+            item.groupId = groupId;
+        }
+    }
+}
+
 // 存盘信息更新
 pro.getDBProp = function () {
     let props = this.avatarProp.getPersistProp();
