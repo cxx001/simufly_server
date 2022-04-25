@@ -215,7 +215,7 @@ pro.getBlockInfo = function (panelId, blockId, next) {
                     for (let j = 0; j < item.block.length; j++) {
                         const element = item.block[j];
                         if (element.id == blockId) {
-                            modifyAttr = element.modifyAttr;
+                            modifyAttr = element.modifyAttr || {};
                             modelId = element.modelId;
                             break;
                         }
@@ -225,17 +225,18 @@ pro.getBlockInfo = function (panelId, blockId, next) {
             }
 
             // 2. 如果没有再去model表中取默认字段
+            modelId = this.entity.id + '_' + modelId;
             pomelo.app.rpc.assets.assetsRemote.getModelInfo(null, modelId, (rsp) => {
                 if (rsp.code == consts.Code.OK) {
                     next(null, {
                         code: consts.Code.OK,
                         modelId: modelId,
-                        name: modifyAttr.name ? modifyAttr.name : rsp.name,
-                        des: modifyAttr.des ? modifyAttr.des : rsp.des,
-                        Parameters: this._splitBlockParameters(rsp.Parameters, modifyAttr.parameter),
-                        X_State: this._splitBlockParameters(rsp.X_State, modifyAttr.x_state),
-                        Y_Output: this._splitBlockParameters(rsp.Y_Output, modifyAttr.y_output),
-                        U_Input: this._splitBlockParameters(rsp.U_Input, modifyAttr.u_input),
+                        Name: modifyAttr.Name ? modifyAttr.Name : rsp.Name,
+                        Description: modifyAttr.Description ? modifyAttr.Description : rsp.Description,
+                        Parameters: this._splitBlockParameters(rsp.Parameters, modifyAttr.Parameters),
+                        X_State: this._splitBlockParameters(rsp.X_State, modifyAttr.X_State),
+                        Y_Output: this._splitBlockParameters(rsp.Y_Output, modifyAttr.Y_Output),
+                        U_Input: this._splitBlockParameters(rsp.U_Input, modifyAttr.U_Input),
                     });
                 } else {
                     this.entity.logger.warn('获取模块[%s]信息失败!', modelId);
@@ -254,7 +255,7 @@ pro._splitBlockParameters = function(srcParams, modifyParams) {
     modifyParams = modifyParams || [];
     for (let i = 0; i < modifyParams.length; i++) {
         const item = modifyParams[i];
-        srcParams[item.index].Default = item.value;
+        srcParams[item.index].Default = item.Default;
     }
     return srcParams;
 }

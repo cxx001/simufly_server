@@ -74,7 +74,11 @@ pro.modifyProList = function (optype, pro_info) {
  * modelInfo = {
     id: string,
     name: string,
-    groupId: int 
+    groupId: int,
+    width: int,
+    height: int,
+    nodeType: int,
+    ports: object
   }
  * @returns 
  */

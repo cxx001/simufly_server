@@ -278,6 +278,7 @@ pro.modifyBlockInfo = async function (projectId, panelId, blockId, modifyInfo, c
                 let element = item.block[j];
                 if (element.id == blockId) {
                     // 覆盖替换
+                    item.block[j].modifyAttr = item.block[j].modifyAttr || {};
                     if (modifyInfo.Name) {
                         item.block[j].modifyAttr.Name = modifyInfo.Name;
                     } else if(modifyInfo.Description) {

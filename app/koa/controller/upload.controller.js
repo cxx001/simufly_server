@@ -141,6 +141,32 @@ const splitChildSys = function (admZip, rootPath, sysArray, sysJson, sysId, sysP
     }
 }
 
+const splitPortInfo = function (inputData, outData) {
+    let ports = [];
+    for (let i = 0; i < inputData.length; i++) {
+        const element = inputData[i];
+        ports.push({
+            id: i,
+            name: element.Name,
+            type: element.Type,
+            value: element.Default,
+            group: 'in'
+        });
+    }
+
+    for (let i = 0; i < outData.length; i++) {
+        const element = outData[i];
+        ports.push({
+            id: i,
+            name: element.Name,
+            type: element.Type,
+            value: element.Default,
+            group: 'out'
+        });
+    }
+    return ports;
+}
+
 /**
  * * 要求客户gra4格式约定:
  * 1. 文件、文件夹名不能是中文
@@ -219,6 +245,10 @@ class UploadController {
                 let modelInfo = {
                     id: id,
                     name: data.Name,
+                    width: 80,            // TODO: width, height, nodeType信息需要用户解答, 当前数字模型源代码中好像提取不出这些信息.
+                    height: 60,
+                    nodeType: 1,
+                    ports: splitPortInfo(data.U_Input.Datas, data.Y_Output.Datas)
                 }
                 let groupId = await ctx.app.assetsModelStub.callAvatarGroupInfo(uid, sid, groupName, modelInfo);
 
