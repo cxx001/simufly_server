@@ -64,7 +64,7 @@
 
 				"required string id": 1,
 				"optional uInt32 child": 2,
-				"required string modelId": 3,
+				"optional string modelId": 3,
 				"required string name": 4,
 				"required uInt32 nodeType": 5,
 				"required PosInfo position": 6,
