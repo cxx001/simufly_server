@@ -1,18 +1,11 @@
 const fs = require('fs');
 const path = require('path');
-const unzip = require("unzip-stream");
 const pomelo = require('pomelo');
 const convert = require('xml-js');
 const AdmZip = require("adm-zip");
 const utils = require('../../util/utils');
 const { fileUploadError } = require('../constant/err.type');
 const consts = require('../../common/consts');
-
-const xml2json = function (filepath) {
-    let xml = fs.readFileSync(filepath, 'utf-8');
-    let result = convert.xml2json(xml, { compact: true, spaces: 4 });
-    return JSON.parse(result);
-}
 
 const getModelChildId = function (unitArray, id, sysIndex) {
     let index = 0;
@@ -105,6 +98,7 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
 
 /**
  * 递归拆子系统
+ * @param {*} admZip admzip解包对象
  * @param {*} rootPath 项目根目录
  * @param {*} sysArray 子系统数组容器
  * @param {*} sysJson  子系统json描述
@@ -113,7 +107,7 @@ const splitItem = function (sysjson, id, pid, sysIndex) {
  * @param {*} sysCpid   子系统在其父系统中的ID
  * @param {*} sysIndex 当前层系统头位置(为了定义子系统ID, ID为顺序递增, 所以要记录每层ID的头位置)
  */
-const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysCpid, sysIndex) {
+const splitChildSys = function (admZip, rootPath, sysArray, sysJson, sysId, sysPid, sysCpid, sysIndex) {
     // 当前层系统解析
     let item = splitItem(sysJson, sysId, sysPid, sysIndex);
     // 插入子系统中转器件
@@ -136,33 +130,24 @@ const splitChildSys = function (rootPath, sysArray, sysJson, sysId, sysPid, sysC
     sysIndex = sysIndex + childSys.length;
     for (let i = 0; i < childSys.length; i++) {
         const item = childSys[i];
-        let filepath = rootPath + '\\' + item.SubBlock._attributes.File;
-        let childjson = xml2json(filepath);
+        let childPath = item.SubBlock._attributes.File.replace(/\\/g,"/");
+        let xmlData = admZip.readAsText(rootPath + "/" + childPath);
+        let xmlJson = convert.xml2json(xmlData, { compact: true, spaces: 4 });
+        xmlJson = JSON.parse(xmlJson);
         let id = ++sysId;
         let pid = curSysId;
         let cpid = item._attributes.id;
-        splitChildSys(rootPath, sysArray, childjson, id, pid, cpid, sysIndex);
+        splitChildSys(admZip, rootPath, sysArray, xmlJson, id, pid, cpid, sysIndex);
     }
 }
 
 /**
- * 要求客户gra4格式约定:
+ * * 要求客户gra4格式约定:
  * 1. 文件、文件夹名不能是中文
  * 2. 项目要打包成zip, 压缩包名和解压的文件夹名一致
  * 3. 主gra4要命名为main.gra4
- * @param {*} rootpath 用户上传项目根目录路径
- * @returns 
  */
-const parseXml2DB = function (rootpath) {
-    let filepath = rootpath + '\\main.gra4';
-    let mainjson = xml2json(filepath);
-    let data = [];
-    splitChildSys(rootpath, data, mainjson, 1, null, null, 1);
-    return data;
-}
-
 class UploadController {
-    // TODO: 后面有时间统一用AdmZip, 不需要解压
     async importProject(ctx, next) {
         const { uid } = ctx.request.body;
         const { file } = ctx.request.files   // 上传的文件key
@@ -170,14 +155,16 @@ class UploadController {
         if (file && file.size > 0) {
             console.log('[%s]上传文件: %s 路径: %s', uid, file.name, file.path);
             try {
-                // 解压
-                let dirpath = path.dirname(file.path);
-                fs.createReadStream(file.path).pipe(unzip.Extract({ path: dirpath }));
-
-                // 读取解析
+                // 读取压缩包数据
                 let foldername = path.basename(file.name, '.zip');
-                let rootpath = dirpath + '\\' + foldername;
-                let data = parseXml2DB(rootpath);
+                let zip = new AdmZip(file.path);
+                let xmlData = zip.readAsText(foldername + "/" + 'main.gra4');
+                let xmlJson = convert.xml2json(xmlData, { compact: true, spaces: 4 });
+                xmlJson = JSON.parse(xmlJson);
+                let data = [];
+                splitChildSys(zip, foldername, data, xmlJson, 1, null, null, 1);
+
+                // 存数据库
                 let db = {
                     uid: uid,
                     data: data
