@@ -196,7 +196,7 @@ pro.modifyModelInfo = function (modelId, modifyInfo, next) {
     });
 }
 
-pro.getBlockInfo = function (panelId, blockId, next) {
+pro.getBlockInfo = function (panelId, blockId, modelId, next) {
     if (!this.projectUUID) {
         this.entity.logger.warn("项目ID不存在!");
         next(null, {code: consts.Code.FAIL});
@@ -208,7 +208,6 @@ pro.getBlockInfo = function (panelId, blockId, next) {
         if (resp.code == consts.Code.OK) {
             let project = resp.project;
             let modifyAttr = {};
-            let modelId = null;
             for (let i = 0; i < project.data.length; i++) {
                 const item = project.data[i];
                 if (item.id == panelId) {
@@ -216,7 +215,6 @@ pro.getBlockInfo = function (panelId, blockId, next) {
                         const element = item.block[j];
                         if (element.id == blockId) {
                             modifyAttr = element.modifyAttr || {};
-                            modelId = element.modelId;
                             break;
                         }
                     }
@@ -225,7 +223,6 @@ pro.getBlockInfo = function (panelId, blockId, next) {
             }
 
             // 2. 如果没有再去model表中取默认字段
-            modelId = this.entity.id + '_' + modelId;
             pomelo.app.rpc.assets.assetsRemote.getModelInfo(null, modelId, (rsp) => {
                 if (rsp.code == consts.Code.OK) {
                     next(null, {

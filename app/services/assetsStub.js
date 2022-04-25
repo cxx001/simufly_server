@@ -176,7 +176,7 @@ pro._formatDB2Vue = function (uid, dbjson) {
             model.ports.items = unit.items;
             model.id = unit.id;
             model.child = unit.child;
-            model.modelId = uid + '_' + unit.modelId;
+            model.modelId = unit.modelId ? uid + '_' + unit.modelId : null;
             model.name = unit.name;
             model.nodeType = unit.nodeType;
             model.zIndex = j;
@@ -200,6 +200,19 @@ pro._formatDB2Vue = function (uid, dbjson) {
     return sysList;
 }
 
+pro.insertModifyAttr = function (newPanelData, dbPanelData) {
+    for (let i = 0; i < newPanelData.block.length; i++) {
+        let item = newPanelData.block[i];
+        for (let j = 0; j < dbPanelData.block.length; j++) {
+            const element = dbPanelData.block[j];
+            if (element.id == item.id) {
+                item.modifyAttr = element.modifyAttr;
+                break;
+            }
+        }
+    }
+}
+
 pro.savePanel = async function (projectId, panelDatas, cb) {
     let project = await this.getEntry(projectId);
     if (!project) {
@@ -211,11 +224,13 @@ pro.savePanel = async function (projectId, panelDatas, cb) {
     // 只有新建、修改，删除另提供接口
     logger.info('用户修改: ', panelDatas);
     for (let i = 0; i < panelDatas.length; i++) {
-        const item = panelDatas[i];
+        let item = panelDatas[i];
         let isCreate = true;
         for (let j = 0; j < project.data.length; j++) {
             const dbitem = project.data[j];
             if (item.id == dbitem.id) {
+                // 插入modifyAttr 修改的属性字段
+                this.insertModifyAttr(item, dbitem);
                 project.data[j] = item;
                 isCreate = false;
                 break;

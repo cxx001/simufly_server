@@ -64,11 +64,12 @@
 
 				"required string id": 1,
 				"optional uInt32 child": 2,
-				"required string name": 3,
-				"required uInt32 nodeType": 4,
-				"required PosInfo position": 5,
-				"required SizeInfo size": 6,
-				"repeated PortInfo items": 7
+				"required string modelId": 3,
+				"required string name": 4,
+				"required uInt32 nodeType": 5,
+				"required PosInfo position": 6,
+				"required SizeInfo size": 7,
+				"repeated PortInfo items": 8
 			},
 
 			"message LineInfo": {
@@ -154,7 +155,8 @@
 
 	"connector.lobbyHandler.getBlockInfo": {
 		"required uInt32 panelId": 1,
-		"required string blockId": 2
+		"required string blockId": 2,
+		"required string modelId": 3
 	},
 
 	"connector.lobbyHandler.modifyBlockInfo": {

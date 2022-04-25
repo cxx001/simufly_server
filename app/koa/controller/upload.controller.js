@@ -146,7 +146,7 @@ const splitPortInfo = function (inputData, outData) {
     for (let i = 0; i < inputData.length; i++) {
         const element = inputData[i];
         ports.push({
-            id: i,
+            id: 'in_' + i,
             name: element.Name,
             type: element.Type,
             value: element.Default,
@@ -157,7 +157,7 @@ const splitPortInfo = function (inputData, outData) {
     for (let i = 0; i < outData.length; i++) {
         const element = outData[i];
         ports.push({
-            id: i,
+            id: 'out_' + i,
             name: element.Name,
             type: element.Type,
             value: element.Default,
