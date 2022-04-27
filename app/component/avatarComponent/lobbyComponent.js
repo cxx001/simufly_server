@@ -70,8 +70,7 @@ pro.enterProject = function (id, next) {
     this.projectUUID = id;
     this.entity.logger.info('进入项目=> ', id);
 
-    let uid = this.entity.id;
-    pomelo.app.rpc.assets.assetsRemote.getProject(null, uid, id, (rsp) => {
+    pomelo.app.rpc.assets.assetsRemote.getProject(null, id, (rsp) => {
         next(null, rsp);
     });
 }

@@ -99,7 +99,7 @@ pro.callAvatarRemote = function (uid, sid, optype, proinfo) {
     })
 }
 
-pro.getProject = async function (uid, projectId, cb) {
+pro.getProject = async function (projectId, cb) {
     let project = await this.getEntry(projectId);
     if (!project) {
         logger.warn('get project [%s] not exist!', projectId);
@@ -108,7 +108,7 @@ pro.getProject = async function (uid, projectId, cb) {
     }
 
     // dbjson -> vuejson
-    let sysList = this._formatDB2Vue(uid, project);
+    let sysList = this._formatDB2Vue(project);
     cb({
         code: consts.Code.OK,
         sysList: sysList
@@ -154,7 +154,7 @@ pro._getLineShapeType = function (lineType) {
     return shape;
 }
 
-pro._formatDB2Vue = function (uid, dbjson) {
+pro._formatDB2Vue = function (dbjson) {
     let sysList = [];
     for (let i = 0; i < dbjson.data.length; i++) {
         const itemSys = dbjson.data[i];
@@ -166,13 +166,17 @@ pro._formatDB2Vue = function (uid, dbjson) {
         item.data.cells = [];
         // 模块
         for (let j = 0; j < itemSys.block.length; j++) {
-            const unit = itemSys.block[j];
+            let unit = itemSys.block[j];
             let model = {};
             model.position = unit.position;
             model.size = unit.size;
             model.attrs = { text: { text: unit.name} };
             model.shape = this._getBlockShapeType(unit.nodeType);
             model.ports = {};
+            for (let k = 0; k < unit.items.length; k++) {
+                let item = unit.items[k];
+                item.id = item.group + '_' + item.id;
+            }
             model.ports.items = unit.items;
             model.id = unit.id;
             model.child = unit.child;
@@ -189,6 +193,8 @@ pro._formatDB2Vue = function (uid, dbjson) {
             let line = {};
             line.id = unit.id;
             line.shape = this._getLineShapeType(unit.lineType);
+            unit.source.port = 'out_' + unit.source.port;
+            unit.target.port = 'in_' + unit.target.port;
             line.source = unit.source;
             line.target = unit.target;
             line.zIndex = j + itemSys.block.length;
@@ -200,13 +206,30 @@ pro._formatDB2Vue = function (uid, dbjson) {
     return sysList;
 }
 
-pro.insertModifyAttr = function (newPanelData, dbPanelData) {
+pro.insertCustomField = function (newPanelData, dbPanelData) {
     for (let i = 0; i < newPanelData.block.length; i++) {
         let item = newPanelData.block[i];
         for (let j = 0; j < dbPanelData.block.length; j++) {
             const element = dbPanelData.block[j];
             if (element.id == item.id) {
                 item.modifyAttr = element.modifyAttr;
+                for (let z = 0; z < item.items.length; z++) {
+                    let port = item.items[z];
+                    port.id = port.id.split('_')[1];
+                }
+                break;
+            }
+        }
+    }
+
+    for (let i = 0; i < newPanelData.line.length; i++) {
+        let item = newPanelData.line[i];
+        for (let j = 0; j < dbPanelData.line.length; j++) {
+            const element = dbPanelData.line[j];
+            if (element.id == item.id) {
+                item.subLine = element.subLine;
+                item.source.port = item.source.port.split('_')[1];
+                item.target.port = item.target.port.split('_')[1];
                 break;
             }
         }
@@ -229,8 +252,8 @@ pro.savePanel = async function (projectId, panelDatas, cb) {
         for (let j = 0; j < project.data.length; j++) {
             const dbitem = project.data[j];
             if (item.id == dbitem.id) {
-                // 插入modifyAttr 修改的属性字段
-                this.insertModifyAttr(item, dbitem);
+                // 插入客户端没有传的自定义字段
+                this.insertCustomField(item, dbitem);
                 project.data[j] = item;
                 isCreate = false;
                 break;

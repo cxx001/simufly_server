@@ -14,8 +14,8 @@ var Remote = function (app) {
 
 var pro = Remote.prototype;
 
-pro.getProject = function (uid, projectId, cb) {
-    this.app.assetsStub.getProject(uid, projectId, cb);
+pro.getProject = function (projectId, cb) {
+    this.app.assetsStub.getProject(projectId, cb);
 }
 
 pro.getDBProject = function (projectId, cb) {
