@@ -265,7 +265,6 @@ pro.savePanel = async function (projectId, panelDatas, cb) {
         }
         if (isCreate) {
             project.data.push(item);
-            logger.warn('save panel for new control!');
         }
     }
 
