@@ -166,18 +166,23 @@ pro._formatDB2Vue = function (dbjson) {
         item.data.cells = [];
         // 模块
         for (let j = 0; j < itemSys.block.length; j++) {
-            let unit = itemSys.block[j];
+            const unit = itemSys.block[j];
             let model = {};
             model.position = unit.position;
             model.size = unit.size;
             model.attrs = { text: { text: unit.name} };
             model.shape = this._getBlockShapeType(unit.nodeType);
             model.ports = {};
+            // 注意不能直接改unit, 不然会改变数据库内容, 是引用
+            let portInfo = [];
             for (let k = 0; k < unit.items.length; k++) {
                 let item = unit.items[k];
-                item.id = item.group + '_' + item.id;
+                portInfo.push({
+                    id: item.group + '_' + item.id,
+                    group: item.group
+                });
             }
-            model.ports.items = unit.items;
+            model.ports.items = portInfo;
             model.id = unit.id;
             model.child = unit.child;
             model.modelId = unit.modelId ? unit.modelId : null;
@@ -193,10 +198,9 @@ pro._formatDB2Vue = function (dbjson) {
             let line = {};
             line.id = unit.id;
             line.shape = this._getLineShapeType(unit.lineType);
-            unit.source.port = 'out_' + unit.source.port;
-            unit.target.port = 'in_' + unit.target.port;
-            line.source = unit.source;
-            line.target = unit.target;
+            // 同上不能改unit
+            line.source = {cell: unit.source.cell, port: 'out_' + unit.target.port}
+            line.target = {cell: unit.target.cell, port: 'in_' + unit.target.port};
             line.zIndex = j + itemSys.block.length;
             item.data.cells.push(line);
         }
