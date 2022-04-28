@@ -199,7 +199,7 @@ pro._formatDB2Vue = function (dbjson) {
             line.id = unit.id;
             line.shape = this._getLineShapeType(unit.lineType);
             // 同上不能改unit
-            line.source = {cell: unit.source.cell, port: 'out_' + unit.target.port}
+            line.source = {cell: unit.source.cell, port: 'out_' + unit.source.port}
             line.target = {cell: unit.target.cell, port: 'in_' + unit.target.port};
             line.zIndex = j + itemSys.block.length;
             item.data.cells.push(line);
