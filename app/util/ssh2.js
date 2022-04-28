@@ -46,7 +46,10 @@ function Shell(server, cmd, then){
 					}).on('data', data => {
 						// console.log('conn[data]: ', data.toString())
 						let tostr = data.toString();
+						tostr = tostr.replace("\u001b[H\u001b[J", "");
 						if (tostr.length > 1) {
+							// 去除颜色信息
+							tostr = tostr.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/gi, "");
 							then && then(err, tostr);
 						}
 					})
