@@ -357,10 +357,11 @@ pro.onSimuData = function (uid, msg) {
     let sid = this.getSidByUid(uid);
     if (sid) {
         let uids = { uid: uid, sid: sid }
+        let value = Number(msg[2][0]);
         messageService.pushMessageToPlayer(uids, 'onSimuData', {
             modelId: msg[0],
             portId: msg[1],
-            value: msg[2][0]
+            value: Math.floor(value * 100) / 100
         });
     }
 }
@@ -374,6 +375,10 @@ pro.modifyParameter = function(uids, parameter, cb) {
             level: consts.TipsLevel.warn,
             tip: consts.MsgTipsCode.UserNoBindedEngine
         });
+        return;
+    }
+
+    if (!parameter) {
         return;
     }
 
@@ -400,6 +405,10 @@ pro.signalManage = function (uids, signal, cb) {
             level: consts.TipsLevel.warn,
             tip: consts.MsgTipsCode.UserNoBindedEngine
         });
+        return;
+    }
+
+    if (!signal) {
         return;
     }
 
