@@ -13,22 +13,22 @@ const splitPortInfo = function (inputData, outData) {
     for (let i = 0; i < inputData.length; i++) {
         const element = inputData[i];
         ports.push({
-            id: 'in_' + i,
+            id: consts.InPrefix + i,
             name: element.Name,
             type: element.Type,
             value: element.Default,
-            group: 'in'
+            group: consts.InFlag
         });
     }
 
     for (let i = 0; i < outData.length; i++) {
         const element = outData[i];
         ports.push({
-            id: 'out_' + i,
+            id: consts.OutPrefix + i,
             name: element.Name,
             type: element.Type,
             value: element.Default,
-            group: 'out'
+            group: consts.OutFlag
         });
     }
     return ports;

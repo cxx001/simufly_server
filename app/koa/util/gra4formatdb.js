@@ -1,6 +1,8 @@
 const pomelo = require('pomelo');
 const path = require('path');
 const convert = require('xml-js');
+const consts = require('../../common/consts');
+const { InPrefix } = require('../../common/consts');
 
 var pro = module.exports;
 
@@ -95,20 +97,20 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
                 // 模块与模块之间连线的粗线都平铺,只有带子系统之间连线有粗线
                 if (line.SubLine && this.isSimpleModelLine(unitArray, line.Data._attributes.in, line.Data._attributes.out)) {
                     model.items.push({
-                        id: (model.id == line.Data._attributes.in) ? line.Data._attributes.inport : line.Data._attributes.export,
-                        group: (model.id == line.Data._attributes.in) ? 'out' : 'in'
+                        id: (model.id == line.Data._attributes.in) ? consts.OutPrefix + line.Data._attributes.inport : consts.InPrefix + line.Data._attributes.export,
+                        group: (model.id == line.Data._attributes.in) ? consts.OutFlag : consts.InFlag
                     });
                     for (let m = 0; m < Number(line.SubLine._attributes.Count); m++) {
                         const element = line.SubLine['line' + m];
                         model.items.push({
-                            id: (model.id == element._attributes.in) ? element._attributes.inport : element._attributes.export,
-                            group: (model.id == element._attributes.in) ? 'out' : 'in'
+                            id: (model.id == element._attributes.in) ? consts.OutPrefix + element._attributes.inport : consts.InPrefix + element._attributes.export,
+                            group: (model.id == element._attributes.in) ? consts.OutFlag : consts.InFlag
                         });
                     }
                 } else {
                     model.items.push({
-                        id: (model.id == line.Data._attributes.in) ? line.Data._attributes.inport : line.Data._attributes.export,
-                        group: (model.id == line.Data._attributes.in) ? 'out' : 'in'
+                        id: (model.id == line.Data._attributes.in) ? consts.OutPrefix + line.Data._attributes.inport : consts.InPrefix + line.Data._attributes.export,
+                        group: (model.id == line.Data._attributes.in) ? consts.OutFlag : consts.InFlag
                     });
                 }
             }
@@ -141,8 +143,8 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
                 let outPort = Number(line.Data._attributes.inport) + j;
                 let inPort = Number(line.Data._attributes.export) + j;
                 subLine.push({
-                    source: { "cell": line.Data._attributes.in, "port": outPort },
-                    target: { "cell": line.Data._attributes.out, "port": inPort }
+                    source: { "cell": line.Data._attributes.in, "port": consts.OutPrefix + outPort },
+                    target: { "cell": line.Data._attributes.out, "port": consts.InPrefix + inPort }
                 })
             }
         }
@@ -151,15 +153,15 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
         if (childLines) {
             // 用户的Subline是从第二条线开始, 默认Data里是第一条，而且dim=1.
             subLine.push({
-                source: { "cell": line.Data._attributes.in, "port": line.Data._attributes.inport },
-                target: { "cell": line.Data._attributes.out, "port": line.Data._attributes.export }
+                source: { "cell": line.Data._attributes.in, "port": consts.OutPrefix + line.Data._attributes.inport },
+                target: { "cell": line.Data._attributes.out, "port": consts.InPrefix + line.Data._attributes.export }
             })
 
             for (let i = 0; i < Number(childLines._attributes.Count); i++) {
                 const childLine = childLines['line' + i];
                 subLine.push({
-                    source: { "cell": childLine._attributes.in, "port": childLine._attributes.inport },
-                    target: { "cell": childLine._attributes.out, "port": childLine._attributes.export }
+                    source: { "cell": childLine._attributes.in, "port": consts.OutPrefix + childLine._attributes.inport },
+                    target: { "cell": childLine._attributes.out, "port": consts.InPrefix + childLine._attributes.export }
                 })
             }
         }
@@ -182,11 +184,11 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
                 lineType: line.Data._attributes.dim > 1 ? 2 : 1,
                 source: {
                     "cell": line.Data._attributes.in,
-                    "port": line.Data._attributes.inport
+                    "port": consts.OutPrefix + line.Data._attributes.inport
                 },
                 target: {
                     "cell": line.Data._attributes.out,
-                    "port": line.Data._attributes.export
+                    "port": consts.InPrefix + line.Data._attributes.export
                 },
                 subLine: subLine,
             });
@@ -195,7 +197,7 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
 
     return item;
 }
-    
+
 /**
  * 
  * @param {*} sortData 带分组的线, 按是否是一对多/多对多端口分类
@@ -247,13 +249,13 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
                 nodeType: 3,
                 position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                 size: { "width": 40, "height": 20 },
-                items: [{ "id": line.Data._attributes.inport, "group": "out" }],
+                items: [{ "id": consts.OutPrefix + line.Data._attributes.inport, "group": consts.OutFlag }],
             })
 
             // 连线关联
             for (let n = 0; n < childPanel.line.length; n++) {
                 let childLine = childPanel.line[n];
-                if (childLine.source.cell == line.Data._attributes.in && childLine.source.port == line.Data._attributes.inport) {
+                if (childLine.source.cell == line.Data._attributes.in && (childLine.source.port == (consts.OutPrefix + line.Data._attributes.inport))) {
                     childLine.source.cell = inputId;
                 }
             }
@@ -270,13 +272,13 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
                 nodeType: 3,
                 position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                 size: { "width": 40, "height": 20 },
-                items: [{ "id": line.Data._attributes.export, "group": "in" }],
+                items: [{ "id": consts.InPrefix + line.Data._attributes.export, "group": consts.InFlag }],
             })
 
             // 连线关联
             for (let n = 0; n < childPanel.line.length; n++) {
                 let childLine = childPanel.line[n];
-                if (childLine.target.cell == line.Data._attributes.out && childLine.target.port == line.Data._attributes.export) {
+                if (childLine.target.cell == line.Data._attributes.out && (childLine.target.port == (consts.InPrefix + line.Data._attributes.export))) {
                     childLine.target.cell = outputId;
                 }
             }
@@ -306,7 +308,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 ioPort = line.target.port;
                 for (let j = 0; j < cLineArray.length; j++) {
                     const item = cLineArray[j];
-                    if (item.Data._attributes.in == ioID && item.Data._attributes.inport == ioPort) {
+                    if (item.Data._attributes.in == ioID && ((consts.InPrefix + item.Data._attributes.inport) == ioPort)) {
                         record.push(item);
                     }
                 }
@@ -314,7 +316,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 ioPort = line.source.port;
                 for (let j = 0; j < cLineArray.length; j++) {
                     const item = cLineArray[j];
-                    if (item.Data._attributes.out == ioID && item.Data._attributes.export == ioPort) {
+                    if (item.Data._attributes.out == ioID && ((consts.OutPrefix + item.Data._attributes.export) == ioPort)) {
                         record.push(item);
                     }
                 }
@@ -328,7 +330,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     ioPort = cLine.target.port;
                     for (let n = 0; n < cLineArray.length; n++) {
                         const item = cLineArray[n];
-                        if (item.Data._attributes.in == ioID && item.Data._attributes.inport == ioPort) {
+                        if (item.Data._attributes.in == ioID && ((consts.InPrefix + item.Data._attributes.inport) == ioPort)) {
                             record.push(item);
                             break;
                         }
@@ -337,7 +339,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     ioPort = cLine.source.port;
                     for (let n = 0; n < cLineArray.length; n++) {
                         const item = cLineArray[n];
-                        if (item.Data._attributes.out == ioID && item.Data._attributes.export == ioPort) {
+                        if (item.Data._attributes.out == ioID && ((consts.OutPrefix + item.Data._attributes.export) == ioPort)) {
                             record.push(item);
                             break;
                         }
@@ -360,26 +362,26 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
             for (let z = 0; z < record.length; z++) {
                 const element = record[z];
                 ports.push({
-                    id: inORout == 1 ? element.Data._attributes.inport : element.Data._attributes.export,
-                    group: inORout == 1 ? "out" : "in"
+                    id: inORout == 1 ? (consts.OutPrefix + element.Data._attributes.inport) : (consts.InPrefix + element.Data._attributes.export),
+                    group: inORout == 1 ? consts.OutFlag : consts.InFlag
                 });
 
                 // 总线替换用户IO模块, 修改原连线关联ID
                 for (let n = 0; n < childPanel.line.length; n++) {
                     let childLine = childPanel.line[n];
                     if (inORout == 1) {
-                        if (childLine.source.cell == ioID && childLine.source.port == element.Data._attributes.inport) {
+                        if (childLine.source.cell == ioID && (childLine.source.port == (consts.OutPrefix + element.Data._attributes.inport))) {
                             childLine.source.cell = blockId;
                         }
                     } else {
-                        if (childLine.target.cell == ioID && childLine.target.port == element.Data._attributes.export) {
+                        if (childLine.target.cell == ioID && (childLine.target.port == (consts.InPrefix + element.Data._attributes.export))) {
                             childLine.target.cell = blockId;
                         }
                     }
                 }
             }
             if (inORout == 1) {
-                ports.push({ id: 0, group: "in" });
+                ports.push({ id: consts.InPrefix + 0, group: consts.InFlag });
 
                 // 添加输入总线模块
                 childPanel.block.push({
@@ -399,16 +401,16 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     nodeType: 3,
                     position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
-                    items: [{ "id": "0", "group": "out" }],
+                    items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
                 })
                 childPanel.line.push({
                     id: pomelo.app.db.genId(),
                     lineType: 1,
-                    source: { "cell": inputId, "port": "0" },
-                    target: { "cell": blockId, "port": "0" },
+                    source: { "cell": inputId, "port": consts.OutPrefix + "0" },
+                    target: { "cell": blockId, "port": consts.InFlag + "0" },
                 });
             } else {
-                ports.push({ id: 0, group: "out" });
+                ports.push({ id: consts.OutPrefix + 0, group: consts.OutFlag });
                 // 输出总线
                 childPanel.block.push({
                     id: blockId,
@@ -426,13 +428,13 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     nodeType: 3,
                     position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
-                    items: [{ "id": "0", "group": "in" }],
+                    items: [{ "id": consts.InPrefix + "0", "group": consts.InFlag }],
                 })
                 childPanel.line.push({
                     id: pomelo.app.db.genId(),
                     lineType: 1,
-                    source: { "cell": blockId, "port": "0" },
-                    target: { "cell": outputId, "port": "0" },
+                    source: { "cell": blockId, "port": consts.OutPrefix + "0" },
+                    target: { "cell": outputId, "port": consts.InPrefix + "0" },
                 });
             }
         } else {
@@ -445,13 +447,13 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     nodeType: 3,
                     position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
-                    items: [{ "id": "0", "group": "out" }],
+                    items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
                 })
                 childPanel.line.push({
                     id: pomelo.app.db.genId(),
                     lineType: 1,
-                    source: { "cell": inputId, "port": "0" },
-                    target: { "cell": record[0].Data._attributes.out, "port": record[0].Data._attributes.export },
+                    source: { "cell": inputId, "port": consts.OutPrefix + "0" },
+                    target: { "cell": record[0].Data._attributes.out, "port": consts.InPrefix + record[0].Data._attributes.export },
                 });
             } else {
                 // 添加输出模块
@@ -462,13 +464,13 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     nodeType: 3,
                     position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
-                    items: [{ "id": "0", "group": "in" }],
+                    items: [{ "id": InPrefix + "0", "group": consts.InFlag }],
                 })
                 childPanel.line.push({
                     id: pomelo.app.db.genId(),
                     lineType: 1,
-                    source: { "cell": record[0].Data._attributes.in, "port": record[0].Data._attributes.export },
-                    target: { "cell": outputId, "port": "0" },
+                    source: { "cell": record[0].Data._attributes.in, "port": consts.OutPrefix + record[0].Data._attributes.export },
+                    target: { "cell": outputId, "port": consts.InPrefix + "0" },
                 });
             }
         }

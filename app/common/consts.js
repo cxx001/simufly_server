@@ -17,6 +17,11 @@ module.exports = {
 
     INVALID_CHAIR: 65535, 	   //无效用户
 
+    InPrefix: 'in_',
+    OutPrefix: 'out_',
+    InFlag: 'in',
+    OutFlag: 'out',
+
     Code: {
         OK: 0,
         FAIL: 1,

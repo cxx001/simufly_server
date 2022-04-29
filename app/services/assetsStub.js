@@ -173,16 +173,7 @@ pro._formatDB2Vue = function (dbjson) {
             model.attrs = { text: { text: unit.name} };
             model.shape = this._getBlockShapeType(unit.nodeType);
             model.ports = {};
-            // 注意不能直接改unit, 不然会改变数据库内容, 是引用
-            let portInfo = [];
-            for (let k = 0; k < unit.items.length; k++) {
-                let item = unit.items[k];
-                portInfo.push({
-                    id: item.group + '_' + item.id,
-                    group: item.group
-                });
-            }
-            model.ports.items = portInfo;
+            model.ports.items = unit.items;
             model.id = unit.id;
             model.child = unit.child;
             model.modelId = unit.modelId ? unit.modelId : null;
@@ -198,9 +189,8 @@ pro._formatDB2Vue = function (dbjson) {
             let line = {};
             line.id = unit.id;
             line.shape = this._getLineShapeType(unit.lineType);
-            // 同上不能改unit
-            line.source = {cell: unit.source.cell, port: 'out_' + unit.source.port}
-            line.target = {cell: unit.target.cell, port: 'in_' + unit.target.port};
+            line.source = unit.source;
+            line.target = unit.target;
             line.zIndex = j + itemSys.block.length;
             item.data.cells.push(line);
         }
@@ -210,7 +200,6 @@ pro._formatDB2Vue = function (dbjson) {
     return sysList;
 }
 
-// TODO: 端口是不是考虑在导入时就直接改变保证唯一，不要在这里转了！
 pro.insertCustomField = function (newPanelData, dbPanelData) {
     newPanelData.block = newPanelData.block || [];
     for (let i = 0; i < newPanelData.block.length; i++) {
@@ -222,13 +211,6 @@ pro.insertCustomField = function (newPanelData, dbPanelData) {
                 item.modifyAttr = element.modifyAttr;
                 break;
             }
-        }
-        
-        // 端口port保留最后的数字ID
-        for (let k = 0; k < item.items.length; k++) {
-            let portInfo = item.items[k];
-            let infos = portInfo.id.split('_');
-            portInfo.id = infos[infos.length-1];
         }
     }
 
@@ -243,12 +225,6 @@ pro.insertCustomField = function (newPanelData, dbPanelData) {
                 break;
             }
         }
-
-        // 端口port保留最后的数字ID
-        let sports = item.source.port.split('_');
-        let tports = item.target.port.split('_');
-        item.source.port = sports[sports.length-1];
-        item.target.port = tports[tports.length-1];
     }
 }
 
