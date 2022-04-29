@@ -210,46 +210,70 @@ pro._formatDB2Vue = function (dbjson) {
     return sysList;
 }
 
+// TODO: 端口是不是考虑在导入时就直接改变保证唯一，不要在这里转了！
 pro.insertCustomField = function (newPanelData, dbPanelData) {
+    newPanelData.block = newPanelData.block || [];
     for (let i = 0; i < newPanelData.block.length; i++) {
         let item = newPanelData.block[i];
+        // 保留有的属性modifyAttr字段
         for (let j = 0; j < dbPanelData.block.length; j++) {
             const element = dbPanelData.block[j];
             if (element.id == item.id) {
                 item.modifyAttr = element.modifyAttr;
-                for (let z = 0; z < item.items.length; z++) {
-                    let port = item.items[z];
-                    port.id = port.id.split('_')[1];
-                }
                 break;
             }
+        }
+        
+        // 端口port保留最后的数字ID
+        for (let k = 0; k < item.items.length; k++) {
+            let portInfo = item.items[k];
+            let infos = portInfo.id.split('_');
+            portInfo.id = infos[infos.length-1];
         }
     }
 
+    newPanelData.line = newPanelData.line || [];
     for (let i = 0; i < newPanelData.line.length; i++) {
         let item = newPanelData.line[i];
+        // 保留原有连线对象的subLine属性信息
         for (let j = 0; j < dbPanelData.line.length; j++) {
             const element = dbPanelData.line[j];
             if (element.id == item.id) {
-                item.subLine = element.subLine;
-                item.source.port = item.source.port.split('_')[1];
-                item.target.port = item.target.port.split('_')[1];
+                item.subLine = element.subLine;   // TODO: 是否有必要记录？
                 break;
             }
         }
+
+        // 端口port保留最后的数字ID
+        let sports = item.source.port.split('_');
+        let tports = item.target.port.split('_');
+        item.source.port = sports[sports.length-1];
+        item.target.port = tports[tports.length-1];
     }
 }
 
 pro.savePanel = async function (projectId, panelDatas, cb) {
+    logger.info('用户修改: ', panelDatas);
     let project = await this.getEntry(projectId);
     if (!project) {
         logger.warn('get project [%s] not exist!', projectId);
         cb({code: consts.Code.FAIL});
         return;
     }
+    
+    // 删除子系统模型, 对应子系统面板也要移除
+    let delPanelList = this.getDelPanelList(panelDatas, project);
+    for (let i = 0; i < delPanelList.length; i++) {
+        const panelID = delPanelList[i];
+        for (let j = 0; j < project.data.length; j++) {
+            let panel = project.data[j];
+            if (panel.id == panelID) {
+                project.data.splice(j, 1);
+                break;
+            }
+        }
+    }
 
-    // 只有新建、修改，删除另提供接口
-    logger.info('用户修改: ', panelDatas);
     for (let i = 0; i < panelDatas.length; i++) {
         let item = panelDatas[i];
         let isCreate = true;
@@ -271,6 +295,38 @@ pro.savePanel = async function (projectId, panelDatas, cb) {
     this.projectsById[projectId] = project;
     this.waitToUpdateDB.add(projectId);
     cb({code: consts.Code.OK});
+}
+
+pro.getDelPanelList = function (modifyPanels, dbProject) {
+    let delPanelList = [];
+    for (let i = 0; i < modifyPanels.length; i++) {
+        const modifyPanel = modifyPanels[i];
+        for (let j = 0; j < dbProject.data.length; j++) {
+            const dbPanel = dbProject.data[j];
+            if (modifyPanel.id == dbPanel.id) {
+                // 子画板
+                modifyPanel.block = modifyPanel.block || [];
+                for (let m = 0; m < dbPanel.block.length; m++) {
+                    const dbItem = dbPanel.block[m];
+                    let isDel = true;
+                    for (let n = 0; n < modifyPanel.block.length; n++) {
+                        const newItem = modifyPanel.block[n];
+                        if (dbItem.id == newItem.id) {
+                            isDel = false;
+                            break;
+                        }
+                    }
+                    if (isDel && dbItem.child) {
+                        delPanelList.push(dbItem.child);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    logger.info("待删除的画板列表: ", delPanelList);
+    return delPanelList;
 }
 
 pro.deletePanel = async function (projectId, panelId, cb) {
