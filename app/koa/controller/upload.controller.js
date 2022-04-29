@@ -56,6 +56,14 @@ class UploadController {
                 xmlJson = JSON.parse(xmlJson);
                 let data = [];
                 gra4formatdb.splitChildSys(uid, zip, foldername, data, xmlJson, 1, null, null, 1);
+                // 移除不需要的subLine粗线记录(可以看视图里外端口是对应的)
+                for (let i = 0; i < data.length; i++) {
+                    let panel = data[i];
+                    for (let j = 0; j < panel.line.length; j++) {
+                        let item = panel.line[j];
+                        delete item.subLine;
+                    }
+                }
 
                 // 存数据库
                 let db = {

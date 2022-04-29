@@ -213,19 +213,6 @@ pro.insertCustomField = function (newPanelData, dbPanelData) {
             }
         }
     }
-
-    newPanelData.line = newPanelData.line || [];
-    for (let i = 0; i < newPanelData.line.length; i++) {
-        let item = newPanelData.line[i];
-        // 保留原有连线对象的subLine属性信息
-        for (let j = 0; j < dbPanelData.line.length; j++) {
-            const element = dbPanelData.line[j];
-            if (element.id == item.id) {
-                item.subLine = element.subLine;   // TODO: 是否有必要记录？
-                break;
-            }
-        }
-    }
 }
 
 pro.savePanel = async function (projectId, panelDatas, cb) {
