@@ -79,5 +79,14 @@ module.exports = {
     ControlType: {
         Add: 1,
         Delete: 2,
+    },
+
+    ShapeType: {
+        Block: 0,
+        Add: 2,
+        SubSys: 6,
+        IO: 10,
+        MoreOne: 11,
+        OneMore: 12,
     }
 }

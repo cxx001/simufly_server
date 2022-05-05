@@ -131,15 +131,24 @@ pro.getDBProject = async function (projectId, cb) {
 
 pro._getBlockShapeType = function (nodeType) {
     let shape = "my-rect"
-    if (nodeType == 6) {
+    if (nodeType == consts.ShapeType.SubSys) {
         // 子系统
         shape = "my-rect"
-    } else if (nodeType == 0) {
+    } else if (nodeType == consts.ShapeType.Block) {
         // 最小模型
         shape = "my-rect"
-    } else if (nodeType == 2) {
+    } else if (nodeType == consts.ShapeType.Add) {
         // 加法器, 圆形
         shape = "my-circle"
+    } else if (nodeType == consts.ShapeType.IO) {
+        // 输入、输出
+        shape = "my-rect"
+    } else if(nodeType == consts.ShapeType.MoreOne) {
+        // 多对一
+        shape = "my-rect"
+    } else if(nodeType == consts.ShapeType.OneMore) {
+        // 一对多
+        shape = "my-rect"
     }
     return shape;
 }

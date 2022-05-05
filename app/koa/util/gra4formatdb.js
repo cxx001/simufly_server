@@ -2,7 +2,6 @@ const pomelo = require('pomelo');
 const path = require('path');
 const convert = require('xml-js');
 const consts = require('../../common/consts');
-const { InPrefix } = require('../../common/consts');
 
 var pro = module.exports;
 
@@ -246,7 +245,7 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
             childPanel.block.push({
                 id: inputId,
                 name: "输入",
-                nodeType: 3,
+                nodeType: consts.ShapeType.IO,
                 position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                 size: { "width": 40, "height": 20 },
                 items: [{ "id": consts.OutPrefix + line.Data._attributes.inport, "group": consts.OutFlag }],
@@ -269,7 +268,7 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
             childPanel.block.push({
                 id: outputId,
                 name: "输出",
-                nodeType: 3,
+                nodeType: consts.ShapeType.IO,
                 position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                 size: { "width": 40, "height": 20 },
                 items: [{ "id": consts.InPrefix + line.Data._attributes.export, "group": consts.InFlag }],
@@ -387,7 +386,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: blockId,
                     name: "一对多总线",
-                    nodeType: 1,
+                    nodeType: consts.ShapeType.OneMore,
                     position: { "x": Number(cIOModel.Rect._attributes.left), "y": Number(cIOModel.Rect._attributes.top) },
                     size: { "width": 20, "height": 80 },
                     items: ports,
@@ -398,7 +397,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: inputId,
                     name: "输入",
-                    nodeType: 3,
+                    nodeType: consts.ShapeType.IO,
                     position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
@@ -415,7 +414,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: blockId,
                     name: "多对一总线",
-                    nodeType: 1,
+                    nodeType: consts.ShapeType.MoreOne,
                     position: { "x": Number(cIOModel.Rect._attributes.left), "y": Number(cIOModel.Rect._attributes.top) },
                     size: { "width": 20, "height": 80 },
                     items: ports,
@@ -425,7 +424,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: outputId,
                     name: "输出",
-                    nodeType: 3,
+                    nodeType: consts.ShapeType.IO,
                     position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": consts.InPrefix + "0", "group": consts.InFlag }],
@@ -444,7 +443,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: inputId,
                     name: "输入",
-                    nodeType: 3,
+                    nodeType: consts.ShapeType.IO,
                     position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
@@ -461,7 +460,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: outputId,
                     name: "输出",
-                    nodeType: 3,
+                    nodeType: consts.ShapeType.IO,
                     position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": InPrefix + "0", "group": consts.InFlag }],
