@@ -303,9 +303,9 @@ pro.onStateResponse = function (uid, msg) {
     }
 
     let uids = { uid: uid, sid: sid };
-    if (state_type == consts.EngineRspState.connectRep) {
+    if (state_type == consts.EngineRspState.kConnectRep) {
         // connectRep
-        if (ret == consts.EngineRspErrorCode.ok) {
+        if (ret == consts.EngineRspErrorCode.kOk) {
             this.bindEngine(uid, true);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.ConnEngine
@@ -316,9 +316,9 @@ pro.onStateResponse = function (uid, msg) {
                 tip: consts.MsgTipsCode.EngineHandleFail
             });
         }
-    } else if(state_type == consts.EngineRspState.startRep) {
+    } else if(state_type == consts.EngineRspState.kStartRep) {
         // startRep
-        if (ret == consts.EngineRspErrorCode.ok) {
+        if (ret == consts.EngineRspErrorCode.kOk) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StartSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.StartSimulation,
@@ -330,9 +330,9 @@ pro.onStateResponse = function (uid, msg) {
                 tip: consts.MsgTipsCode.StartSimulationFail
             });
         }
-    } else if(state_type == consts.EngineRspState.pause) {
+    } else if(state_type == consts.EngineRspState.kPause) {
         // pause
-        if (ret == consts.EngineRspErrorCode.ok) {
+        if (ret == consts.EngineRspErrorCode.kOk) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.PauseSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.PauseSimulation,
@@ -345,9 +345,9 @@ pro.onStateResponse = function (uid, msg) {
             });
         }
 
-    } else if(state_type == consts.EngineRspState.stopRep) {
+    } else if(state_type == consts.EngineRspState.kStopRep) {
         // stopRep
-        if (ret == consts.EngineRspErrorCode.ok) {
+        if (ret == consts.EngineRspErrorCode.kOk) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StopSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.StopSimulation,
@@ -359,9 +359,9 @@ pro.onStateResponse = function (uid, msg) {
                 tip: consts.MsgTipsCode.StopSimulationFail
             });
         }
-    } else if(state_type == consts.EngineRspState.terminateRep) {
+    } else if(state_type == consts.EngineRspState.kTerminateRep) {
         // terminateRep
-        if (ret == consts.EngineRspErrorCode.ok) {
+        if (ret == consts.EngineRspErrorCode.kOk) {
             this.unbindEngine(uid);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.TerminateSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {

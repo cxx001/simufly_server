@@ -7,10 +7,10 @@ package kl.simufly;
 //仿真指令，上位机---->下位机
 message ControlCmd {
   enum cmdType {
-    start = 0;
-    pause = 1;
-    stop = 2;
-    terminate = 3;
+    kStart = 0;
+    kPause = 1;
+    kStop = 2;
+    kTerminate = 3;
   }
   optional cmdType cmd_type = 1;
 }
@@ -31,7 +31,7 @@ message ModifyParameter {
 message SignalManage {
   message Signal {
     //通过模块id以及端口索引（数组下标）来确定参数来源
-    optional bool cancel = 1; //是否取消该信号的监控
+    optional bool cancel = 1;  //是否取消该信号的监控
     optional bool monitor = 2; //是否监控
     optional bool record = 3;  //是否录制
     optional uint32 block_id = 4;
@@ -50,13 +50,54 @@ message SimuData {
 // 状态响应（所有需要下位机回复上位机是否成功这种状态而不带其他内容的情况），下位机---->上位机
 message StateResponse {
   enum stateType {
-    connectRep = 0;
-    startRep = 1;
-    stopRep = 2;
-    terminateRep = 3;
+    kConnectRep = 0;
+    kStartRep = 1;
+    kPause = 2;
+    kStopRep = 3;
+    kTerminateRep = 4;
   }
+
+  enum errorCode {
+    kOk = 0;
+    KBadValue = 1;
+  }
+
   optional stateType state_type = 1;
-  bool ret = 2;
+  uint32 ret = 2;
+}
+
+//触发器设置，上位机---->下位机
+message TriggerSetting {
+  //触发类型（常规、信号）
+  enum Source {
+    kManual = 0;
+    kSignal = 1;
+  }
+
+  //触发模式（正常、一次）
+  enum Mode {
+    kNormal = 0;
+    kOneShot = 1;
+  }
+
+  //方向
+  enum Direction {
+    kRising = 0;  //上升沿
+    kFalling = 1; //下降沿
+    kEither = 2;  //二者任意满足其一
+  }
+
+  optional bool status = 1;  //触发器状态（true为开启，false为关闭）
+  optional Source source = 2;
+  optional Mode mode = 3;
+
+  optional uint32 collect_factor = 4; //采样因子
+  optional uint32 collect_count = 5;  //采样次数
+
+  optional uint32 block_id = 6;     //信号所属模块id
+  optional uint32 port_index = 7;   //具体模块中信号索引
+  optional Direction direction = 8; //信号值触发方向
+  optional uint32 value = 9;        //指标值
 }
 
 // 定义消息类型枚举，区分收到的消息类型
@@ -67,5 +108,6 @@ message Type {
     SignalManage = 2;    //信号监控、录制
     SimuData = 3;        //仿真数据
     StateResponse = 4;   //状态响应
+    TriggerSetting = 5;  //触发器设置
   }
 }

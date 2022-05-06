@@ -119,14 +119,15 @@ module.exports = {
     },
 
     EngineRspState: {
-        connectRep: 0,
-        startRep: 1,
-        pause: 2,
-        stopRep: 3,
-        terminateRep: 4
+        kConnectRep: 0,
+        kStartRep: 1,
+        kPause: 2,
+        kStopRep: 3,
+        kTerminateRep: 4
     },
 
     EngineRspErrorCode: {
-        ok: true,
+        kOk: 0,
+        KBadValue: 1,
     }
 }
