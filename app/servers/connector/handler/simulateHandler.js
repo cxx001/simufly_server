@@ -22,6 +22,10 @@ handler.assignTask = function (msg, session, next) {
     session.avatar.simulate.assignTask(msg.assignList, next);
 }
 
+handler.generateCode = function (msg, session, next) {
+    session.avatar.simulate.generateCode(msg, next);
+}
+
 handler.deploy = function (msg, session, next) {
     session.avatar.simulate.deploy(next);
 }

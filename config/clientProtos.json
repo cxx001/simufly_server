@@ -149,6 +149,9 @@
 		},
 		"repeated AssignInfo assignInfos": 1
 	},
+	
+	"connector.simulateHandler.generateCode": {
+	},
 
 	"connector.simulateHandler.deploy": {
 	},

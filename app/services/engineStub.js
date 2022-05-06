@@ -305,7 +305,7 @@ pro.onStateResponse = function (uid, msg) {
     let uids = { uid: uid, sid: sid };
     if (state_type == consts.EngineRspState.connectRep) {
         // connectRep
-        if (ret == true) {
+        if (ret == consts.EngineRspErrorCode.ok) {
             this.bindEngine(uid, true);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.ConnEngine
@@ -318,7 +318,7 @@ pro.onStateResponse = function (uid, msg) {
         }
     } else if(state_type == consts.EngineRspState.startRep) {
         // startRep
-        if (ret == true) {
+        if (ret == consts.EngineRspErrorCode.ok) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StartSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.StartSimulation,
@@ -332,7 +332,7 @@ pro.onStateResponse = function (uid, msg) {
         }
     } else if(state_type == consts.EngineRspState.pause) {
         // pause
-        if (ret == true) {
+        if (ret == consts.EngineRspErrorCode.ok) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.PauseSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.PauseSimulation,
@@ -347,7 +347,7 @@ pro.onStateResponse = function (uid, msg) {
 
     } else if(state_type == consts.EngineRspState.stopRep) {
         // stopRep
-        if (ret == true) {
+        if (ret == consts.EngineRspErrorCode.ok) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StopSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.StopSimulation,
@@ -361,7 +361,7 @@ pro.onStateResponse = function (uid, msg) {
         }
     } else if(state_type == consts.EngineRspState.terminateRep) {
         // terminateRep
-        if (ret == true) {
+        if (ret == consts.EngineRspErrorCode.ok) {
             this.unbindEngine(uid);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.TerminateSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {

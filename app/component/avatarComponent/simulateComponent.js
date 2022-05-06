@@ -63,13 +63,19 @@ pro.getEntry = function (id) {
                     // 默认值
                     entry = {
                         _id: id,
-                        uid: this.entity.id,
+                        uid: self.entity.id,
                         state: 0,
                         simuTime: 0,
                         simuStep: 0,
                         assignTask: [],
                         signalSet: [],
-                        triggerSet: {},
+                        triggerSet: {
+                            status: 1,
+                            source: 0,
+                            mode: 0,
+                            collect_factor: 100,
+                            collect_count: 100,
+                        },
                     }
                     self.simulateById[id] = entry;
                 } else {
@@ -121,6 +127,9 @@ pro.onEngineResponse = async function (code) {
         entry.state = consts.SimulateState.Start;
         this.simulateById[projectId] = entry;
         this.waitToUpdateDB.add(projectId);
+        // 发送触发器配置
+        let triggerInfo = entry.triggerSet
+        this._callEngineRemote('triggerSetting', triggerInfo, null);
         // 发送历史监控数据
         let signal = entry.signalSet;
         this._callEngineRemote('signalManage', signal, null);
@@ -174,7 +183,7 @@ pro.assignTask = async function (assignList, next) {
     next(null, { code: consts.Code.OK });
 }
 
-pro.genCode = async function (genCodeInfo, next) {
+pro.generateCode = async function (genCodeInfo, next) {
     let projectId = this.entity.lobby.projectUUID;
     let entry = await this.getEntry(projectId);
     if (!entry) {

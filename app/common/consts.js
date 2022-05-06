@@ -124,5 +124,9 @@ module.exports = {
         pause: 2,
         stopRep: 3,
         terminateRep: 4
+    },
+
+    EngineRspErrorCode: {
+        ok: true,
     }
 }
