@@ -463,7 +463,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     nodeType: consts.ShapeType.IO,
                     position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
-                    items: [{ "id": InPrefix + "0", "group": consts.InFlag }],
+                    items: [{ "id": consts.InPrefix + "0", "group": consts.InFlag }],
                 })
                 childPanel.line.push({
                     id: pomelo.app.db.genId(),
