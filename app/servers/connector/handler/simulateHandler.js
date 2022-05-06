@@ -19,7 +19,7 @@ handler.getSimulateInfo = function (msg, session, next) {
 }
 
 handler.assignTask = function (msg, session, next) {
-    session.avatar.simulate.assignTask(msg.assignList, next);
+    session.avatar.simulate.assignTask(msg.assignInfos, next);
 }
 
 handler.generateCode = function (msg, session, next) {

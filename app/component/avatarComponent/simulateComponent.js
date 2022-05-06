@@ -158,7 +158,7 @@ pro.getSimulateInfo = async function (next) {
     next(null, entry);
 }
 
-pro.assignTask = async function (assignList, next) {
+pro.assignTask = async function (assignInfos, next) {
     let projectId = this.entity.lobby.projectUUID;
     let entry = await this.getEntry(projectId);
     if (!entry) {
@@ -177,7 +177,7 @@ pro.assignTask = async function (assignList, next) {
     entry.state = consts.SimulateState.GenCode;
 
     // TODO: 对分配节点做检测(如: 是否都是子系统、是否所有节点都分配了等)
-    entry.assignTask = assignList;
+    entry.assignTask = assignInfos;
     this.simulateById[projectId] = entry;
     this.waitToUpdateDB.add(projectId);
     next(null, { code: consts.Code.OK });
