@@ -123,12 +123,13 @@ pro.checkIsBind = function (uid) {
     return false;
 }
 
-pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
+pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
     projectUUID = 'simufly_engine'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
         logger.warn("用户[%s]已经绑定引擎了!", uids.uid);
+        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
         messageService.pushMessageToPlayer(uids, 'onMsgTips', {
             level: consts.TipsLevel.warn,
             tip: consts.MsgTipsCode.UserBindedEngine
@@ -140,6 +141,7 @@ pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
     if (!fs.existsSync(userDir)) {
         if (fs.mkdirSync(userDir)) {
             logger.warn("create path[%s] dir fail!", userDir);
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
             messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                 level: consts.TipsLevel.error,
                 tip: consts.MsgTipsCode.CreateDirFail
@@ -148,15 +150,23 @@ pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
         }
     }
 
+    let triggerCount = 0;
     let localPath = userDir + '/' + projectUUID + '.zip';
     ssh2.DownloadFile(server, remotePackagePath, localPath, (err, data) => {
         if (err) {
             logger.warn('ssh download GenCode file fail! err: %o', err);
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
             messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                 level: consts.TipsLevel.error,
                 tip: consts.MsgTipsCode.GenCodeFail
             });
             return;
+        }
+
+        // TODO: 临时判断, 正常要ssh远端提供sh脚本, 在最后统一加一个完成标致日志.
+        triggerCount++;
+        if (triggerCount == 1) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
         }
         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
             code: consts.MsgFlowCode.GenCode
@@ -164,13 +174,13 @@ pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
     })
 }
 
-// TODO: ip: 正式场景会去后台数据库中根据ip查找机器账号密码信息
-pro.deploy = function (uids, projectUUID, ip, cb) {
+pro.deploy = function (uids, projectUUID, cb) {
     projectUUID = 'simufly_engine'
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
         logger.warn("用户[%s]已经绑定引擎了!", uids.uid);
+        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
         messageService.pushMessageToPlayer(uids, 'onMsgTips', {
             level: consts.TipsLevel.warn,
             tip: consts.MsgTipsCode.UserBindedEngine
@@ -182,6 +192,7 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
     let localPath = './assets/' + uids.uid + '/' + projectUUID + '.zip';
     if (!fs.existsSync(localPath)) {
         logger.warn("deploy path[%s] not exist!", localPath);
+        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
         messageService.pushMessageToPlayer(uids, 'onMsgTips', {
             level: consts.TipsLevel.error,
             tip: consts.MsgTipsCode.NONDeployPath
@@ -193,6 +204,7 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
     ssh2.UploadFile(server, localPath, remotePath, (err, result) => {
         if (err) {
             logger.warn('ssh upload deploy file fail! err: %o', err);
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
             messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                 level: consts.TipsLevel.error,
                 tip: consts.MsgTipsCode.DeployUploadFail
@@ -203,6 +215,7 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
             code: consts.MsgFlowCode.DeployUpload
         });
 
+        let triggerCount = 0;
         let pathCmd1 = "cd /home/cxx/;"
         let unzipCmd = "unzip -o ./" + projectUUID + ".zip;"
         let pathCmd2 = "cd ./" + projectUUID + "/demo2/;";
@@ -211,11 +224,18 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
         ssh2.Shell(server, cmd, (err, data) => {
             if (err) {
                 logger.warn('ssh shell commond fail! err: %o', err);
+                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
                 messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                     level: consts.TipsLevel.error,
                     tip: consts.MsgTipsCode.DeployDoShellFail
                 });
                 return;
+            }
+
+            // TODO: 临时判断, 正常要ssh远端提供sh脚本, 在最后统一加一个完成标致日志.
+            triggerCount++;
+            if (triggerCount == 1) {
+                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeploySus, null);
             }
 
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
@@ -227,12 +247,11 @@ pro.deploy = function (uids, projectUUID, ip, cb) {
 }
 
 // 1. 启动引擎
-pro.initSimulation = function (uids, projectUUID, ip, cb) {
+pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
     projectUUID = 'simufly_engine'
-    utils.invokeCallback(cb);
-
     if (this.checkIsBind(uids.uid)) {
         logger.warn("用户[%s]已经绑定引擎了!", uids.uid);
+        cb(consts.EngineRspType.ConnectFail);
         messageService.pushMessageToPlayer(uids, 'onMsgTips', {
             level: consts.TipsLevel.warn,
             tip: consts.MsgTipsCode.UserBindedEngine
@@ -241,17 +260,25 @@ pro.initSimulation = function (uids, projectUUID, ip, cb) {
     }
 
     // 1. 运行(先关闭再运行)
+    let triggerCount = 0;
     let pathCmd = "cd /home/cxx/" + projectUUID + "/demo2/;";
-    let startCmd = "./demo " + this.zmqHost + " " + this.zmqReqPort + " " + this.zmqRspPort + " " + uids.uid + " &";
+    let startCmd = `./demo ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep} &`;
     let cmd = pathCmd + startCmd + "\r\nexit\r\n";     // 引擎起来后所有的日志都会在这里触发, 直至引擎程序kill。
     ssh2.Shell(server, cmd, (err, data) => {
         if (err) {
             logger.warn('ssh shell commond fail! err: %o', err);
+            cb(consts.EngineRspType.ConnectFail);
             messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                 level: consts.TipsLevel.error,
                 tip: consts.MsgTipsCode.InitEngineFail
             });
             return;
+        }
+
+        // TODO: 临时判断, 正常要ssh远端提供sh脚本, 在最后统一加一个完成标致日志.
+        triggerCount++;
+        if (triggerCount == 1) {
+            cb(consts.EngineRspType.ConnectSus);
         }
 
         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
@@ -276,7 +303,7 @@ pro.onStateResponse = function (uid, msg) {
     }
 
     let uids = { uid: uid, sid: sid };
-    if (state_type == 0) {
+    if (state_type == consts.EngineRspState.connectRep) {
         // connectRep
         if (ret == true) {
             this.bindEngine(uid, true);
@@ -289,38 +316,59 @@ pro.onStateResponse = function (uid, msg) {
                 tip: consts.MsgTipsCode.EngineHandleFail
             });
         }
-    } else if(state_type == 1) {
+    } else if(state_type == consts.EngineRspState.startRep) {
         // startRep
         if (ret == true) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StartSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.StartSimulation,
             });
         } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
             messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                 level: consts.TipsLevel.error,
                 tip: consts.MsgTipsCode.StartSimulationFail
             });
         }
-    } else if(state_type == 2) {
+    } else if(state_type == consts.EngineRspState.pause) {
+        // pause
+        if (ret == true) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.PauseSus, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.PauseSimulation,
+            });
+        } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
+            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+                level: consts.TipsLevel.error,
+                tip: consts.MsgTipsCode.PauseSimulationFail
+            });
+        }
+
+    } else if(state_type == consts.EngineRspState.stopRep) {
         // stopRep
         if (ret == true) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StopSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.StopSimulation,
             });
         } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
             messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                 level: consts.TipsLevel.error,
                 tip: consts.MsgTipsCode.StopSimulationFail
             });
         }
-    } else if(state_type == 3) {
+    } else if(state_type == consts.EngineRspState.terminateRep) {
         // terminateRep
         if (ret == true) {
             this.unbindEngine(uid);
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.TerminateSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.ExitSimulation,
             });
         } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
             messageService.pushMessageToPlayer(uids, 'onMsgTips', {
                 level: consts.TipsLevel.error,
                 tip: consts.MsgTipsCode.ExitSimulationFail
@@ -334,6 +382,7 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
 
     if (!this.checkIsBind(uids.uid)) {
         logger.warn("用户[%s]没有绑定引擎!", uids.uid);
+        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
         messageService.pushMessageToPlayer(uids, 'onMsgTips', {
             level: consts.TipsLevel.warn,
             tip: consts.MsgTipsCode.UserNoBindedEngine
@@ -408,7 +457,7 @@ pro.signalManage = function (uids, signal, cb) {
         return;
     }
 
-    if (!signal) {
+    if (!signal || signal.length < 1) {
         return;
     }
 
@@ -425,6 +474,35 @@ pro.signalManage = function (uids, signal, cb) {
         route: 'SignalManage',
         msg: {
             signal: signal,
+        }
+    });
+}
+
+pro.triggerSetting = function (uids, triggerInfo, cb) {
+    utils.invokeCallback(cb);
+
+    if (!this.checkIsBind(uids.uid)) {
+        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
+        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+            level: consts.TipsLevel.warn,
+            tip: consts.MsgTipsCode.UserNoBindedEngine
+        });
+        return;
+    }
+
+    this.zmqProcess.send({
+        uid: uids.uid,
+        route: 'TriggerSetting',
+        msg: {
+            status: triggerInfo.status ? true : false,
+            source: triggerInfo.source,
+            mode: triggerInfo.mode,
+            collect_factor: triggerInfo.collect_factor,
+            collect_count: triggerInfo.collect_count,
+            block_id: triggerInfo.block_id,
+            port_index: triggerInfo.port_index,
+            direction: triggerInfo.direction,
+            value: triggerInfo.value
         }
     });
 }

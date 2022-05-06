@@ -18,16 +18,16 @@ pro.updateUserState = function (uid, sid, cb) {
     this.app.engineStub.updateUserState(uid, sid, cb);
 }
 
-pro.generateCode = function (uids, projectUUID, genCodeInfos, cb) {
-    this.app.engineStub.generateCode(uids, projectUUID, genCodeInfos, cb);
+pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
+    this.app.engineStub.generateCode(uids, projectUUID, genCodeInfo, cb);
 }
 
-pro.deploy = function (uids, projectUUID, ip, cb) {
-    this.app.engineStub.deploy(uids, projectUUID, ip, cb);
+pro.deploy = function (uids, projectUUID, cb) {
+    this.app.engineStub.deploy(uids, projectUUID, cb);
 }
 
-pro.initSimulation = function (uids, projectUUID, ip, cb) {
-    this.app.engineStub.initSimulation(uids, projectUUID, ip, cb);
+pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
+    this.app.engineStub.initSimulation(uids, projectUUID, simuTime, simuStep, cb);
 }
 
 pro.sendControlCmd = function (uids, cmdtype, cb) {
@@ -40,4 +40,8 @@ pro.modifyParameter = function (uids, parameter, cb) {
 
 pro.signalManage = function (uids, signal, cb) {
     this.app.engineStub.signalManage(uids, signal, cb);
+}
+
+pro.triggerSetting = function (uids, triggerInfo, cb) {
+    this.app.engineStub.triggerSetting(uids, triggerInfo, cb);
 }

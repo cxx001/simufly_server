@@ -49,8 +49,9 @@ module.exports = {
         InitEngine: 4, // 初始化引擎完成
         ConnEngine: 5, // 握手绑定完成
         StartSimulation: 6,  // 开始仿真
-        StopSimulation: 7,  // 停止仿真
-        ExitSimulation: 8,  // 退出仿真
+        PauseSimulation: 7,  // 暂停仿真
+        StopSimulation: 8,  // 停止仿真
+        ExitSimulation: 9,  // 退出仿真
     },
 
     TipsLevel: {
@@ -72,8 +73,9 @@ module.exports = {
         SimulationExitFail: {code: 10, msg: '仿真退出失败'},
         EngineHandleFail: {code: 11, msg: '引擎握手消息失败'},
         StartSimulationFail: {code: 12, msg: '开始仿真失败'},
-        StopSimulationFail: {code: 13, msg: '停止仿真失败'},
-        ExitSimulationFail: {code: 14, msg: '退出仿真失败'},
+        PauseSimulationFail: {code: 13, msg: '暂停仿真失败'},
+        StopSimulationFail: {code: 14, msg: '停止仿真失败'},
+        ExitSimulationFail: {code: 15, msg: '退出仿真失败'},
     },
 
     ControlType: {
@@ -88,5 +90,39 @@ module.exports = {
         IO: 10,
         MoreOne: 11,
         OneMore: 12,
+    },
+
+    SimulateState: {
+        AssignTask: 0,  // 分配任务
+        GenCode: 1,     // 生成代码
+        GenCoding: 2,   // 生成代码中
+        Deploy: 3,      // 部署
+        Deploying: 4,   // 部署中
+        CfgEnd: 5,      // 配置完成
+        Connected: 6,   // 连接成功
+        Start: 7,       // 开始仿真
+        Pause: 8,        // 暂停仿真
+    },
+
+    EngineRspType: {
+        GenCodeSus: 1,  // 生成代码成功
+        GenCodeFail: 2, // 生成代码失败
+        DeploySus: 3, // 部署成功
+        DeployFail: 4, // 部署失败
+        ConnectSus: 5,  // 连接成功
+        ConnectFail: 6, // 连接失败
+        StartSus: 7,    // 开始仿真成功
+        PauseSus: 8,   // 暂停仿真成功
+        StopSus: 9,   // 停止仿真成功
+        TerminateSus: 10,  // 退出仿真成功
+        SimulateCmdFail: 11, // 仿真命令操作失败
+    },
+
+    EngineRspState: {
+        connectRep: 0,
+        startRep: 1,
+        pause: 2,
+        stopRep: 3,
+        terminateRep: 4
     }
 }

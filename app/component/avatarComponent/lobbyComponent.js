@@ -100,42 +100,6 @@ pro.generateCode = async function (genCodeInfos, next) {
     this._callRemote('generateCode', this.projectUUID, genCodeInfos, null);
 }
 
-pro.deploy = async function (ip, next) {
-    next(null, { code: consts.Code.OK });
-
-    if (!this.projectUUID) {
-        this.entity.logger.warn("projectUUID is null!");
-        this.entity.sendMessage('onMsgTips', {
-            level: consts.TipsLevel.error,
-            tip: consts.MsgTipsCode.NONProjectUUID
-        });
-        return;
-    }
-
-    this._callRemote('deploy', this.projectUUID, ip, null);
-}
-
-pro.initSimulation = async function (ip, next) {
-    next(null, { code: consts.Code.OK });
-
-    if (!this.projectUUID) {
-        this.entity.logger.warn("projectUUID is null!");
-        this.entity.sendMessage('onMsgTips', {
-            level: consts.TipsLevel.error,
-            tip: consts.MsgTipsCode.NONProjectUUID
-        });
-        return;
-    }
-
-    this._callRemote('initSimulation', this.projectUUID, ip, null);
-}
-
-pro.sendControlCmd = async function (cmdtype, next) {
-    next(null, { code: consts.Code.OK });
-    
-    this._callRemote('sendControlCmd', cmdtype, null);
-}
-
 pro.savePanel = function (projectId, panelDatas, next) {
     this.entity.logger.info('保存项目=> ', projectId);
 
@@ -159,16 +123,6 @@ pro.deleteProject = function (projectId, next) {
     pomelo.app.rpc.assets.assetsRemote.deleteProject(null, projectId, (rsp) => {
         next(null, rsp);
     });
-}
-
-pro.modifyParameter = function(parameter, next) {
-    next(null, { code: consts.Code.OK });
-    this._callRemote('modifyParameter', parameter, null);
-}
-
-pro.signalManage = function (signal, next) {
-    next(null, { code: consts.Code.OK });
-    this._callRemote('signalManage', signal, null);
 }
 
 pro.getModelList = function (next) {

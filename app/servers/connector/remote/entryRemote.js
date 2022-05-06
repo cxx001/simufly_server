@@ -63,3 +63,11 @@ pro.onSetModelGroup = function (avtID, groupName, modelInfo, cb) {
         cb(groupId);
     }
 }
+
+pro.onEngineResponse = function (avtID, code, cb) {
+    var avatar = entityManager.getEntity(avtID);
+    if (avatar) {
+        avatar.simulate.onEngineResponse(code);
+        cb();
+    }
+}

@@ -20,30 +20,6 @@
 		"required string id": 1
 	},
 
-	"connector.lobbyHandler.generateCode": {
-		"message SplitUnit": {
-			"required uInt32 threadType": 1,
-			"repeated uInt32 subsystems": 2
-		},
-		"message GenCodeInfo": {
-			"required string ip": 1,
-			"repeated SplitUnit unit": 2
-		},
-		"repeated GenCodeInfo genCodeInfos": 1
-	},
-
-	"connector.lobbyHandler.deploy": {
-		"repeated string ip": 1
-	},
-
-	"connector.lobbyHandler.initSimulation": {
-		"required string ip": 1
-	},
-
-	"connector.lobbyHandler.sendControlCmd": {
-		"required uInt32 cmdtype": 1
-	},
-
 	"connector.lobbyHandler.savePanel": {
 		"message PanelInfo": {
 			"message BlockInfo": {
@@ -104,26 +80,6 @@
 		"required string projectId": 1
 	},
 
-	"connector.lobbyHandler.modifyParameter": {
-		"message Parameter": {
-			"required uInt32 block_id": 1,
-			"required uInt32 port_index": 2,
-			"required double value": 3
-		},
-		"repeated Parameter parameter": 1
-	},
-
-	"connector.lobbyHandler.signalManage": {
-		"message Signal": {
-			"required uInt32 cancel": 1,
-			"required uInt32 monitor": 2,
-			"required uInt32 record": 3,
-			"required uInt32 block_id": 4,
-			"required uInt32 port_index": 5
-		},
-		"repeated Signal signal": 1
-	},
-
 	"connector.lobbyHandler.getModelList": {
 	},
 
@@ -177,5 +133,75 @@
 		"required uInt32 panelId": 1,
 		"required string blockId": 2,
 		"required ModifyInfo modifyInfo": 3
+	},
+
+	"connector.simulateHandler.getSimulateInfo": {
+	},
+
+	"connector.simulateHandler.assignTask": {
+		"message AssignInfo": {
+			"message AssignThread": {
+				"required uInt32 type": 1,
+				"repeated string block": 2
+			},
+			"required string ip": 1,
+			"repeated AssignThread thread": 2
+		},
+		"repeated AssignInfo assignInfos": 1
+	},
+
+	"connector.simulateHandler.deploy": {
+	},
+
+	"connector.simulateHandler.connectEngine": {
+		"required uInt32 simuTime": 1,
+		"required uInt32 simuStep": 2
+	},
+
+	"connector.simulateHandler.disconnectEngine": {
+	},
+
+	"connector.simulateHandler.startSimulate": {
+	},
+
+	"connector.simulateHandler.pauseSimulate": {
+	},
+
+	"connector.simulateHandler.stopSimulate": {
+	},
+
+	"connector.simulateHandler.exitSimulate": {
+	},
+
+	"connector.simulateHandler.updateSignalList": {
+		"message Signal": {
+			"required uInt32 cancel": 1,
+			"required uInt32 monitor": 2,
+			"required uInt32 record": 3,
+			"required uInt32 block_id": 4,
+			"required uInt32 port_index": 5
+		},
+		"repeated Signal signal": 1
+	},
+
+	"connector.simulateHandler.modifyParameter": {
+		"message Parameter": {
+			"required uInt32 block_id": 1,
+			"required uInt32 port_index": 2,
+			"required double value": 3
+		},
+		"repeated Parameter parameter": 1
+	},
+
+	"connector.simulateHandler.setTrigger": {
+		"required uInt32 status": 1,
+		"required uInt32 source": 2,
+		"required uInt32 mode": 3,
+		"required uInt32 collect_factor": 4,
+		"required uInt32 collect_count": 5,
+		"optional uInt32 block_id": 6,
+		"optional uInt32 port_index": 7,
+		"optional uInt32 direction": 8,
+		"optional uInt32 value": 9
 	}
 }

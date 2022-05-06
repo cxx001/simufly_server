@@ -7,11 +7,13 @@
 let LoggerComponent = require('./entityComponent/loggerComponent');
 let AvatarPropertyCtrl = require('./avatarComponent/avatarPropertyCtrl');
 let LobbyComponent = require('./avatarComponent/lobbyComponent');
+let SimulateComponent = require('./avatarComponent/simulateComponent');
 
 var componentClass = {
 	logger: LoggerComponent,
 	avatarProp: AvatarPropertyCtrl,
 	lobby: LobbyComponent,
+	simulate: SimulateComponent,
 };
 
 var componentRegister = module.exports;
