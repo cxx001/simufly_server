@@ -528,10 +528,10 @@ pro.triggerSetting = function (uids, triggerInfo, cb) {
 }
 
 // 心跳
-pro.onHeartMsg = function (uid, msg) {
-    let state = msg[0];
+pro.onHeartBeat = function (uid, msg) {
+    let current_state = msg[0];
     let sid = this.getSidByUid(uid);
     if (sid) {
-        pomelo.app.rpc.connector.entryRemote.onEngineHeart.toServer(sid, uid, state, null);
+        pomelo.app.rpc.connector.entryRemote.onEngineHeart.toServer(sid, uid, current_state, null);
     }
 }
