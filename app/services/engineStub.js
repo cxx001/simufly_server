@@ -103,7 +103,6 @@ pro.getSidByUid = function (uid) {
 
 pro.bindEngine = function (uid, opt) {
     if (this.uid2engine[uid]) {
-        logger.warn("用户[%s]已经绑定引擎!", uid);
         return;
     }
 
@@ -529,6 +528,7 @@ pro.triggerSetting = function (uids, triggerInfo, cb) {
 
 // 心跳
 pro.onHeartBeat = function (uid, msg) {
+    this.bindEngine(uid, true);
     let current_state = msg[0];
     let sid = this.getSidByUid(uid);
     if (sid) {
