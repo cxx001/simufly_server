@@ -174,8 +174,7 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
     })
 }
 
-pro.deploy = function (uids, projectUUID, cb) {
-    projectUUID = 'simufly_engine'
+pro.deploy = async function (uids, projectUUID, cb) {
     utils.invokeCallback(cb);
 
     if (this.checkIsBind(uids.uid)) {
@@ -188,10 +187,14 @@ pro.deploy = function (uids, projectUUID, cb) {
         return;
     }
 
-    // 1.ssh登录 2.上传 3.解压 4.编译
-    let localPath = './assets/' + uids.uid + '/' + projectUUID + '.zip';
+    // 路径
+    projectUUID = 'simufly_engine';
+    let localPath = `./assets/${uids.uid}/${projectUUID}.zip`;
+    let remoteDir = `/home/cxx/${uids.uid}/`;
+    let remotePath = `${remoteDir}${projectUUID}.zip`;
+
     if (!fs.existsSync(localPath)) {
-        logger.warn("deploy path[%s] not exist!", localPath);
+        logger.warn("deploy local path[%s] not exist!", localPath);
         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
         messageService.pushMessageToPlayer(uids, 'onMsgTips', {
             level: consts.TipsLevel.error,
@@ -200,7 +203,22 @@ pro.deploy = function (uids, projectUUID, cb) {
         return;
     }
 
-    let remotePath = '/home/cxx/' + projectUUID + '.zip'
+    // 1. 创建远程目录
+    let mkdir = `mkdir ${remoteDir}\r\nexit\r\n`;
+    await ssh2.Shell(server, mkdir, (err, data) => {
+        if (err) {
+            logger.warn('ssh shell commond fail! err: %o', err);
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
+            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
+                level: consts.TipsLevel.error,
+                tip: consts.MsgTipsCode.DeployDoShellFail
+            });
+            return;
+        }
+        logger.info(data);
+    })
+
+    // 2. 上传
     ssh2.UploadFile(server, localPath, remotePath, (err, result) => {
         if (err) {
             logger.warn('ssh upload deploy file fail! err: %o', err);
@@ -215,12 +233,13 @@ pro.deploy = function (uids, projectUUID, cb) {
             code: consts.MsgFlowCode.DeployUpload
         });
 
+        // 3. 解压、编译
         let triggerCount = 0;
-        let pathCmd1 = "cd /home/cxx/;"
-        let unzipCmd = "unzip -o ./" + projectUUID + ".zip;"
-        let pathCmd2 = "cd ./" + projectUUID + "/demo2/;";
-        let compileCmd = "./compile.sh";
-        let cmd = pathCmd1 + unzipCmd + pathCmd2 + compileCmd + "\r\nexit\r\n";
+        let pathCmd1 = `cd ${remoteDir};`;
+        let unzipCmd = `unzip -o ./${projectUUID}.zip;`;
+        let pathCmd2 = `cd ./${projectUUID}/demo2/;`;
+        let compileCmd = `./compile.sh;`;
+        let cmd = `${pathCmd1}${unzipCmd}${pathCmd2}${compileCmd}\r\nexit\r\n`;
         ssh2.Shell(server, cmd, (err, data) => {
             if (err) {
                 logger.warn('ssh shell commond fail! err: %o', err);
@@ -248,7 +267,6 @@ pro.deploy = function (uids, projectUUID, cb) {
 
 // 1. 启动引擎
 pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
-    projectUUID = 'simufly_engine'
     if (this.checkIsBind(uids.uid)) {
         logger.warn("用户[%s]已经绑定引擎了!", uids.uid);
         cb(consts.EngineRspType.ConnectFail);
@@ -259,11 +277,13 @@ pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
         return;
     }
 
-    // 1. 运行(先关闭再运行)
+    // 路径
+    projectUUID = 'simufly_engine';
+
     let triggerCount = 0;
-    let pathCmd = "cd /home/cxx/" + projectUUID + "/demo2/;";
-    let startCmd = `./demo ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep} &`;
-    let cmd = pathCmd + startCmd + "\r\nexit\r\n";     // 引擎起来后所有的日志都会在这里触发, 直至引擎程序kill。
+    let pathCmd = `cd /home/cxx/${uids.uid}/${projectUUID}/demo2/;`;
+    let startCmd = `./start.sh ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep} &`;
+    let cmd = `${pathCmd}${startCmd}\r\nexit\r\n`;
     ssh2.Shell(server, cmd, (err, data) => {
         if (err) {
             logger.warn('ssh shell commond fail! err: %o', err);
@@ -505,4 +525,13 @@ pro.triggerSetting = function (uids, triggerInfo, cb) {
             value: triggerInfo.value
         }
     });
+}
+
+// 心跳
+pro.onHeartMsg = function (uid, msg) {
+    let state = msg[0];
+    let sid = this.getSidByUid(uid);
+    if (sid) {
+        pomelo.app.rpc.connector.entryRemote.onEngineHeart.toServer(sid, uid, state, null);
+    }
 }

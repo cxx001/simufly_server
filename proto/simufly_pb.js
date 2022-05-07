@@ -1650,8 +1650,8 @@ proto.kl.simufly.StateResponse.serializeBinaryToWriter = function(message, write
       f
     );
   }
-  f = message.getRet();
-  if (f !== 0) {
+  f = /** @type {number} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
     writer.writeUint32(
       2,
       f
@@ -1729,7 +1729,25 @@ proto.kl.simufly.StateResponse.prototype.getRet = function() {
  * @return {!proto.kl.simufly.StateResponse} returns this
  */
 proto.kl.simufly.StateResponse.prototype.setRet = function(value) {
-  return jspb.Message.setProto3IntField(this, 2, value);
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.StateResponse} returns this
+ */
+proto.kl.simufly.StateResponse.prototype.clearRet = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.StateResponse.prototype.hasRet = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

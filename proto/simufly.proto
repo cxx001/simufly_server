@@ -63,7 +63,7 @@ message StateResponse {
   }
 
   optional stateType state_type = 1;
-  uint32 ret = 2;
+  optional uint32 ret = 2;
 }
 
 //触发器设置，上位机---->下位机

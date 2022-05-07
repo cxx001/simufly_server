@@ -71,3 +71,11 @@ pro.onEngineResponse = function (avtID, code, cb) {
         cb();
     }
 }
+
+pro.onEngineHeart = function (avtID, state, cb) {
+    var avatar = entityManager.getEntity(avtID);
+    if (avatar) {
+        avatar.simulate.onEngineHeart(state);
+        cb();
+    }
+}

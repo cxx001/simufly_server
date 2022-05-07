@@ -11,7 +11,6 @@ let consts = require('../../common/consts');
 let messageService = require('../../services/messageService');
 let dispatcher = require('../../util/dispatcher');
 let utils = require('../../util/utils');
-const { cursorTo } = require('readline');
 
 const SAVE_DB_TIME = 60 * 1000 * 5;
 
@@ -29,6 +28,13 @@ pro.init = function (opts) {
     this.waitToUpdateDB = new Set();
     this.simulateById = {};
     this.saveDBTimer = setInterval(this._onSaveToDB.bind(this), SAVE_DB_TIME);
+
+    this.heartbeatInterval = 3000;
+    this.heartbeatTimeout = this.heartbeatInterval * 2;
+    this.nextHeartbeatTimeout = 0;
+    this.gapThreshold = 100; // heartbeat gap threshold
+    this.heartbeatId = null;
+    this.heartbeatTimeoutId = null;
 }
 
 pro._onSaveToDB = function () {
@@ -73,8 +79,8 @@ pro.getEntry = function (id) {
                             status: 1,
                             source: 0,
                             mode: 0,
-                            collect_factor: 100,
-                            collect_count: 100,
+                            collect_factor: 1,
+                            collect_count: 1000,
                         },
                     }
                     self.simulateById[id] = entry;
@@ -94,56 +100,6 @@ pro._callEngineRemote = function (funcName, ...args) {
 	let res = dispatcher.dispatch(this.entity.id, engines);
     let uids = {uid: this.entity.id, sid: this.entity.serverId};
 	pomelo.app.rpc.engine.engineRemote[funcName].toServer(res.id, uids, ...args);
-}
-
-pro.onEngineResponse = async function (code) {
-    let projectId = this.entity.lobby.projectUUID;
-    let entry = await this.getEntry(projectId);
-    if (!entry) {
-        this.entity.logger.warn('get simulate [%s] not exist!', projectId);
-        return;
-    }
-    if (code == consts.EngineRspType.GenCodeSus) {
-        entry.state = consts.SimulateState.Deploy;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-    } else if(code == consts.EngineRspType.GenCodeFail) {
-        entry.state = consts.SimulateState.GenCode;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-    } else if(code == consts.EngineRspType.DeploySus) {
-        entry.state = consts.SimulateState.CfgEnd;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-    } else if(code == consts.EngineRspType.DeployFail) {
-        entry.state = consts.SimulateState.Deploy;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-    } else if(code == consts.EngineRspType.TerminateSus) {
-        entry.state = consts.SimulateState.CfgEnd;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-    } else if(code == consts.EngineRspType.StartSus) {
-        entry.state = consts.SimulateState.Start;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-        // 发送触发器配置
-        let triggerInfo = entry.triggerSet
-        this._callEngineRemote('triggerSetting', triggerInfo, null);
-        // 发送历史监控数据
-        let signal = entry.signalSet;
-        this._callEngineRemote('signalManage', signal, null);
-
-    } else if(code == consts.EngineRspType.PauseSus) {
-        entry.state = consts.SimulateState.Pause;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-    } else if(code == consts.EngineRspType.StopSus) {
-        entry.state = consts.SimulateState.Connected;
-        this.simulateById[projectId] = entry;
-        this.waitToUpdateDB.add(projectId);
-    } else if(code == consts.EngineRspType.SimulateCmdFail) {
-    }
 }
 
 pro.getSimulateInfo = async function (next) {
@@ -368,7 +324,7 @@ pro.updateSignalList = async function (signal, next) {
                 isNew = false;
                 if (newItem.cancel) {
                     // 删除
-                    oldItem.splice(j, 1);
+                    signalSet.splice(j, 1);
                 } else {
                     // 修改
                     oldItem.monitor = newItem.monitor;
@@ -414,4 +370,122 @@ pro.setTrigger = async function (triggerInfo, next) {
     this.waitToUpdateDB.add(projectId);
     next(null, { code: consts.Code.OK });
     this._callEngineRemote('triggerSetting', triggerInfo, null);
+}
+
+pro.onEngineResponse = async function (code) {
+    let projectId = this.entity.lobby.projectUUID;
+    let entry = await this.getEntry(projectId);
+    if (!entry) {
+        this.entity.logger.warn('get simulate [%s] not exist!', projectId);
+        return;
+    }
+    if (code == consts.EngineRspType.GenCodeSus) {
+        entry.state = consts.SimulateState.Deploy;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.GenCodeFail) {
+        entry.state = consts.SimulateState.GenCode;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.DeploySus) {
+        entry.state = consts.SimulateState.CfgEnd;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.DeployFail) {
+        entry.state = consts.SimulateState.Deploy;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.TerminateSus) {
+        entry.state = consts.SimulateState.CfgEnd;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+        this._disHeartbeat();
+    } else if(code == consts.EngineRspType.StartSus) {
+        entry.state = consts.SimulateState.Start;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+        // 发送触发器配置
+        let triggerInfo = entry.triggerSet
+        this._callEngineRemote('triggerSetting', triggerInfo, null);
+        // 发送历史监控数据
+        let signal = entry.signalSet;
+        this._callEngineRemote('signalManage', signal, null);
+
+    } else if(code == consts.EngineRspType.PauseSus) {
+        entry.state = consts.SimulateState.Pause;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.StopSus) {
+        entry.state = consts.SimulateState.Connected;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.SimulateCmdFail) {
+    }
+}
+
+pro.onEngineHeart = async function (state) {
+    let projectId = this.entity.lobby.projectUUID;
+    if (!projectId) {
+        return;
+    }
+    let entry = await this.getEntry(projectId);
+    if (!entry) {
+        this.entity.logger.warn('get simulate db [%s] not exist!', projectId);
+        return;
+    }
+
+    this._heartbeat();
+    let asyncState = state + 6;
+    if (entry.state != asyncState) {
+        entry.state = asyncState;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+        // 通知前端刷新
+        this.entity.sendMessage('onRefreshSimulateInfo', entry);
+    }
+}
+
+pro._heartbeat = function () {
+    if (this.heartbeatTimeoutId) {
+        clearTimeout(this.heartbeatTimeoutId);
+        this.heartbeatTimeoutId = null;
+    }
+
+    if (this.heartbeatId) {
+        return;
+    }
+    this.heartbeatId = setTimeout(() => {
+        this.heartbeatId = null;
+        this.nextHeartbeatTimeout = Date.now() + this.heartbeatTimeout;
+        this.heartbeatTimeoutId = setTimeout(this._heartbeatTimeoutCb.bind(this), this.heartbeatTimeout);
+    }, this.heartbeatInterval);
+}
+
+pro._heartbeatTimeoutCb = async function() {
+    var gap = this.nextHeartbeatTimeout - Date.now();
+    if (gap > this.gapThreshold) {
+        this.heartbeatTimeoutId = setTimeout(this._heartbeatTimeoutCb.bind(this), gap);
+    } else {
+        this.entity.logger.warn('engine heartbeat timeout!');
+        let projectId = this.entity.lobby.projectUUID;
+        let entry = await this.getEntry(projectId);
+        entry.state = consts.SimulateState.CfgEnd;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+        // 通知前端刷新
+        this.entity.sendMessage('onRefreshSimulateInfo', entry);
+    }
+}
+
+// 正常退出引擎程序
+pro._disHeartbeat = function () {
+    if (this.heartbeatTimeoutId) {
+        clearTimeout(this.heartbeatTimeoutId);
+        this.heartbeatTimeoutId = null;
+    }
+
+    if (this.heartbeatId) {
+        clearTimeout(this.heartbeatId);
+        this.heartbeatId = null;
+    }
 }
