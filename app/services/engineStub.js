@@ -41,9 +41,6 @@ var EngineStub = function (app) {
     // 创建zmq通信子进程
     this.zmqProcess = null;
     this._createChildProcess();
-
-    // 绑定列表, TODO: 如果引擎已经起来了，服务器重启，如果关联？
-    this.uid2engine = {};
     this.uid2sid = {};
 };
 
@@ -101,41 +98,10 @@ pro.getSidByUid = function (uid) {
     return this.uid2sid[uid];
 }
 
-pro.bindEngine = function (uid, opt) {
-    if (this.uid2engine[uid]) {
-        return;
-    }
-
-    this.uid2engine[uid] = opt;
-    logger.info("用户[%s]已经和引擎绑定.", uid);
-}
-
-pro.unbindEngine = function (uid) {
-    delete this.uid2engine[uid];
-    logger.info("用户[%s]已经和引擎解绑.", uid);
-}
-
-pro.checkIsBind = function (uid) {
-    if (this.uid2engine[uid]) {
-        return true;
-    }
-    return false;
-}
-
 pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
-    projectUUID = 'simufly_engine'
     utils.invokeCallback(cb);
 
-    if (this.checkIsBind(uids.uid)) {
-        logger.warn("用户[%s]已经绑定引擎了!", uids.uid);
-        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.warn,
-            tip: consts.MsgTipsCode.UserBindedEngine
-        });
-        return;
-    }
-
+    projectUUID = 'simufly_engine';
     let userDir = './assets/' + uids.uid;
     if (!fs.existsSync(userDir)) {
         if (fs.mkdirSync(userDir)) {
@@ -175,16 +141,6 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
 
 pro.deploy = async function (uids, projectUUID, cb) {
     utils.invokeCallback(cb);
-
-    if (this.checkIsBind(uids.uid)) {
-        logger.warn("用户[%s]已经绑定引擎了!", uids.uid);
-        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.warn,
-            tip: consts.MsgTipsCode.UserBindedEngine
-        });
-        return;
-    }
 
     // 路径
     projectUUID = 'simufly_engine';
@@ -266,16 +222,6 @@ pro.deploy = async function (uids, projectUUID, cb) {
 
 // 1. 启动引擎
 pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
-    if (this.checkIsBind(uids.uid)) {
-        logger.warn("用户[%s]已经绑定引擎了!", uids.uid);
-        cb(consts.EngineRspType.ConnectFail);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.warn,
-            tip: consts.MsgTipsCode.UserBindedEngine
-        });
-        return;
-    }
-
     // 路径
     projectUUID = 'simufly_engine';
 
@@ -325,7 +271,6 @@ pro.onStateResponse = function (uid, msg) {
     if (state_type == consts.EngineRspState.kConnectRep) {
         // connectRep
         if (ret == consts.EngineRspErrorCode.kOk) {
-            this.bindEngine(uid, true);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.ConnEngine
             });
@@ -381,7 +326,6 @@ pro.onStateResponse = function (uid, msg) {
     } else if(state_type == consts.EngineRspState.kTerminateRep) {
         // terminateRep
         if (ret == consts.EngineRspErrorCode.kOk) {
-            this.unbindEngine(uid);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.TerminateSus, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.ExitSimulation,
@@ -398,16 +342,6 @@ pro.onStateResponse = function (uid, msg) {
 
 pro.sendControlCmd = function (uids, cmdtype, cb) {
     utils.invokeCallback(cb);
-
-    if (!this.checkIsBind(uids.uid)) {
-        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
-        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.warn,
-            tip: consts.MsgTipsCode.UserNoBindedEngine
-        });
-        return;
-    }
 
     // 向引擎发命令
     this.zmqProcess.send({
@@ -437,15 +371,6 @@ pro.onSimuData = function (uid, msg) {
 pro.modifyParameter = function(uids, parameter, cb) {
     utils.invokeCallback(cb);
 
-    if (!this.checkIsBind(uids.uid)) {
-        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.warn,
-            tip: consts.MsgTipsCode.UserNoBindedEngine
-        });
-        return;
-    }
-
     if (!parameter) {
         return;
     }
@@ -466,15 +391,6 @@ pro.modifyParameter = function(uids, parameter, cb) {
 
 pro.signalManage = function (uids, signal, cb) {
     utils.invokeCallback(cb);
-
-    if (!this.checkIsBind(uids.uid)) {
-        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.warn,
-            tip: consts.MsgTipsCode.UserNoBindedEngine
-        });
-        return;
-    }
 
     if (!signal || signal.length < 1) {
         return;
@@ -500,15 +416,6 @@ pro.signalManage = function (uids, signal, cb) {
 pro.triggerSetting = function (uids, triggerInfo, cb) {
     utils.invokeCallback(cb);
 
-    if (!this.checkIsBind(uids.uid)) {
-        logger.warn("用户[%s]没有绑定引擎!", uids.uid);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.warn,
-            tip: consts.MsgTipsCode.UserNoBindedEngine
-        });
-        return;
-    }
-
     this.zmqProcess.send({
         uid: uids.uid,
         route: 'TriggerSetting',
@@ -528,7 +435,6 @@ pro.triggerSetting = function (uids, triggerInfo, cb) {
 
 // 心跳
 pro.onHeartBeat = function (uid, msg) {
-    this.bindEngine(uid, true);
     let current_state = msg[0];
     let sid = this.getSidByUid(uid);
     if (sid) {
