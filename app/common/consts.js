@@ -43,36 +43,22 @@ module.exports = {
 	},
 
     MsgFlowCode: {
-        GenCode: 1,  // 生成代码完成
-        DeployUpload: 2, // 上传代码完成
-        DeployDoShell: 3, // 执行解压、编译脚本完成
-        InitEngine: 4, // 初始化引擎完成
-        ConnEngine: 5, // 握手绑定完成
-        StartSimulation: 6,  // 开始仿真
-        PauseSimulation: 7,  // 暂停仿真
-        StopSimulation: 8,  // 停止仿真
-        ExitSimulation: 9,  // 退出仿真
-    },
-
-    TipsLevel: {
-        info: 1,
-        warn: 2,
-        error: 3
-    },
-
-    MsgTipsCode: {
-        NONProjectUUID: {code: 1, msg: '项目UUID不存在'},
-        CreateDirFail: {code: 2, msg: '生成代码目录创建失败'},
-        GenCodeFail: {code: 3, msg: '生成代码失败'},
-        NONDeployPath: {code: 4, msg: '部署上传代码不存在'},
-        DeployUploadFail: {code: 5, msg: '部署上传代码失败'},
-        DeployDoShellFail: {code: 6, msg: '部署执行脚本失败'},
-        InitEngineFail: {code: 7, msg: '初始化引擎失败'},
-        EngineHandleFail: {code: 8, msg: '引擎握手消息失败'},
-        StartSimulationFail: {code: 9, msg: '开始仿真失败'},
-        PauseSimulationFail: {code: 10, msg: '暂停仿真失败'},
-        StopSimulationFail: {code: 11, msg: '停止仿真失败'},
-        ExitSimulationFail: {code: 12, msg: '退出仿真失败'},
+        GenCoding: 1, // 生成代码中
+        GenCoded: 2,  // 生成代码完成
+        GenCodeFail: 3, // 生成代码失败
+        Deploying: 4, // 部署中
+        Deployed: 5,  // 部署完成
+        DeployFail: 6, // 部署失败 
+        Connected: 7, // 连接引擎完成
+        ConnectFail: 8, // 连接引擎失败
+        Started: 9, // 开始仿真
+        StartFail: 10, // 开始仿真失败
+        Paused: 11, // 暂停仿真
+        PauseFail: 12, // 暂停失败
+        Stoped: 13, // 停止仿真
+        StopFail: 14, // 停止仿真失败
+        Terminated: 15, // 中断仿真程序
+        TerminateFail: 16, // 仿真程序中断失败
     },
 
     ControlType: {

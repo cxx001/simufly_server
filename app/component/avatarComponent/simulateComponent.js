@@ -102,6 +102,20 @@ pro._callEngineRemote = function (funcName, ...args) {
 	pomelo.app.rpc.engine.engineRemote[funcName].toServer(res.id, uids, ...args);
 }
 
+pro.formatEntryData = function (entry) {
+    let formatdata = {
+        _id: entry.id,
+        uid: this.entity.id,
+        state: entry.state,
+        simuTime: entry.simuTime,
+        simuStep: entry.simuStep,
+        assignTask: entry.assignTask,
+        signalSet: entry.signalSet,
+        triggerSet: entry.triggerSet,
+    }
+    return formatdata;
+}
+
 pro.getSimulateInfo = async function (next) {
     let projectId = this.entity.lobby.projectUUID;
     let entry = await this.getEntry(projectId);
@@ -111,7 +125,8 @@ pro.getSimulateInfo = async function (next) {
         return;
     }
 
-    next(null, entry);
+    let formatdata = this.formatEntryData(entry);
+    next(null, formatdata);
 }
 
 pro.assignTask = async function (assignInfos, next) {
@@ -199,15 +214,10 @@ pro.connectEngine = async function(simuTime, simuStep, next) {
     }
     next(null, { code: consts.Code.OK });
 
-    this._callEngineRemote('initSimulation', projectId, simuTime, simuStep, (code) => {
-        if (code == consts.EngineRspType.ConnectSus) {
-            entry.state = consts.SimulateState.Connected;
-            entry.simuTime = simuTime;
-            entry.simuStep = simuStep;
-            this.simulateById[projectId] = entry;
-            this.waitToUpdateDB.add(projectId);
-        }
-    });
+    entry.state = consts.SimulateState.Connected;
+    entry.simuTime = simuTime;
+    entry.simuStep = simuStep;
+    this._callEngineRemote('initSimulation', projectId, simuTime, simuStep, null);
 }
 
 pro.disconnectEngine = async function (next) {
@@ -395,6 +405,14 @@ pro.onEngineResponse = async function (code) {
         entry.state = consts.SimulateState.Deploy;
         this.simulateById[projectId] = entry;
         this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.ConnectSus) {
+        entry.state = consts.SimulateState.Connected;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.ConnectFail) {
+        entry.state = consts.SimulateState.CfgEnd;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
     } else if(code == consts.EngineRspType.TerminateSus) {
         entry.state = consts.SimulateState.CfgEnd;
         this.simulateById[projectId] = entry;
@@ -421,6 +439,8 @@ pro.onEngineResponse = async function (code) {
         this.waitToUpdateDB.add(projectId);
     } else if(code == consts.EngineRspType.SimulateCmdFail) {
     }
+    
+    this.entity.sendMessage('onRefreshSimulateState', {state: entry.state});
 }
 
 pro.onEngineHeart = async function (state) {
@@ -441,7 +461,8 @@ pro.onEngineHeart = async function (state) {
         this.simulateById[projectId] = entry;
         this.waitToUpdateDB.add(projectId);
         // 通知前端刷新
-        this.entity.sendMessage('onRefreshSimulateInfo', entry);
+        let formatdata = this.formatEntryData(entry);
+        this.entity.sendMessage('onRefreshSimulateInfo', formatdata);
     }
 }
 
@@ -473,7 +494,8 @@ pro._heartbeatTimeoutCb = async function() {
         this.simulateById[projectId] = entry;
         this.waitToUpdateDB.add(projectId);
         // 通知前端刷新
-        this.entity.sendMessage('onRefreshSimulateInfo', entry);
+        let formatdata = this.formatEntryData(entry);
+        this.entity.sendMessage('onRefreshSimulateInfo', formatdata);
     }
 }
 

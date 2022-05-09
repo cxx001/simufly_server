@@ -107,13 +107,19 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
         if (fs.mkdirSync(userDir)) {
             logger.warn("create path[%s] dir fail!", userDir);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.CreateDirFail
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.GenCodeFail,
+                des: '生成代码失败!'
             });
             return;
         }
     }
+
+    // 生成代码中
+    messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+        code: consts.MsgFlowCode.GenCoding,
+        des: '生成代码中...'
+    });
 
     let triggerCount = 0;
     let localPath = userDir + '/' + projectUUID + '.zip';
@@ -121,21 +127,23 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
         if (err) {
             logger.warn('ssh download GenCode file fail! err: %o', err);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.GenCodeFail
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.GenCodeFail,
+                des: '生成代码失败!'
             });
             return;
         }
 
-        // TODO: 临时判断, 正常要ssh远端提供sh脚本, 在最后统一加一个完成标致日志.
         triggerCount++;
-        if (triggerCount == 1) {
+        if (triggerCount <= 1) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.GenCoded,
+                des: '生成代码完成.'
+            });
+        } else {
+            logger.warn('生成代码结束标志回调多次!');
         }
-        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.GenCode
-        });
     })
 }
 
@@ -151,9 +159,9 @@ pro.deploy = async function (uids, projectUUID, cb) {
     if (!fs.existsSync(localPath)) {
         logger.warn("deploy local path[%s] not exist!", localPath);
         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
-        messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-            level: consts.TipsLevel.error,
-            tip: consts.MsgTipsCode.NONDeployPath
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.DeployFail,
+            des: '部署失败!'
         });
         return;
     }
@@ -164,28 +172,34 @@ pro.deploy = async function (uids, projectUUID, cb) {
         if (err) {
             logger.warn('ssh shell commond fail! err: %o', err);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.DeployDoShellFail
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.DeployFail,
+                des: '部署失败!'
             });
             return;
         }
         logger.info(data);
     })
 
+    messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+        code: consts.MsgFlowCode.Deploying,
+        des: '代码上传中...'
+    });
+
     // 2. 上传
     ssh2.UploadFile(server, localPath, remotePath, (err, result) => {
         if (err) {
             logger.warn('ssh upload deploy file fail! err: %o', err);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.DeployUploadFail
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.DeployFail,
+                des: '部署失败!'
             });
             return;
         }
         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.DeployUpload
+            code: consts.MsgFlowCode.Deploying,
+            des: '代码上传完成.'
         });
 
         // 3. 解压、编译
@@ -199,145 +213,55 @@ pro.deploy = async function (uids, projectUUID, cb) {
             if (err) {
                 logger.warn('ssh shell commond fail! err: %o', err);
                 pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
-                messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                    level: consts.TipsLevel.error,
-                    tip: consts.MsgTipsCode.DeployDoShellFail
+                messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                    code: consts.MsgFlowCode.DeployFail,
+                    des: '部署失败!'
                 });
                 return;
             }
 
-            // TODO: 临时判断, 正常要ssh远端提供sh脚本, 在最后统一加一个完成标致日志.
-            triggerCount++;
-            if (triggerCount == 1) {
-                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeploySus, null);
-            }
-
+            // 执行解压、编译中
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.DeployDoShell,
+                code: consts.MsgFlowCode.Deploying,
                 des: data
             });
+
+            // 完成
+            if (data.indexOf('logout') >= 0) {
+                triggerCount++;
+                if (triggerCount <= 1) {
+                    pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeploySus, null);
+                    messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                        code: consts.MsgFlowCode.Deployed,
+                        des: '部署完成.'
+                    });
+                } else {
+                    logger.warn('logout执行标志有多次匹配!');
+                }
+            }
         });
     });
 }
 
-// 1. 启动引擎
 pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
+    utils.invokeCallback(cb);
+
     // 路径
     projectUUID = 'simufly_engine';
-
-    let triggerCount = 0;
     let pathCmd = `cd /home/cxx/${uids.uid}/${projectUUID}/demo2/;`;
     let startCmd = `./start.sh ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep} &`;
     let cmd = `${pathCmd}${startCmd}\r\nexit\r\n`;
     ssh2.Shell(server, cmd, (err, data) => {
         if (err) {
             logger.warn('ssh shell commond fail! err: %o', err);
-            cb(consts.EngineRspType.ConnectFail);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.InitEngineFail
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.ConnectFail, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.ConnectFail,
+                des: '连接引擎失败!'
             });
             return;
         }
-
-        // TODO: 临时判断, 正常要ssh远端提供sh脚本, 在最后统一加一个完成标致日志.
-        triggerCount++;
-        if (triggerCount == 1) {
-            cb(consts.EngineRspType.ConnectSus);
-        }
-
-        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.InitEngine,
-            des: data
-        });
     });
-}
-
-/**
- * 2. 引擎发送一条握手消息确定已经绑定启动成功
- * @param {*} msg
- */
-pro.onStateResponse = function (uid, msg) {
-    let state_type = msg[0];
-    let ret = msg[1];
-
-    let sid = this.getSidByUid(uid);
-    if (!sid) {
-        logger.warn('用户[%s]不在线!', uid);
-        return;
-    }
-
-    let uids = { uid: uid, sid: sid };
-    if (state_type == consts.EngineRspState.kConnectRep) {
-        // connectRep
-        if (ret == consts.EngineRspErrorCode.kOk) {
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.ConnEngine
-            });
-        } else {
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.EngineHandleFail
-            });
-        }
-    } else if(state_type == consts.EngineRspState.kStartRep) {
-        // startRep
-        if (ret == consts.EngineRspErrorCode.kOk) {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StartSus, null);
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.StartSimulation,
-            });
-        } else {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.StartSimulationFail
-            });
-        }
-    } else if(state_type == consts.EngineRspState.kPause) {
-        // pause
-        if (ret == consts.EngineRspErrorCode.kOk) {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.PauseSus, null);
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.PauseSimulation,
-            });
-        } else {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.PauseSimulationFail
-            });
-        }
-
-    } else if(state_type == consts.EngineRspState.kStopRep) {
-        // stopRep
-        if (ret == consts.EngineRspErrorCode.kOk) {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StopSus, null);
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.StopSimulation,
-            });
-        } else {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.StopSimulationFail
-            });
-        }
-    } else if(state_type == consts.EngineRspState.kTerminateRep) {
-        // terminateRep
-        if (ret == consts.EngineRspErrorCode.kOk) {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.TerminateSus, null);
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.ExitSimulation,
-            });
-        } else {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
-            messageService.pushMessageToPlayer(uids, 'onMsgTips', {
-                level: consts.TipsLevel.error,
-                tip: consts.MsgTipsCode.ExitSimulationFail
-            });
-        }
-    }
 }
 
 pro.sendControlCmd = function (uids, cmdtype, cb) {
@@ -351,21 +275,6 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
             cmd_type: cmdtype,
         }
     });
-}
-
-// 引擎推送监控数据
-pro.onSimuData = function (uid, msg) {
-    // 结果推送给前端
-    let sid = this.getSidByUid(uid);
-    if (sid) {
-        let uids = { uid: uid, sid: sid }
-        let value = Number(msg[2][0]);
-        messageService.pushMessageToPlayer(uids, 'onSimuData', {
-            modelId: msg[0],
-            portId: msg[1],
-            value: Math.floor(value * 100) / 100
-        });
-    }
 }
 
 pro.modifyParameter = function(uids, parameter, cb) {
@@ -431,6 +340,112 @@ pro.triggerSetting = function (uids, triggerInfo, cb) {
             value: triggerInfo.value
         }
     });
+}
+
+/****************************************引擎推送数据********************************************** */
+pro.onStateResponse = function (uid, msg) {
+    let state_type = msg[0];
+    let ret = msg[1];
+
+    let sid = this.getSidByUid(uid);
+    if (!sid) {
+        logger.warn('用户[%s]不在线!', uid);
+        return;
+    }
+
+    let uids = { uid: uid, sid: sid };
+    if (state_type == consts.EngineRspState.kConnectRep) {
+        // connectRep
+        if (ret == consts.EngineRspErrorCode.kOk) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.ConnectSus, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.Connected,
+                des: '连接引擎成功.'
+            });
+        } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.ConnectFail, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.ConnectFail,
+                des: '连接引擎失败!'
+            });
+        }
+    } else if(state_type == consts.EngineRspState.kStartRep) {
+        // startRep
+        if (ret == consts.EngineRspErrorCode.kOk) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StartSus, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.Started,
+                des: '仿真开始...'
+            });
+        } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.StartFail,
+                des: '仿真开始失败!'
+            });
+        }
+    } else if(state_type == consts.EngineRspState.kPause) {
+        // pause
+        if (ret == consts.EngineRspErrorCode.kOk) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.PauseSus, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.Paused,
+                des: '仿真暂停.'
+            });
+        } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.PauseFail,
+                des: '仿真暂停失败!'
+            });
+        }
+
+    } else if(state_type == consts.EngineRspState.kStopRep) {
+        // stopRep
+        if (ret == consts.EngineRspErrorCode.kOk) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StopSus, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.Stoped,
+                des: '仿真停止.'
+            });
+        } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.StopFail,
+                des: '仿真停止失败!'
+            });
+        }
+    } else if(state_type == consts.EngineRspState.kTerminateRep) {
+        // terminateRep
+        if (ret == consts.EngineRspErrorCode.kOk) {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.TerminateSus, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.Terminated,
+                des: '仿真程序退出.'
+            });
+        } else {
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.SimulateCmdFail, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.TerminateFail,
+                des: '仿真程序退出失败!'
+            });
+        }
+    }
+}
+
+// 引擎推送监控数据
+pro.onSimuData = function (uid, msg) {
+    // 结果推送给前端
+    let sid = this.getSidByUid(uid);
+    if (sid) {
+        let uids = { uid: uid, sid: sid }
+        let value = Number(msg[2][0]);
+        messageService.pushMessageToPlayer(uids, 'onSimuData', {
+            modelId: msg[0],
+            portId: msg[1],
+            value: Math.floor(value * 100) / 100
+        });
+    }
 }
 
 // 心跳

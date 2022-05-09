@@ -75,31 +75,6 @@ pro.enterProject = function (id, next) {
     });
 }
 
-// 远程调用引擎服务接口
-pro._callRemote = function (funcName, ...args) {
-	let engines = pomelo.app.getServersByType('engine');
-	let res = dispatcher.dispatch(this.entity.id, engines);
-    let uids = {uid: this.entity.id, sid: this.entity.serverId};
-	pomelo.app.rpc.engine.engineRemote[funcName].toServer(res.id, uids, ...args);
-}
-
-// 生成代码暂时没做，当前是假设代码已经在远端，这里模拟把代码下载下来的过程。
-// 生成代码名字必须是：projectUUID
-pro.generateCode = async function (genCodeInfos, next) {
-    next(null, { code: consts.Code.OK });
-
-    if (!this.projectUUID) {
-        this.entity.logger.warn("projectUUID is null!");
-        this.entity.sendMessage('onMsgTips', {
-            level: consts.TipsLevel.error,
-            tip: consts.MsgTipsCode.NONProjectUUID
-        });
-        return;
-    }
-
-    this._callRemote('generateCode', this.projectUUID, genCodeInfos, null);
-}
-
 pro.savePanel = function (projectId, panelDatas, next) {
     this.entity.logger.info('保存项目=> ', projectId);
 

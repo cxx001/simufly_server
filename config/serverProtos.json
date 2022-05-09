@@ -1,15 +1,10 @@
 {
 	"onFlowMsg": {
 		"required uInt32 code": 1,
-		"optional string des": 2
+		"required string des": 2
 	},
-	"onMsgTips": {
-		"required uInt32 level": 1,
-		"message Tips": {
-			"required uInt32 code": 1,
-			"required string msg": 2
-		},
-		"required Tips tip": 2
+	"onRefreshSimulateState": {
+		"required uInt32 state": 1
 	},
 	"onSimuData": {
 		"required uInt32 modelId": 1,
