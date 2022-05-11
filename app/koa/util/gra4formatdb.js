@@ -3,6 +3,8 @@ const path = require('path');
 const convert = require('xml-js');
 const consts = require('../../common/consts');
 
+/**TODO: 逻辑待优化整理! */
+
 var pro = module.exports;
 
 /**

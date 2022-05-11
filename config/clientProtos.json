@@ -181,8 +181,11 @@
 			"required uInt32 cancel": 1,
 			"required uInt32 monitor": 2,
 			"required uInt32 record": 3,
-			"required uInt32 block_id": 4,
-			"required uInt32 port_index": 5
+			"required string block_id": 4,
+			"required uInt32 port_index": 5,
+			"required uInt32 panel_id": 6,
+			"required string name": 7,
+			"required string source": 8
 		},
 		"repeated Signal signal": 1
 	},

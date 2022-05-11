@@ -339,6 +339,9 @@ pro.updateSignalList = async function (signal, next) {
                     // 修改
                     oldItem.monitor = newItem.monitor;
                     oldItem.record = newItem.record;
+                    oldItem.panel_id = newItem.panel_id;
+                    oldItem.name = newItem.name;
+                    oldItem.source = newItem.source;
                 }
                 break;
             }
@@ -346,12 +349,7 @@ pro.updateSignalList = async function (signal, next) {
 
         if (isNew) {
             // 新插入
-            signalSet.push({
-                monitor: newItem.monitor,
-                record: newItem.record,
-                block_id: newItem.block_id,
-                port_index: newItem.port_index
-            });
+            signalSet.push(newItem);
         }
     }
 
