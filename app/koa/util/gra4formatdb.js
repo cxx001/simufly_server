@@ -243,20 +243,21 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
             const items = oneMoreArray[i];
             const line = items[0];
             // 添加输入模块
-            let inputId = pomelo.app.db.genId();
+            let portId = consts.OutPrefix + line.Data._attributes.inport;
+            let inputId = pomelo.app.db.genId() + '_' + portId;
             childPanel.block.push({
                 id: inputId,
                 name: "输入",
                 nodeType: consts.ShapeType.IO,
                 position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                 size: { "width": 40, "height": 20 },
-                items: [{ "id": consts.OutPrefix + line.Data._attributes.inport, "group": consts.OutFlag }],
+                items: [{ "id": portId, "group": consts.OutFlag }],
             })
 
             // 连线关联
             for (let n = 0; n < childPanel.line.length; n++) {
                 let childLine = childPanel.line[n];
-                if (childLine.source.cell == line.Data._attributes.in && (childLine.source.port == (consts.OutPrefix + line.Data._attributes.inport))) {
+                if (childLine.source.cell == line.Data._attributes.in && (childLine.source.port == portId)) {
                     childLine.source.cell = inputId;
                 }
             }
@@ -266,7 +267,8 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
             const items = oneMoreArray[i];
             const line = items[0][0];
             // 添加输出模块
-            let outputId = pomelo.app.db.genId();
+            let portId = consts.InPrefix + line.Data._attributes.export;
+            let outputId = pomelo.app.db.genId() + '_' + portId;
             childPanel.block.push({
                 id: outputId,
                 name: "输出",
@@ -279,7 +281,7 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
             // 连线关联
             for (let n = 0; n < childPanel.line.length; n++) {
                 let childLine = childPanel.line[n];
-                if (childLine.target.cell == line.Data._attributes.out && (childLine.target.port == (consts.InPrefix + line.Data._attributes.export))) {
+                if (childLine.target.cell == line.Data._attributes.out && (childLine.target.port == portId)) {
                     childLine.target.cell = outputId;
                 }
             }
@@ -395,7 +397,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 });
 
                 // 添加输入模块
-                let inputId = pomelo.app.db.genId();
+                let inputId = pomelo.app.db.genId() + '_' + line.target.port;
                 childPanel.block.push({
                     id: inputId,
                     name: "输入",
@@ -422,7 +424,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     items: ports,
                 });
                 // 输出模块
-                let outputId = pomelo.app.db.genId();
+                let outputId = pomelo.app.db.genId() + '_' + line.source.port;
                 childPanel.block.push({
                     id: outputId,
                     name: "输出",
@@ -441,7 +443,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
         } else {
             if (inORout == 1) {
                 // 添加输入模块
-                let inputId = pomelo.app.db.genId();
+                let inputId = pomelo.app.db.genId() + '_' + line.target.port;
                 childPanel.block.push({
                     id: inputId,
                     name: "输入",
@@ -458,7 +460,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 });
             } else {
                 // 添加输出模块
-                let outputId = pomelo.app.db.genId();
+                let outputId = pomelo.app.db.genId() + '_' + line.source.port;
                 childPanel.block.push({
                     id: outputId,
                     name: "输出",

@@ -1311,7 +1311,7 @@ proto.kl.simufly.SignalManage.prototype.clearSignalList = function() {
  * @private {!Array<number>}
  * @const
  */
-proto.kl.simufly.SimuData.repeatedFields_ = [3];
+proto.kl.simufly.SimuData.repeatedFields_ = [5];
 
 
 
@@ -1346,7 +1346,9 @@ proto.kl.simufly.SimuData.toObject = function(includeInstance, msg) {
   var f, obj = {
     blockId: jspb.Message.getFieldWithDefault(msg, 1, 0),
     portIndex: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    valueList: (f = jspb.Message.getRepeatedFloatingPointField(msg, 3)) == null ? undefined : f
+    initialStep: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    collectFactor: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    valueList: (f = jspb.Message.getRepeatedFloatingPointField(msg, 5)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -1392,6 +1394,14 @@ proto.kl.simufly.SimuData.deserializeBinaryFromReader = function(msg, reader) {
       msg.setPortIndex(value);
       break;
     case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setInitialStep(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setCollectFactor(value);
+      break;
+    case 5:
       var values = /** @type {!Array<number>} */ (reader.isDelimited() ? reader.readPackedDouble() : [reader.readDouble()]);
       for (var i = 0; i < values.length; i++) {
         msg.addValue(values[i]);
@@ -1440,10 +1450,24 @@ proto.kl.simufly.SimuData.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+  f = /** @type {number} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeUint32(
+      3,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeUint32(
+      4,
+      f
+    );
+  }
   f = message.getValueList();
   if (f.length > 0) {
     writer.writePackedDouble(
-      3,
+      5,
       f
     );
   }
@@ -1523,11 +1547,83 @@ proto.kl.simufly.SimuData.prototype.hasPortIndex = function() {
 
 
 /**
- * repeated double value = 3;
+ * optional uint32 initial_step = 3;
+ * @return {number}
+ */
+proto.kl.simufly.SimuData.prototype.getInitialStep = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.kl.simufly.SimuData} returns this
+ */
+proto.kl.simufly.SimuData.prototype.setInitialStep = function(value) {
+  return jspb.Message.setField(this, 3, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.SimuData} returns this
+ */
+proto.kl.simufly.SimuData.prototype.clearInitialStep = function() {
+  return jspb.Message.setField(this, 3, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.SimuData.prototype.hasInitialStep = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional uint32 collect_factor = 4;
+ * @return {number}
+ */
+proto.kl.simufly.SimuData.prototype.getCollectFactor = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.kl.simufly.SimuData} returns this
+ */
+proto.kl.simufly.SimuData.prototype.setCollectFactor = function(value) {
+  return jspb.Message.setField(this, 4, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.kl.simufly.SimuData} returns this
+ */
+proto.kl.simufly.SimuData.prototype.clearCollectFactor = function() {
+  return jspb.Message.setField(this, 4, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.kl.simufly.SimuData.prototype.hasCollectFactor = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * repeated double value = 5;
  * @return {!Array<number>}
  */
 proto.kl.simufly.SimuData.prototype.getValueList = function() {
-  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedFloatingPointField(this, 3));
+  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedFloatingPointField(this, 5));
 };
 
 
@@ -1536,7 +1632,7 @@ proto.kl.simufly.SimuData.prototype.getValueList = function() {
  * @return {!proto.kl.simufly.SimuData} returns this
  */
 proto.kl.simufly.SimuData.prototype.setValueList = function(value) {
-  return jspb.Message.setField(this, 3, value || []);
+  return jspb.Message.setField(this, 5, value || []);
 };
 
 
@@ -1546,7 +1642,7 @@ proto.kl.simufly.SimuData.prototype.setValueList = function(value) {
  * @return {!proto.kl.simufly.SimuData} returns this
  */
 proto.kl.simufly.SimuData.prototype.addValue = function(value, opt_index) {
-  return jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+  return jspb.Message.addToRepeatedField(this, 5, value, opt_index);
 };
 
 

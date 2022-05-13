@@ -9,6 +9,8 @@
 	"onSimuData": {
 		"required uInt32 modelId": 1,
 		"required uInt32 portId": 2,
+		"required uInt32 step": 3,
+		"required uInt32 factor": 4,
 		"required double value": 3
 	}
 }

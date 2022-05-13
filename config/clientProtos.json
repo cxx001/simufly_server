@@ -158,7 +158,7 @@
 
 	"connector.simulateHandler.connectEngine": {
 		"required uInt32 simuTime": 1,
-		"required uInt32 simuStep": 2
+		"required double simuStep": 2
 	},
 
 	"connector.simulateHandler.disconnectEngine": {

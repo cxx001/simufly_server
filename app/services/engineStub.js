@@ -439,10 +439,12 @@ pro.onSimuData = function (uid, msg) {
     let sid = this.getSidByUid(uid);
     if (sid) {
         let uids = { uid: uid, sid: sid }
-        let value = Number(msg[2][0]);
+        let value = Number(msg[4][0]);
         messageService.pushMessageToPlayer(uids, 'onSimuData', {
             modelId: msg[0],
             portId: msg[1],
+            step: msg[2],
+            factor: msg[3],
             value: Math.floor(value * 100) / 100
         });
     }
