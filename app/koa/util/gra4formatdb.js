@@ -410,7 +410,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                     id: pomelo.app.db.genId(),
                     lineType: 1,
                     source: { "cell": inputId, "port": consts.OutPrefix + "0" },
-                    target: { "cell": blockId, "port": consts.InFlag + "0" },
+                    target: { "cell": blockId, "port": consts.InPrefix + "0" },
                 });
             } else {
                 ports.push({ id: consts.OutPrefix + 0, group: consts.OutFlag });
