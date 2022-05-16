@@ -224,6 +224,17 @@ pro._getLineShapeType = function (lineType) {
     return shape;
 }
 
+pro.setMappingTbl = async function (projectId, mappingtbl) {
+    let project = await this.getEntry(projectId);
+    if (!project) {
+        this.entity.logger.warn('get project [%s] not exist!', projectId);
+        return;
+    }
+    project.mappingtbl = mappingtbl;
+    this.projectsById[projectId] = project;
+    this.waitToUpdateDB.add(projectId);
+}
+
 pro.savePanel = async function (projectId, panelDatas, next) {
     this.entity.logger.info('保存项目=> ', projectId);
     let project = await this.getEntry(projectId);

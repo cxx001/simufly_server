@@ -11,6 +11,7 @@ let consts = require('../../common/consts');
 let messageService = require('../../services/messageService');
 let dispatcher = require('../../util/dispatcher');
 let utils = require('../../util/utils');
+let dbformatengine = require('../../util/dbformatengine');
 
 const SAVE_DB_TIME = 60 * 1000 * 5;
 
@@ -145,9 +146,11 @@ pro.assignTask = async function (assignInfos, next) {
         return;
     }
 
-    entry.state = consts.SimulateState.GenCode;
-
     // TODO: 对分配节点做检测(如: 是否都是子系统、是否所有节点都分配了等)
+    let project = await this.entity.lobby.getEntry(projectId);
+    let mappingtbl = dbformatengine.formatDb2Engine(assignInfos, project.data);
+    await this.entity.lobby.setMappingTbl(projectId, mappingtbl);
+    entry.state = consts.SimulateState.GenCode;
     entry.assignTask = assignInfos;
     this.simulateById[projectId] = entry;
     this.waitToUpdateDB.add(projectId);

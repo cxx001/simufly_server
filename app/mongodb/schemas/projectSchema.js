@@ -4,6 +4,7 @@ var mongoose = require('mongoose'),
 var ProjectSchema = new Schema({
 	_id: String,
 	uid: String,
+    mappingtbl: {},
     data: []
 });
 
