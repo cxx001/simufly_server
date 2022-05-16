@@ -25,6 +25,8 @@
 				"clientHost": "192.168.10.120",
 				"clientPort": 8687,
 				"frontend": true,
+				"httpHost": "192.168.10.120",
+				"httpPort": 26150,
 				"args": " --inspect=0.0.0.0:13150"
 			}
 		],
@@ -37,16 +39,6 @@
 				"zmqReqPort": 25150,
 				"zmqRspPort": 25151,
 				"args": " --inspect=0.0.0.0:15150"
-			}
-		],
-		"assets": [
-			{
-				"id": "assets-server-1",
-				"host": "127.0.0.1",
-				"port": 6150,
-				"httpHost": "192.168.10.120",
-				"httpPort": 26150,
-				"args": " --inspect=0.0.0.0:16150"
 			}
 		]
 	},
@@ -73,6 +65,8 @@
 				"port": 3150,
 				"clientHost": "192.168.10.120",
 				"clientPort": 8687,
+				"httpHost": "192.168.10.120",
+				"httpPort": 26150,
 				"frontend": true
 			}
 		],
@@ -84,15 +78,6 @@
 				"zmqHost": "192.168.10.120",
 				"zmqReqPort": 25150,
 				"zmqRspPort": 25151
-			}
-		],
-		"assets": [
-			{
-				"id": "assets-server-1",
-				"host": "127.0.0.1",
-				"port": 6150,
-				"httpHost": "192.168.10.120",
-				"httpPort": 26150
 			}
 		]
 	}

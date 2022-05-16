@@ -83,32 +83,6 @@
 	"connector.lobbyHandler.getModelList": {
 	},
 
-	"connector.lobbyHandler.getModelInfo": {
-		"required string modelId": 1
-	},
-
-	"connector.lobbyHandler.modifyModelInfo": {
-		"message ModifyInfo": {
-			"message Parameter": {
-				"required uInt32 index": 1,
-				"optional string Name": 2,
-				"optional string Type": 3,
-				"optional string Default": 4
-			},
-
-			"optional string Name": 1,
-			"optional uInt32 groupId": 2,
-			"optional string Description": 3,
-			"repeated Parameter Parameters": 4,
-			"repeated Parameter X_State": 5,
-			"repeated Parameter Y_Output": 6,
-			"repeated Parameter U_Input": 7
-		},
-
-		"required string modelId": 1,
-		"required ModifyInfo modifyInfo": 2
-	},
-
 	"connector.lobbyHandler.getBlockInfo": {
 		"required uInt32 panelId": 1,
 		"required string blockId": 2,
@@ -133,6 +107,32 @@
 		"required uInt32 panelId": 1,
 		"required string blockId": 2,
 		"required ModifyInfo modifyInfo": 3
+	},
+
+	"connector.assetsModelHandler.getModelInfo": {
+		"required string modelId": 1
+	},
+
+	"connector.assetsModelHandler.modifyModelInfo": {
+		"message ModifyInfo": {
+			"message Parameter": {
+				"required uInt32 index": 1,
+				"optional string Name": 2,
+				"optional string Type": 3,
+				"optional string Default": 4
+			},
+
+			"optional string Name": 1,
+			"optional uInt32 groupId": 2,
+			"optional string Description": 3,
+			"repeated Parameter Parameters": 4,
+			"repeated Parameter X_State": 5,
+			"repeated Parameter Y_Output": 6,
+			"repeated Parameter U_Input": 7
+		},
+
+		"required string modelId": 1,
+		"required ModifyInfo modifyInfo": 2
 	},
 
 	"connector.simulateHandler.getSimulateInfo": {

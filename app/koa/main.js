@@ -54,11 +54,7 @@ app.on('error', (err, ctx) => {
     console.warn(err);
 })
 
-exports.start = function (svrCfg, bindStubs) {
-    for (let i = 0; i < bindStubs.length; i++) {
-        const item = bindStubs[i];
-        app[item.name] = item.classStub;
-    }
+exports.start = function (svrCfg) {
     let port =  svrCfg.httpPort;
     app.listen(port, () => {
         console.log(`http server is running on http://localhost:${port}`);

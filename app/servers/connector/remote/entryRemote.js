@@ -47,23 +47,6 @@ pro.onFindUserInfo = function (avtID, cb) {
     }
 };
 
-// optype 1: 添加  2: 删除
-pro.onModifyProjectList = function (avtID, optype, pro_info, cb) {
-    var avatar = entityManager.getEntity(avtID);
-    if (avatar) {
-        avatar.modifyProList(optype, pro_info);
-        cb();
-    }
-}
-
-pro.onSetModelGroup = function (avtID, groupName, modelInfo, cb) {
-    var avatar = entityManager.getEntity(avtID);
-    if (avatar) {
-        let groupId = avatar.setModelGroup(groupName, modelInfo);
-        cb(groupId);
-    }
-}
-
 pro.onEngineResponse = function (avtID, code, cb) {
     var avatar = entityManager.getEntity(avtID);
     if (avatar) {

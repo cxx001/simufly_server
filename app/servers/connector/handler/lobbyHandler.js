@@ -39,15 +39,6 @@ handler.getModelList = function (msg, session, next) {
 	session.avatar.lobby.getModelList(next);
 }
 
-// 数字模型查看 -- model是数字模型导入
-handler.getModelInfo = function (msg, session, next) {
-	session.avatar.lobby.getModelInfo(msg.modelId, next);
-}
-
-handler.modifyModelInfo = function (msg, session, next) {
-	session.avatar.lobby.modifyModelInfo(msg.modelId, msg.modifyInfo, next);
-}
-
 // 画板模型查看 -- block是画板模型
 handler.getBlockInfo = function (msg, session, next) {
 	session.avatar.lobby.getBlockInfo(msg.panelId, msg.blockId, msg.modelId, next);

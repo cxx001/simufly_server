@@ -1,35 +1,34 @@
 /**
- * Date: 2022/4/21
+ * Date: 2022/5/16
  * Author: admin
  * Description:
  */
 'use strict';
-const pomelo = require('pomelo');
-const consts = require('../common/consts');
-const utils = require('../util/utils')
-const logger = require('pomelo-logger').getLogger('cskl', '__filename');
-const fs = require('fs');
-const messageService = require('../services/messageService');
+let pomelo = require('pomelo');
+let util = require('util');
+let Component = require('../component');
+let consts = require('../../common/consts');
+let messageService = require('../../services/messageService');
+let dispatcher = require('../../util/dispatcher');
+let utils = require('../../util/utils');
 
 const SAVE_DB_TIME = 60 * 1000 * 5;
 
-var instance = null;
-module.exports = function (app) {
-    if (instance) {
-        return instance;
-    }
-    return instance = new AssetsModelStub(app);
-}
+let AssetsModelComponent = function (entity) {
+    Component.call(this, entity);
+};
 
-var AssetsModelStub = function (app) {
-    this.app = app;
+util.inherits(AssetsModelComponent, Component);
+module.exports = AssetsModelComponent;
+
+let pro = AssetsModelComponent.prototype;
+
+pro.init = function (opts) {
     this.db = pomelo.app.db.getModel('Model');
     this.waitToUpdateDB = new Set();
     this.modelsById = {};
     this.saveDBTimer = setInterval(this._onSaveToDB.bind(this), SAVE_DB_TIME);
 }
-
-var pro = AssetsModelStub.prototype;
 
 pro._onSaveToDB = function () {
     if (this.waitToUpdateDB.size === 0)
@@ -37,9 +36,9 @@ pro._onSaveToDB = function () {
     let entry;
     for (let id of this.waitToUpdateDB) {
         entry = this.modelsById[id];
-        this.db.update({ _id: id }, entry, { upsert: true }, function (err, raw) {
+        this.db.update({ _id: id }, entry, { upsert: true }, (err, raw) => {
             if (err) {
-                logger.error(id + " save db error: " + err);
+                this.entity.logger.error(id + " save db error: " + err);
             }
         })
     }
@@ -56,7 +55,7 @@ pro.getEntry = function (id, data) {
             entry = data;
             self.modelsById[id] = entry;
             self.waitToUpdateDB.add(id);
-            logger.info('修改/新建模型[%s].', id);
+            self.entity.logger.info('修改/新建模型[%s].', id);
             resolve(entry);
         } else {
             entry = self.modelsById[id];
@@ -65,12 +64,12 @@ pro.getEntry = function (id, data) {
             } else {
                 self.db.findById(id, function (err, doc) {
                     if (err) {
-                        logger.error("db find project info error: " + err);
+                        self.entity.logger.error("db find project info error: " + err);
                         return;
                     }
                     // 新项目
                     if (!doc) {
-                        logger.warn('模型[%s]不存在!', id);
+                        self.entity.logger.warn('模型[%s]不存在!', id);
                     } else {
                         entry = doc;
                         self.modelsById[id] = entry;
@@ -82,23 +81,15 @@ pro.getEntry = function (id, data) {
     })
 }
 
-pro.callAvatarGroupInfo = function (uid, sid, groupName, modelInfo) {
-    return new Promise((resolve, reject) => {
-        pomelo.app.rpc.connector.entryRemote.onSetModelGroup.toServer(sid, uid, groupName, modelInfo, (rsp) => {
-            resolve(rsp)
-        });
-    })
-}
-
-pro.getModelInfo = async function (id, cb) {
-    let model = await this.getEntry(id);
+pro.getModelInfo = async function (modelId, next) {
+    let model = await this.getEntry(modelId);
     if (!model) {
-        logger.warn('get model [%s] not exist!', id);
-        cb({ code: consts.Code.FAIL });
+        this.entity.logger.warn('get model [%s] not exist!', modelId);
+        next(null, { code: consts.Code.FAIL });
         return;
     }
 
-    cb({
+    next(null, {
         code: consts.Code.OK,
         Name: model.data.Name,
         groupId: model.groupId,
@@ -111,11 +102,16 @@ pro.getModelInfo = async function (id, cb) {
     });
 }
 
-pro.modifyModelInfo = async function (modelId, modifyInfo, cb) {
+pro.modifyModelInfo = async function (modelId, modifyInfo, next) {
+    let groupId = modifyInfo.groupId;
+    if (groupId) {
+        this.entity.modifyModelGroup(modelId, groupId);
+    }
+
     let model = await this.getEntry(modelId);
     if (!model) {
-        logger.warn('get model [%s] not exist!', id);
-        cb({ code: consts.Code.FAIL });
+        this.entity.logger.warn('get model [%s] not exist!', id);
+        next(null, { code: consts.Code.FAIL });
         return;
     }
 
@@ -136,11 +132,11 @@ pro.modifyModelInfo = async function (modelId, modifyInfo, cb) {
         } else if(key == 'U_Input') {
             this._modifyModelData(model, value, 'U_Input');
         } else {
-            logger.warn('修改模型信息未处理字段: ', key, value);
+            this.entity.logger.warn('修改模型信息未处理字段: ', key, value);
         }
     }
     await this.getEntry(modelId, model);
-    cb({ code: consts.Code.OK });
+    next(null, { code: consts.Code.OK });
 }
 
 pro._modifyModelData = function (dbdata, values, fieldName) {
@@ -155,7 +151,3 @@ pro._modifyModelData = function (dbdata, values, fieldName) {
         }
     }
 }
-
-
-
-

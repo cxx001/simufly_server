@@ -10,9 +10,6 @@ let entityFactory = require('./app/entity/entityFactory');
 let routeUtil = require('./app/util/routeUtil');
 let RollStub = require('./app/services/rollStub');
 let EngineStub = require('./app/services/engineStub');
-let AssetsStub = require('./app/services/assetsStub');
-let AssetsModelStub = require('./app/services/assetsModelStub');
-
 let avatarFilter = require('./app/servers/connector/filter/avatarFilter');
 
 /**
@@ -68,6 +65,10 @@ app.configure('production|development', 'connector', function () {
 	// 	let s = app.components.__connection__.getStatisticsInfo();
 	// 	logger.info("服务器:[%s].在线:[%d].",s.serverId, s.loginedCount);
 	// }, 1000 * 60);
+
+	let connectors = app.get('servers').connector;
+	let serverCfg = utils.find2key('id', app.get('serverId'), connectors);
+	koa.start(serverCfg);
 });
 
 app.configure('production|development', function () {
@@ -118,19 +119,6 @@ app.configure('production|development', 'auth', function () {
 
 app.configure('production|development', 'engine', function () {
 	app.set('engineStub', EngineStub(app), true);
-});
-
-app.configure('production|development', 'assets', function () {
-	let assets = app.get('servers').assets;
-	let assetsCfg = utils.find2key('id', app.get('serverId'), assets);
-	let assetsStub = AssetsStub(app);
-	let assetsModelStub = AssetsModelStub(app);
-	app.set('assetsStub', assetsStub, true);
-	app.set('assetsModelStub', assetsModelStub, true);
-	koa.start(assetsCfg, [
-		{name: 'assetsStub', classStub: assetsStub},
-		{name: 'assetsModelStub', classStub: assetsModelStub}
-	]);
 });
 
 // start app

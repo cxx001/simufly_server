@@ -15,7 +15,7 @@ var AUTO_SAVE_TICK = 1000 * 60 * 3  // 自动存盘时间
 var Avatar = function (opts) {
     opts = opts || {};
     // avatar组件
-    opts.components = ['avatarProp', 'lobby', 'simulate'];
+    opts.components = ['avatarProp', 'lobby', 'assetsModel', 'simulate'];
     Entity.call(this, opts);
 
     this.logoutTimer = null;

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const pomelo = require('pomelo');
+const entityManager = require('../../services/entityManager');
 const convert = require('xml-js');
 const AdmZip = require("adm-zip");
 const utils = require('../../util/utils');
@@ -71,15 +72,15 @@ class UploadController {
                     data: data
                 }
                 let id = pomelo.app.db.genId();
-                await ctx.app.assetsStub.getEntry(id, db);
+                let avatar = entityManager.getEntity(uid);
+                await avatar.lobby.getEntry(id, db);
 
                 // 同步用户表, 前面已经判断用户一定在线
-                let sid = ctx.userdata.sid;
                 let proinfo = {
                     id: id,
                     name: data[0].name
                 }
-                await ctx.app.assetsStub.callAvatarRemote(uid, sid, consts.ControlType.Add, proinfo);
+                avatar.modifyProList(consts.ControlType.Add, proinfo);
 
                 // 回给前端数据
                 ctx.body = {
@@ -125,7 +126,9 @@ class UploadController {
                     nodeType: 1,
                     ports: splitPortInfo(data.U_Input.Datas, data.Y_Output.Datas)
                 }
-                let groupId = await ctx.app.assetsModelStub.callAvatarGroupInfo(uid, sid, groupName, modelInfo);
+
+                let avatar = entityManager.getEntity(uid);
+                let groupId = avatar.setModelGroup(groupName, modelInfo);
 
                 // 存数据库
                 let db = {
@@ -133,7 +136,7 @@ class UploadController {
                     groupId: groupId,
                     data: data
                 }
-                await ctx.app.assetsModelStub.getEntry(id, db);
+                await avatar.assetsModel.getEntry(id, db);
 
                 // zip移动
                 let destPath = path.join(__dirname, '../../../assets/' + uid + '/model/');
