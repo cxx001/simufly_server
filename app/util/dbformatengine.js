@@ -214,7 +214,7 @@ pro.setTargetLine = function (targetItem, targetPanel, inputPort, dbList, projec
                             for (let m = 0; m < panelItem.line.length; m++) {
                                 const lineItem = panelItem.line[m];
                                 if (lineItem.source.cell == block.id) {
-                                    if (lineItem.subLine.length > 0) {
+                                    if (lineItem.subLine && lineItem.subLine.length > 0) {
                                         // 粗线
                                         for (let n = 0; n < lineItem.subLine.length; n++) {
                                             const childLine = lineItem.subLine[n];

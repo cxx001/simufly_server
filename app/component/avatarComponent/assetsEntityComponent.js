@@ -24,3 +24,11 @@ let pro = AssetsEntityComponent.prototype;
 pro.init = function (opts) {
     
 }
+
+pro.getEntityList = function (next) {
+    next(null, {
+        code: consts.Code.OK,
+        groupList: this.entity.groupList,
+        entityList: this.entity.entityList
+    });
+}

@@ -13,3 +13,7 @@
  };
  
  var handler = Handler.prototype;
+
+ handler.getEntityList = function (msg, session, next) {
+	session.avatar.assetsEntity.getEntityList(next);
+}
