@@ -12,31 +12,32 @@ let mappingtbl = {};
  * @param {*} dbList 数据库工程文件
  */
 pro.formatDb2Engine = function (assignList, dbList) {
-    let mappingtbl = {};
+    mappingtbl = {};
     let project = [];
     for (let i = 0; i < assignList.length; i++) {
         // 一台机器
         let projectItem = {
-            Partition: [],
+            PartitionGroup: [],
             LineGroup: {},
         }
         let idx = 0;
         const pcitem = assignList[i];
-        projectItem.ip = pcitem.ip;
+        projectItem.IP = pcitem.ip;
         let threadItem = pcitem.thread;
         for (let j = 0; j < threadItem.length; j++) {
             // 一个分区
             let blockList = [];
             const partItem = threadItem[j];
-            let partType = partItem.type;
+            let partType = partItem.type;    // sm/ss当前不需要，默认数组第一个是sm，其它都是ss
             let partBlock = partItem.block;
+            let curPartBlock = null;
             for (let m = 0; m < partBlock.length; m++) {
                 const blockId = partBlock[m];
                 let mainPanel = dbList[0];
                 for (let n = 0; n < mainPanel.block.length; n++) {
-                    const blockItem = mainPanel.block[n];
-                    if (blockId == blockItem.id) {
-                        this.getMinBlockList(blockItem, dbList, blockList, mainPanel.id);
+                    curPartBlock = mainPanel.block[n];
+                    if (blockId == curPartBlock.id) {
+                        this.getMinBlockList(curPartBlock, dbList, blockList, mainPanel.id);
                         break;
                     }
                 }
@@ -44,20 +45,24 @@ pro.formatDb2Engine = function (assignList, dbList) {
 
             // 生成Partition Block
             let partitionItem = {};
-            partitionItem.Task = partType;
-            partitionItem.Block = [];
+            partitionItem.Id = j;
+            partitionItem.CpuId = j;
+            partitionItem.Name = curPartBlock.name;
+            partitionItem.BlockGroup = [];
             for (let z = 0; z < blockList.length; z++) {
                 const item = blockList[z];
                 let blockId = idx++;
-                partitionItem.Block.push({
+                let modelName = item.modelId ? item.modelId.substring(25) : item.name;
+                partitionItem.BlockGroup.push({
                     Id: blockId,
                     Name: item.name,
-                    Model: item.modelId ? item.modelId.substring(25) : item.name,
-                    Order: z,
+                    Model: modelName + '.json',
+                    Order: blockId,
                 });
                 mappingtbl[item.panelId + '_' + item.id] = blockId;
             }
-            projectItem.Partition.push(partitionItem);
+            partitionItem.BlcokCount = partitionItem.BlockGroup.length;
+            projectItem.PartitionGroup.push(partitionItem);
         }
 
         /********************************************************************** */
@@ -94,9 +99,12 @@ pro.formatDb2Engine = function (assignList, dbList) {
             }
         }
 
+        projectItem.PartitionTotal = projectItem.PartitionGroup.length;
+        projectItem.BlockTotal = idx + 1;
+        projectItem.LineTotal = projectItem.LineGroup.length;
         project.push(projectItem);
     }
-    fs.writeFile('project.json', JSON.stringify(project), () => {});
+    fs.writeFile('project.json', JSON.stringify(project[0]), () => {});
     console.log('write complete.');
     return mappingtbl;
 }
@@ -255,12 +263,38 @@ pro.setTargetLine = function (targetItem, targetPanel, inputPort, dbList, projec
         }
 
     } else {
+        let blockItem = null;
+        for (const k in mappingtbl) {
+            const value = mappingtbl[k];
+            if (value == blockEngineId) {
+                let keys = k.split('_');
+                let panelId = keys[0];
+                let blockId = keys[1];
+                for (let i = 0; i < dbList.length; i++) {
+                    const panelItem = dbList[i];
+                    if (panelItem.id == panelId) {
+                        for (let j = 0; j < panelItem.block.length; j++) {
+                            const block = panelItem.block[j];
+                            if (block.id == blockId) {
+                                blockItem = block;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
         // 最小模块
         projectItem.LineGroup.Line.push({
             Src: blockEngineId,
             Dst: mappingtbl[targetPanel.id + '_' + targetItem.id],
             SrcPort: Number(outLine.source.port.split('_')[1]),
             DstPort: Number(inputPort),
+            SrcName: blockItem.name,
+            DstName: targetItem.name,
         });
     }
 }

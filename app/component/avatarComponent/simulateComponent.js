@@ -12,6 +12,7 @@ let messageService = require('../../services/messageService');
 let dispatcher = require('../../util/dispatcher');
 let utils = require('../../util/utils');
 let dbformatengine = require('../../util/dbformatengine');
+const {exec} = require('child_process');
 
 const SAVE_DB_TIME = 60 * 1000 * 5;
 
