@@ -70,9 +70,10 @@ module.exports = {
         Block: 0,
         Add: 2,
         SubSys: 6,
-        IO: 10,
-        MoreOne: 11,
-        OneMore: 12,
+        Input: 10,
+        Output: 11,
+        MoreOne: 12,
+        OneMore: 13,
     },
 
     SimulateState: {

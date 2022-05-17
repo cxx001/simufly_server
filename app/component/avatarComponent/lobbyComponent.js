@@ -201,7 +201,7 @@ pro._getBlockShapeType = function (nodeType) {
     } else if (nodeType == consts.ShapeType.Add) {
         // 加法器, 圆形
         shape = "my-circle"
-    } else if (nodeType == consts.ShapeType.IO) {
+    } else if (nodeType == consts.ShapeType.Input || nodeType == consts.ShapeType.Output) {
         // 输入、输出
         shape = "my-rect"
     } else if(nodeType == consts.ShapeType.MoreOne) {

@@ -8,6 +8,7 @@ let LoggerComponent = require('./entityComponent/loggerComponent');
 let AvatarPropertyCtrl = require('./avatarComponent/avatarPropertyCtrl');
 let LobbyComponent = require('./avatarComponent/lobbyComponent');
 let AssetsModelComponent = require('./avatarComponent/assetsModelComponent');
+let AssetsEntityComponent = require('./avatarComponent/assetsEntityComponent');
 let SimulateComponent = require('./avatarComponent/simulateComponent');
 
 var componentClass = {
@@ -15,6 +16,7 @@ var componentClass = {
 	avatarProp: AvatarPropertyCtrl,
 	lobby: LobbyComponent,
 	assetsModel: AssetsModelComponent,
+	assetsEntity: AssetsEntityComponent,
 	simulate: SimulateComponent,
 };
 

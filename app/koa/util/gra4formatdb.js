@@ -248,7 +248,7 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
             childPanel.block.push({
                 id: inputId,
                 name: "输入",
-                nodeType: consts.ShapeType.IO,
+                nodeType: consts.ShapeType.Input,
                 position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                 size: { "width": 40, "height": 20 },
                 items: [{ "id": portId, "group": consts.OutFlag }],
@@ -272,7 +272,7 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
             childPanel.block.push({
                 id: outputId,
                 name: "输出",
-                nodeType: consts.ShapeType.IO,
+                nodeType: consts.ShapeType.Output,
                 position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                 size: { "width": 40, "height": 20 },
                 items: [{ "id": consts.InPrefix + line.Data._attributes.export, "group": consts.InFlag }],
@@ -401,7 +401,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: inputId,
                     name: "输入",
-                    nodeType: consts.ShapeType.IO,
+                    nodeType: consts.ShapeType.Input,
                     position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
@@ -428,7 +428,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: outputId,
                     name: "输出",
-                    nodeType: consts.ShapeType.IO,
+                    nodeType: consts.ShapeType.Output,
                     position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": consts.InPrefix + "0", "group": consts.InFlag }],
@@ -447,7 +447,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: inputId,
                     name: "输入",
-                    nodeType: consts.ShapeType.IO,
+                    nodeType: consts.ShapeType.Input,
                     position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
@@ -464,7 +464,7 @@ pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPa
                 childPanel.block.push({
                     id: outputId,
                     name: "输出",
-                    nodeType: consts.ShapeType.IO,
+                    nodeType: consts.ShapeType.Output,
                     position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
                     size: { "width": 40, "height": 20 },
                     items: [{ "id": consts.InPrefix + "0", "group": consts.InFlag }],

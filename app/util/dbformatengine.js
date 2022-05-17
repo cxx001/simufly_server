@@ -18,7 +18,7 @@ pro.formatDb2Engine = function (assignList, dbList) {
         // 一台机器
         let projectItem = {
             PartitionGroup: [],
-            LineGroup: {},
+            LineGroup: [],
         }
         let idx = 0;
         const pcitem = assignList[i];
@@ -67,7 +67,6 @@ pro.formatDb2Engine = function (assignList, dbList) {
 
         /********************************************************************** */
         // 连线
-        projectItem.LineGroup.Line = [];
         for (const k in mappingtbl) {
             const value = mappingtbl[k];
             let keys = k.split('_');
@@ -100,7 +99,7 @@ pro.formatDb2Engine = function (assignList, dbList) {
         }
 
         projectItem.PartitionTotal = projectItem.PartitionGroup.length;
-        projectItem.BlockTotal = idx + 1;
+        projectItem.BlockTotal = idx;
         projectItem.LineTotal = projectItem.LineGroup.length;
         project.push(projectItem);
     }
@@ -118,7 +117,7 @@ pro.formatDb2Engine = function (assignList, dbList) {
  * @returns 
  */
 pro.getMinBlockList = function (blockItem, dbList, blockList, panelId) {
-    if (!blockItem.child && blockItem.nodeType < consts.ShapeType.IO) {
+    if (!blockItem.child && blockItem.nodeType < consts.ShapeType.Input) {
         blockItem.panelId = panelId;
         blockList.push(blockItem);
         return;
@@ -168,7 +167,8 @@ pro.setTargetLine = function (targetItem, targetPanel, inputPort, dbList, projec
                         }
                     }
 
-                    if (blockItem.nodeType == consts.ShapeType.IO && blockItem.items[0].group == 'out' && inPort == portId) {
+                    if ((blockItem.nodeType == consts.ShapeType.Input || blockItem.nodeType == consts.ShapeType.Output) && 
+                        blockItem.items[0].group == 'out' && inPort == portId) {
                         // 递归找输入模块关联的最小模块连线
                         this.setTargetLine(blockItem, panel, inputPort, dbList, projectItem, blockEngineId, outLine);
                         break;
@@ -177,7 +177,7 @@ pro.setTargetLine = function (targetItem, targetPanel, inputPort, dbList, projec
                 break;
             }
         }
-    } else if(targetItem.nodeType >= consts.ShapeType.IO ) {
+    } else if(targetItem.nodeType >= consts.ShapeType.Input ) {
         // 输入/输出/总线模块
         let isOutModel = true;
         for (let i = 0; i < targetPanel.line.length; i++) {
@@ -288,7 +288,7 @@ pro.setTargetLine = function (targetItem, targetPanel, inputPort, dbList, projec
         }
 
         // 最小模块
-        projectItem.LineGroup.Line.push({
+        projectItem.LineGroup.push({
             Src: blockEngineId,
             Dst: mappingtbl[targetPanel.id + '_' + targetItem.id],
             SrcPort: Number(outLine.source.port.split('_')[1]),
