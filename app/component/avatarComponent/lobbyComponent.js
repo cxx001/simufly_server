@@ -136,6 +136,12 @@ pro.enterProject = async function (id, next) {
         return;
     }
 
+    // 检测仿真引擎状态与实际不合, 启动心跳检测
+    let simulateDb = await this.entity.simulate.getEntry(this.projectUUID);
+    if (simulateDb.state >= consts.SimulateState.Connected) {
+        this.entity.simulate._heartbeat();
+    }
+
     // dbjson -> vuejson
     let sysList = this._formatDB2Vue(project);
     next(null, {

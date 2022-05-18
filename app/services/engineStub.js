@@ -305,19 +305,24 @@ pro.signalManage = function (uids, signal, cb) {
         return;
     }
 
+    let engineSignal = [];
     for (let i = 0; i < signal.length; i++) {
         let item = signal[i];
-        item._type = 'Signal';
-        item.cancel = item.cancel ? true : false;
-        item.monitor = item.monitor ? true : false;
-        item.record = item.record ? true : false;
+        let tmp = {};
+        tmp._type = 'Signal';
+        tmp.cancel = item.cancel ? true : false;
+        tmp.monitor = item.monitor ? true : false;
+        tmp.record = item.record ? true : false;
+        tmp.block_id = item.block_id;
+        tmp.port_index = item.port_index;
+        engineSignal.push(tmp);
     }
 
     this.zmqProcess.send({
         uid: uids.uid,
         route: 'SignalManage',
         msg: {
-            signal: signal,
+            signal: engineSignal,
         }
     });
 }
@@ -439,14 +444,7 @@ pro.onSimuData = function (uid, msg) {
     let sid = this.getSidByUid(uid);
     if (sid) {
         let uids = { uid: uid, sid: sid }
-        let value = Number(msg[4][0]);
-        messageService.pushMessageToPlayer(uids, 'onSimuData', {
-            modelId: msg[0],
-            portId: msg[1],
-            step: msg[2],
-            factor: msg[3],
-            value: Math.floor(value * 100) / 100
-        });
+        pomelo.app.rpc.connector.entryRemote.onEngineSimuData.toServer(uids.sid, uids.uid, msg, null);
     }
 }
 

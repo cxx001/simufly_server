@@ -62,3 +62,11 @@ pro.onEngineHeart = function (avtID, state, cb) {
         cb();
     }
 }
+
+pro.onEngineSimuData = function (avtID, data, cb) {
+    var avatar = entityManager.getEntity(avtID);
+    if (avatar) {
+        avatar.simulate.onEngineSimuData(data);
+        cb();
+    }
+}

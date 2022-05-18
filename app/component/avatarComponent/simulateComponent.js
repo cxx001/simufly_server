@@ -334,7 +334,9 @@ pro.updateSignalList = async function (signal, next) {
         let isNew = true;
         for (let j = 0; j < signalSet.length; j++) {
             let oldItem = signalSet[j];
-            if (newItem.block_id == oldItem.block_id && newItem.port_index == oldItem.port_index) {
+            if (newItem.block_id == oldItem.block_id && 
+                newItem.port_index == oldItem.port_index &&
+                newItem.panel_id == oldItem.panel_id) {
                 isNew = false;
                 if (newItem.cancel) {
                     // 删除
@@ -343,9 +345,6 @@ pro.updateSignalList = async function (signal, next) {
                     // 修改
                     oldItem.monitor = newItem.monitor;
                     oldItem.record = newItem.record;
-                    oldItem.panel_id = newItem.panel_id;
-                    oldItem.name = newItem.name;
-                    oldItem.source = newItem.source;
                 }
                 break;
             }
@@ -360,7 +359,56 @@ pro.updateSignalList = async function (signal, next) {
     this.simulateById[projectId] = entry;
     this.waitToUpdateDB.add(projectId);
     next(null, { code: consts.Code.OK });
+
+    // blockId转换为引擎下标id
+    let project = await this.entity.lobby.getEntry(projectId);
+    let mappingtbl = project.mappingtbl;
+    for (let i = 0; i < signal.length; i++) {
+        let item = signal[i];
+        let engineBlockId = mappingtbl[item.panel_id + '_' + item.block_id];
+        if (engineBlockId == 0 || engineBlockId) {
+            item.block_id = engineBlockId;
+        } else {
+            this.entity.logger.warn('前端/引擎模块ID映射不存在!');
+        }
+    }
     this._callEngineRemote('signalManage', signal, null);
+}
+
+pro.onEngineSimuData = async function (msg) {
+    let block_id = msg[0];
+    let port_index = msg[1];
+    let step = msg[2];
+    let factor = msg[3];
+    let value = Number(msg[4][0]);
+
+    let projectId = this.entity.lobby.projectUUID;
+    let project = await this.entity.lobby.getEntry(projectId);
+    let mappingtbl = project.mappingtbl;
+    let panelId = null;
+    let blockId = null;
+    for (const key in mappingtbl) {
+        const value = mappingtbl[key];
+        if (value == block_id) {
+            let keys = key.split('_');
+            panelId = keys[0];
+            blockId = keys[1];
+            break;
+        }
+    }
+
+    if (panelId && blockId) {
+        this.entity.sendMessage('onSimuData', {
+            panel_id: panelId,
+            block_id: blockId,
+            port_index: port_index,
+            step: step,
+            factor: factor,
+            value: Math.floor(value * 100) / 100
+        });
+    } else {
+        this.entity.logger.warn('找不到映射关系!');
+    }
 }
 
 pro.modifyParameter = function (parameter, next) {
