@@ -218,7 +218,6 @@ pro.connectEngine = async function(simuTime, simuStep, next) {
     }
     next(null, { code: consts.Code.OK });
 
-    entry.state = consts.SimulateState.Connected;
     entry.simuTime = simuTime;
     entry.simuStep = simuStep;
     this._callEngineRemote('initSimulation', projectId, simuTime, simuStep, null);
