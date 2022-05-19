@@ -12,7 +12,6 @@ let messageService = require('../../services/messageService');
 let dispatcher = require('../../util/dispatcher');
 let utils = require('../../util/utils');
 let dbformatengine = require('../../util/dbformatengine');
-const {exec} = require('child_process');
 
 const SAVE_DB_TIME = 60 * 1000 * 5;
 
@@ -176,7 +175,7 @@ pro.generateCode = async function (genCodeInfo, next) {
     next(null, { code: consts.Code.OK });
 
     // rpc engine server
-    entry.state = consts.SimulateState.GenCoding;
+    // entry.state = consts.SimulateState.GenCoding;
     this._callEngineRemote('generateCode', projectId, genCodeInfo, null);
 }
 
@@ -379,7 +378,7 @@ pro.onEngineSimuData = async function (msg) {
     let port_index = msg[1];
     let step = msg[2];
     let factor = msg[3];
-    let value = Number(msg[4][0]);
+    let value = msg[4];
 
     let projectId = this.entity.lobby.projectUUID;
     let project = await this.entity.lobby.getEntry(projectId);
@@ -403,7 +402,7 @@ pro.onEngineSimuData = async function (msg) {
             port_index: port_index,
             step: step,
             factor: factor,
-            value: Math.floor(value * 100) / 100
+            value: value
         });
     } else {
         this.entity.logger.warn('找不到映射关系!');

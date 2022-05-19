@@ -100,51 +100,81 @@ pro.getSidByUid = function (uid) {
 
 pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
     utils.invokeCallback(cb);
-
-    projectUUID = 'simufly_engine';
-    let userDir = './assets/' + uids.uid;
-    if (!fs.existsSync(userDir)) {
-        if (fs.mkdirSync(userDir)) {
-            logger.warn("create path[%s] dir fail!", userDir);
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.GenCodeFail,
-                des: '生成代码失败!'
-            });
-            return;
-        }
+    let packageName = `${uids.uid}_${projectUUID}`;
+    let scriptPath = 'E:/simufly_engine-main/code_gen/bin/exec.sh';
+    if (!fs.existsSync(scriptPath)) {
+        logger.warn("generate code script not exist!");
+        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.GenCodeFail,
+            des: '生成代码失败!'
+        });
+        return;
     }
 
-    // 生成代码中
-    messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-        code: consts.MsgFlowCode.GenCoding,
-        des: '生成代码中...'
-    });
+    // 执行bat
+    // child_process.execFile('exec.bat', null, {cwd: 'E:/simufly_engine-main/code_gen/bin'}, function(error, stdout, stderr) {  
+    //     if(error){
+    //         console.log("exec error"+error)
+    //     } else {
+    //         console.log("成功")
+    //     }
+    //     console.log('stdout: ' + stdout);
+    //     console.log('stderr: ' + stderr);
+    // });
 
-    let triggerCount = 0;
-    let localPath = userDir + '/' + projectUUID + '.zip';
-    ssh2.DownloadFile(server, remotePackagePath, localPath, (err, data) => {
-        if (err) {
-            logger.warn('ssh download GenCode file fail! err: %o', err);
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.GenCodeFail,
-                des: '生成代码失败!'
-            });
-            return;
+    // 执行sh
+    child_process.exec(scriptPath, function (error, stdout, stderr) {
+        if(error) {
+            return console.error(error);
         }
-
-        triggerCount++;
-        if (triggerCount <= 1) {
-            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.GenCoded,
-                des: '生成代码完成.'
-            });
-        } else {
-            logger.warn('生成代码结束标志回调多次!');
-        }
+        console.log(stdout);
     })
+
+    // projectUUID = 'simufly_engine';
+    // let userDir = './assets/' + uids.uid;
+    // if (!fs.existsSync(userDir)) {
+    //     if (fs.mkdirSync(userDir)) {
+    //         logger.warn("create path[%s] dir fail!", userDir);
+    //         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
+    //         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+    //             code: consts.MsgFlowCode.GenCodeFail,
+    //             des: '生成代码失败!'
+    //         });
+    //         return;
+    //     }
+    // }
+
+    // // 生成代码中
+    // messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+    //     code: consts.MsgFlowCode.GenCoding,
+    //     des: '生成代码中...'
+    // });
+
+    // let triggerCount = 0;
+    // let localPath = userDir + '/' + projectUUID + '.zip';
+    // ssh2.DownloadFile(server, remotePackagePath, localPath, (err, data) => {
+    //     if (err) {
+    //         logger.warn('ssh download GenCode file fail! err: %o', err);
+    //         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
+    //         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+    //             code: consts.MsgFlowCode.GenCodeFail,
+    //             des: '生成代码失败!'
+    //         });
+    //         return;
+    //     }
+
+    //     triggerCount++;
+    //     if (triggerCount <= 1) {
+    //         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
+    //         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+    //             code: consts.MsgFlowCode.GenCoded,
+    //             des: '生成代码完成.'
+    //         });
+    //     } else {
+    //         logger.warn('生成代码结束标志回调多次!');
+    //     }
+    // })
 }
 
 pro.deploy = async function (uids, projectUUID, cb) {
@@ -277,7 +307,7 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
     });
 }
 
-pro.modifyParameter = function(uids, parameter, cb) {
+pro.modifyParameter = function (uids, parameter, cb) {
     utils.invokeCallback(cb);
 
     if (!parameter) {
@@ -374,7 +404,7 @@ pro.onStateResponse = function (uid, msg) {
                 des: '连接引擎失败!'
             });
         }
-    } else if(state_type == consts.EngineRspState.kStartRep) {
+    } else if (state_type == consts.EngineRspState.kStartRep) {
         // startRep
         if (ret == consts.EngineRspErrorCode.kOk) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StartSus, null);
@@ -389,7 +419,7 @@ pro.onStateResponse = function (uid, msg) {
                 des: '仿真开始失败!'
             });
         }
-    } else if(state_type == consts.EngineRspState.kPause) {
+    } else if (state_type == consts.EngineRspState.kPause) {
         // pause
         if (ret == consts.EngineRspErrorCode.kOk) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.PauseSus, null);
@@ -405,7 +435,7 @@ pro.onStateResponse = function (uid, msg) {
             });
         }
 
-    } else if(state_type == consts.EngineRspState.kStopRep) {
+    } else if (state_type == consts.EngineRspState.kStopRep) {
         // stopRep
         if (ret == consts.EngineRspErrorCode.kOk) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.StopSus, null);
@@ -420,7 +450,7 @@ pro.onStateResponse = function (uid, msg) {
                 des: '仿真停止失败!'
             });
         }
-    } else if(state_type == consts.EngineRspState.kTerminateRep) {
+    } else if (state_type == consts.EngineRspState.kTerminateRep) {
         // terminateRep
         if (ret == consts.EngineRspErrorCode.kOk) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.TerminateSus, null);
