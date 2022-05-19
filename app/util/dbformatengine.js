@@ -103,7 +103,7 @@ pro.formatDb2Engine = function (assignList, dbList) {
         projectItem.LineTotal = projectItem.LineGroup.length;
         project.push(projectItem);
     }
-    fs.writeFile('project.json', JSON.stringify(project[0]), () => {});
+    fs.writeFile('/home/simufly_engine/build/bin/config/project/project.json', JSON.stringify(project[0], null, '\t'), () => {});
     console.log('write complete.');
     return mappingtbl;
 }

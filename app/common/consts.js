@@ -91,15 +91,16 @@ module.exports = {
     EngineRspType: {
         GenCodeSus: 1,  // 生成代码成功
         GenCodeFail: 2, // 生成代码失败
-        DeploySus: 3, // 部署成功
-        DeployFail: 4, // 部署失败
-        ConnectSus: 5,  // 连接成功
-        ConnectFail: 6, // 连接失败
-        StartSus: 7,    // 开始仿真成功
-        PauseSus: 8,   // 暂停仿真成功
-        StopSus: 9,   // 停止仿真成功
-        TerminateSus: 10,  // 退出仿真成功
-        SimulateCmdFail: 11, // 仿真命令操作失败
+        GenCodeing: 3,  // 代码生成中
+        DeploySus: 4, // 部署成功
+        DeployFail: 5, // 部署失败
+        ConnectSus: 6,  // 连接成功
+        ConnectFail: 7, // 连接失败
+        StartSus: 8,    // 开始仿真成功
+        PauseSus: 9,   // 暂停仿真成功
+        StopSus: 10,   // 停止仿真成功
+        TerminateSus: 11,  // 退出仿真成功
+        SimulateCmdFail: 12, // 仿真命令操作失败
     },
 
     EngineRspState: {

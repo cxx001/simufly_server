@@ -25,7 +25,7 @@ module.exports = LobbyComponent;
 let pro = LobbyComponent.prototype;
 
 pro.init = function (opts) {
-    this.projectUUID = 'yyyb_test';
+    this.projectUUID = '62861ff3ff4b0f6846abefba';
     this._bindEvent();
 
     this.db = pomelo.app.db.getModel('Project');

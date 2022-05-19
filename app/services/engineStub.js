@@ -100,81 +100,53 @@ pro.getSidByUid = function (uid) {
 
 pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
     utils.invokeCallback(cb);
-    let packageName = `${uids.uid}_${projectUUID}`;
-    let scriptPath = 'E:/simufly_engine-main/code_gen/bin/exec.sh';
-    if (!fs.existsSync(scriptPath)) {
-        logger.warn("generate code script not exist!");
-        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.GenCodeFail,
-            des: '生成代码失败!'
-        });
-        return;
-    }
-
-    // 执行bat
-    // child_process.execFile('exec.bat', null, {cwd: 'E:/simufly_engine-main/code_gen/bin'}, function(error, stdout, stderr) {  
-    //     if(error){
-    //         console.log("exec error"+error)
-    //     } else {
-    //         console.log("成功")
-    //     }
-    //     console.log('stdout: ' + stdout);
-    //     console.log('stderr: ' + stderr);
-    // });
+    /* // 执行bat
+    child_process.execFile('exec.bat', null, {cwd: 'E:/simufly_engine-main/code_gen/bin'}, function(error, stdout, stderr) {  
+        if(error){
+            console.log("exec error"+error)
+        } else {
+            console.log("成功")
+        }
+        console.log('stdout: ' + stdout);
+        console.log('stderr: ' + stderr);
+    });*/
 
     // 执行sh
-    child_process.exec(scriptPath, function (error, stdout, stderr) {
+    let count = 0;
+    let packageName = `${uids.uid}_${projectUUID}`;
+    child_process.exec(`code_gen ${packageName}`, (error, stdout, stderr) => {
         if(error) {
-            return console.error(error);
+            logger.warn(error);
+            pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.GenCodeFail,
+                des: '生成代码失败!'
+            });
+        } else {
+            count++;
+            if (count == 1) {
+                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeing, null);
+            }
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.GenCoding,
+                des: stdout
+            });
+
+            if (stdout.indexOf('Code generation success') >= 0) {
+                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
+                messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                    code: consts.MsgFlowCode.GenCoded,
+                    des: '生成代码完成.'
+                });
+            } else if(stdout.indexOf('Code generation failed') >= 0) {
+                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
+                messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                    code: consts.MsgFlowCode.GenCodeFail,
+                    des: '生成代码失败!'
+                });
+            }
         }
-        console.log(stdout);
     })
-
-    // projectUUID = 'simufly_engine';
-    // let userDir = './assets/' + uids.uid;
-    // if (!fs.existsSync(userDir)) {
-    //     if (fs.mkdirSync(userDir)) {
-    //         logger.warn("create path[%s] dir fail!", userDir);
-    //         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-    //         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-    //             code: consts.MsgFlowCode.GenCodeFail,
-    //             des: '生成代码失败!'
-    //         });
-    //         return;
-    //     }
-    // }
-
-    // // 生成代码中
-    // messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-    //     code: consts.MsgFlowCode.GenCoding,
-    //     des: '生成代码中...'
-    // });
-
-    // let triggerCount = 0;
-    // let localPath = userDir + '/' + projectUUID + '.zip';
-    // ssh2.DownloadFile(server, remotePackagePath, localPath, (err, data) => {
-    //     if (err) {
-    //         logger.warn('ssh download GenCode file fail! err: %o', err);
-    //         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
-    //         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-    //             code: consts.MsgFlowCode.GenCodeFail,
-    //             des: '生成代码失败!'
-    //         });
-    //         return;
-    //     }
-
-    //     triggerCount++;
-    //     if (triggerCount <= 1) {
-    //         pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
-    //         messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-    //             code: consts.MsgFlowCode.GenCoded,
-    //             des: '生成代码完成.'
-    //         });
-    //     } else {
-    //         logger.warn('生成代码结束标志回调多次!');
-    //     }
-    // })
 }
 
 pro.deploy = async function (uids, projectUUID, cb) {

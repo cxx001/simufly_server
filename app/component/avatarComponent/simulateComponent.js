@@ -175,7 +175,6 @@ pro.generateCode = async function (genCodeInfo, next) {
     next(null, { code: consts.Code.OK });
 
     // rpc engine server
-    // entry.state = consts.SimulateState.GenCoding;
     this._callEngineRemote('generateCode', projectId, genCodeInfo, null);
 }
 
@@ -443,6 +442,10 @@ pro.onEngineResponse = async function (code) {
         this.waitToUpdateDB.add(projectId);
     } else if(code == consts.EngineRspType.GenCodeFail) {
         entry.state = consts.SimulateState.GenCode;
+        this.simulateById[projectId] = entry;
+        this.waitToUpdateDB.add(projectId);
+    } else if(code == consts.EngineRspType.GenCodeing) {
+        entry.state = consts.SimulateState.GenCoding;
         this.simulateById[projectId] = entry;
         this.waitToUpdateDB.add(projectId);
     } else if(code == consts.EngineRspType.DeploySus) {

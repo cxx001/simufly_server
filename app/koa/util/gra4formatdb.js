@@ -87,6 +87,8 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
             let dllFile = unit.UserFct._attributes.Dllfile;
             let fctName = unit.UserFct._attributes.Fctname;
             dllFile = path.basename(dllFile, '.dll');
+            dllFile = dllFile.split('\\');
+            dllFile = dllFile[dllFile.length-1];
             model.modelId = uid + '_' + dllFile + '_' + fctName;
         }
 
