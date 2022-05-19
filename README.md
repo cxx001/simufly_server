@@ -34,7 +34,10 @@ nohup xxx >/dev/null 2>&1 &  什么信息也不要
 2. Error:timer is not exsits...
 是远程调用cb回调了两次以上引起，一般是读取数据库异步操作引起，可以使用Async.waterfall避免
 
-3. mongodb创建密码访问账号用:db.createUser({user:"root",pwd:"123456",roles:["root"]})
+3. mongodb创建密码访问账号用:
+use admin
+db.createUser({"user":"root","pwd":"123456","roles":[{role:"root",db:"admin"}]})
+db.auth('root','123456')
 
 4. windows上安装完mongodb，bin下双击mongod.exe启动马上就退出：
 解决：假设安装在D:\mongodb\bin\mongod.exe这个目录，那么要在D根目录下建一个data目录。
