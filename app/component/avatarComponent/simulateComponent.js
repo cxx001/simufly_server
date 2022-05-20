@@ -72,8 +72,8 @@ pro.getEntry = function (id) {
                         _id: id,
                         uid: self.entity.id,
                         state: 0,
-                        simuTime: 0,
-                        simuStep: 0,
+                        simuTime: 1000,
+                        simuStep: 0.001,
                         assignTask: [],
                         signalSet: [],
                         triggerSet: {

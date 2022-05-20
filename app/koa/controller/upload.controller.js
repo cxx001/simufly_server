@@ -35,6 +35,33 @@ const splitPortInfo = function (inputData, outData) {
     return ports;
 }
 
+const extractZipInfo = function (fileName) {
+    let projectList = {};
+    let mainPanel = null;
+    let mainCount = 0;
+    const zip = new AdmZip(fileName);
+    const zipEntries = zip.getEntries();
+    zipEntries.forEach(function (zipEntry) {
+        const extname = path.extname(zipEntry.name);
+        if (extname == '.gra4') {
+            let entryData = zipEntry.getData().toString("utf8");
+            let toJsonData = convert.xml2json(entryData, { compact: true, spaces: 4 });
+            toJsonData = JSON.parse(toJsonData);
+            projectList[path.normalize(zipEntry.entryName)] = toJsonData;
+            if (toJsonData.Model.IoportGroup._attributes.Count == 0) {
+                mainCount++;
+                if (mainCount > 1) {
+                    console.warn('导入工程存在多个入口gra4文件!');
+                } else {
+                    mainPanel = toJsonData;
+                }
+            }
+        }
+    });
+
+    return [mainPanel, projectList];
+}
+
 /**
  * * 要求客户gra4格式约定:
  * 1. 文件、文件夹名不能是中文
@@ -50,21 +77,16 @@ class UploadController {
             console.log('[%s]上传文件: %s 路径: %s', uid, file.name, file.path);
             try {
                 // 读取压缩包数据
-                let foldername = path.basename(file.name, '.zip');
-                let zip = new AdmZip(file.path);
-                let xmlData = zip.readAsText(foldername + "/" + 'main.gra4');
-                let xmlJson = convert.xml2json(xmlData, { compact: true, spaces: 4 });
-                xmlJson = JSON.parse(xmlJson);
+                let extract = extractZipInfo(file.path);
+                let mainPanel = extract[0];
+                let projectList = extract[1];
+                if (!mainPanel) {
+                    console.warn('入口gra4文件不存在!');
+                    return;
+                }
+
                 let data = [];
-                gra4formatdb.splitChildSys(uid, zip, foldername, data, xmlJson, 1, null, null, 1);
-                // 移除不需要的subLine粗线记录(可以看视图里外端口是对应的)
-                // for (let i = 0; i < data.length; i++) {
-                //     let panel = data[i];
-                //     for (let j = 0; j < panel.line.length; j++) {
-                //         let item = panel.line[j];
-                //         delete item.subLine;
-                //     }
-                // }
+                gra4formatdb.splitChildSys(uid, projectList, data, mainPanel, 1, null, null, 1);
 
                 // 存数据库
                 let db = {

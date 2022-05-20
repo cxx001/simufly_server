@@ -1,6 +1,5 @@
 const pomelo = require('pomelo');
 const path = require('path');
-const convert = require('xml-js');
 const consts = require('../../common/consts');
 
 /**TODO: 逻辑待优化整理! */
@@ -267,7 +266,7 @@ pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
     } else {
         for (let i = 0; i < oneMoreArray.length; i++) {
             const items = oneMoreArray[i];
-            const line = items[0][0];
+            const line = items[0];
             // 添加输出模块
             let portId = consts.InPrefix + line.Data._attributes.export;
             let outputId = pomelo.app.db.genId() + '_' + portId;
@@ -520,8 +519,7 @@ pro.splitInterfaceModel = function (parentPanel, childjson, childPanel, sysCpid)
 /**
  * 递归拆子系统
  * @param {*} uid 用户UID
- * @param {*} admZip admzip解包对象
- * @param {*} rootPath 项目根目录
+ * @param {*} projectList 解析后所有gra4 json对象
  * @param {*} sysArray 子系统数组容器
  * @param {*} sysJson  子系统json描述
  * @param {*} sysId    面板ID
@@ -529,7 +527,7 @@ pro.splitInterfaceModel = function (parentPanel, childjson, childPanel, sysCpid)
  * @param {*} sysCpid   子系统在其父系统中的ID
  * @param {*} sysIndex 当前层系统头位置(为了定义子系统ID, ID为顺序递增, 所以要记录每层ID的头位置)
  */
-pro.splitChildSys = function (uid, admZip, rootPath, sysArray, sysJson, sysId, sysPid, sysCpid, sysIndex) {
+pro.splitChildSys = function (uid, projectList, sysArray, sysJson, sysId, sysPid, sysCpid, sysIndex) {
     // 当前层系统解析
     let item = this.splitItem(uid, sysJson, sysId, sysPid, sysIndex);
     // 插入子系统中转器件
@@ -559,13 +557,11 @@ pro.splitChildSys = function (uid, admZip, rootPath, sysArray, sysJson, sysId, s
     sysIndex = sysIndex + childSys.length;
     for (let i = 0; i < childSys.length; i++) {
         const item = childSys[i];
-        let childPath = item.SubBlock._attributes.File.replace(/\\/g, "/");
-        let xmlData = admZip.readAsText(rootPath + "/" + childPath);
-        let xmlJson = convert.xml2json(xmlData, { compact: true, spaces: 4 });
-        xmlJson = JSON.parse(xmlJson);
+        let key = item.SubBlock._attributes.File;
+        xmlJson = projectList[key];
         let id = ++sysId;
         let pid = curSysId;
         let cpid = item._attributes.id;
-        this.splitChildSys(uid, admZip, rootPath, sysArray, xmlJson, id, pid, cpid, sysIndex);
+        this.splitChildSys(uid, projectList, sysArray, xmlJson, id, pid, cpid, sysIndex);
     }
 }

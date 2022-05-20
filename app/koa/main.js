@@ -14,6 +14,7 @@ const KoaStatic = require('koa-static')
 const parameter = require('koa-parameter');
 const cors = require('koa-cors');
 const KoaBody = require('koa-body')
+const utils = require('../util/utils');
 
 const app = new Koa();
 
@@ -32,9 +33,7 @@ app.use(KoaBody({
         //     return mimetype && mimetype.includes("image");
         // }
         onFileBegin: (name, file) => {
-            if (!fs.existsSync(uploadFolder)) {
-                fs.mkdirSync(uploadFolder);
-            }
+            utils.mkdirsSync(uploadFolder);
             // file.path = `${uploadFolder}${file.name}`
         },
         onError: (error) => {
