@@ -74,7 +74,18 @@ pro.parseModelPort = function (modelId, lineArray, unitArray) {
             }
         }
     }
-    return ports;
+
+    // 去重
+    let result = [];
+    let obj = {};
+    for (let i = 0; i < ports.length; i++) {
+        let key = ports[i].id + '_' + ports[i].group;
+        if (!obj[key]) {
+            result.push(ports[i]);
+            obj[key] = true;
+        }
+    }
+    return result;
 }
 
 /**
@@ -87,7 +98,7 @@ pro.parseModelPort = function (modelId, lineArray, unitArray) {
 pro.isLineTiled = function (subLine, inUnit, outUnit) {
     if (subLine.length <= 1) {
         // 细线
-        return false;
+        return true;
     } else {
         // 粗线
         if (inUnit.SubBlock && outUnit.SubBlock) {
@@ -336,7 +347,7 @@ pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine
         TransCount++;
 
         // 创建IO模块
-        let inputId = outLine[0].target.port;
+        let inputId = `${pomelo.app.db.genId()}_${outLine[0].target.port}`;
         childPanel.block.push({
             id: inputId,
             name: "输入",
@@ -383,7 +394,7 @@ pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine
         TransCount++;
 
         // 创建IO模块
-        let outputId = outLine[0].source.port;
+        let outputId = `${pomelo.app.db.genId()}_${outLine[0].source.port}`;
         childPanel.block.push({
             id: outputId,
             name: "输出",
@@ -411,7 +422,7 @@ pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine
  */
 pro.createIOModel = function(isInput, items, cIoItem, childPanel) {
     if (isInput) {
-        let inputId = items[0].source.port;
+        let inputId = `${pomelo.app.db.genId()}_${items[0].source.port}`;
         childPanel.block.push({
             id: inputId,
             name: "输入",
@@ -432,7 +443,7 @@ pro.createIOModel = function(isInput, items, cIoItem, childPanel) {
             });
         }
     } else {
-        let outputId = items[0].target.port;
+        let outputId = `${pomelo.app.db.genId()}_${items[0].target.port}`;
         childPanel.block.push({
             id: outputId,
             name: "输出",
@@ -476,7 +487,7 @@ pro.findRelOutLine = function(isInput, subLine, relArray) {
                     relitem.push(inLine);
                 }
             }
-            if (relitem.length > 1) {
+            if (relitem.length > 0) {
                 record.push(relitem);
             } else {
                 console.warn('关联线不存在, 可能是IO/监控模块!', isInput);
@@ -494,7 +505,7 @@ pro.findRelOutLine = function(isInput, subLine, relArray) {
                     relitem.push(inLine);
                 }
             }
-            if (relitem.length > 1) {
+            if (relitem.length > 0) {
                 record.push(relitem);
             } else {
                 console.warn('关联线不存在, 可能是IO/监控模块!', isInput);
@@ -600,8 +611,12 @@ pro.splitChildSys = function (uid, projectList, sysArray, parentJson, sysJson, s
     for (let i = 0; i < units.length; i++) {
         const unit = units[i];
         if (unit.SubBlock) {
-            let key = unit.SubBlock._attributes.File;
+            let key = path.normalize(unit.SubBlock._attributes.File);
             let xmlJson = projectList[key];
+            if (!xmlJson) {
+                key = key.replace(/\\/g, "/");
+                xmlJson = projectList[key];
+            }
             let cpid = unit._attributes.id;
             let id = findCSysPanelId(cpid);
             let pid = sysId;

@@ -40,7 +40,7 @@ app.configure('production|development', 'gate', function () {
 			//     key: fs.readFileSync(curFilePath + '/keys/server.key'),
 			//     cert: fs.readFileSync(curFilePath + '/keys/server.crt')
 			// },
-			useProtobuf: false,
+			useProtobuf: true,
 		});
 });
 
@@ -58,7 +58,7 @@ app.configure('production|development', 'connector', function () {
 			//     key: fs.readFileSync(curFilePath + '/keys/server.key'),
 			//     cert: fs.readFileSync(curFilePath + '/keys/server.crt')
 			// },
-			useProtobuf: false,
+			useProtobuf: true,
 		});
 
 	// setInterval(()=>{
