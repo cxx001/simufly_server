@@ -86,7 +86,7 @@ class UploadController {
                 }
 
                 let data = [];
-                gra4formatdb.splitChildSys(uid, projectList, data, mainPanel, 1, null, null, 1);
+                gra4formatdb.splitChildSys(uid, projectList, data, null, mainPanel, pomelo.app.db.genId(), null, null);
 
                 // 存数据库
                 let db = {

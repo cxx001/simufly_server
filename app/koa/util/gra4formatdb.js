@@ -1,182 +1,210 @@
 const pomelo = require('pomelo');
 const path = require('path');
+const logger = require('pomelo-logger').getLogger('cskl', '__filename');
 const consts = require('../../common/consts');
 
-/**TODO: 逻辑待优化整理! */
+let IoCount = 0;
+let TransCount = 0;
 
 var pro = module.exports;
 
 /**
- * 获取子系统模型的子画板ID
- * TODO: 如果嵌套层级很复杂关系是否能对应正确还没测试! 如果有问题, 可以直接改成生成唯一字符串key, 手动一个个指定, 这样比顺序递增逻辑更清晰.
- * @param {*} unitArray 当前面板所有模型数组(gra4对象)
- * @param {*} id 模型ID
- * @param {*} sysIndex 当前画板ID (画板ID从1开始, 按gra4文件读取顺序依次+1)
+ * 获取数字模型导入时关联的key
+ * @param {*} uid 
+ * @param {*} entry 当前模型gra4-json描述 
  * @returns 
  */
-pro.getModelChildId = function (unitArray, id, sysIndex) {
-    let index = 0;
+pro.getImportModelId = function (uid, entry) {
+    if (entry.UserFct) {
+        let dllFile = entry.UserFct._attributes.Dllfile;
+        dllFile = path.normalize(dllFile);
+        dllFile = path.basename(dllFile, '.dll');
+        dllFile = dllFile.split('\\');
+        dllFile = dllFile[dllFile.length-1];
+        let fctName = entry.UserFct._attributes.Fctname;
+        let key = `${uid}_${dllFile}_${fctName}`;
+        return key;
+    }
+    return null;
+}
+
+/**
+ * 粗线情况:
+ * 1. 模块-模块, 子系统-模块, 模块-子系统
+ *  直接平铺
+ * 
+ * 2. 子系统-子系统
+ * 子系统里边添加总线, 外部还是粗线
+ * 
+ * 解析模型端口
+ */
+pro.parseModelPort = function (modelId, lineArray, unitArray) {
+    let ports = [];
+    for (let i = 0; i < lineArray.length; i++) {
+        const item = lineArray[i];
+        const inId = item.Data._attributes.in;
+        const outId = item.Data._attributes.out;
+        if (modelId == inId || modelId == outId) {
+            const model_in = this.getModelGra4Info(inId, unitArray);
+            const model_out = this.getModelGra4Info(outId, unitArray);
+            if (!(model_in && model_out)) {
+                // 信号记录监控模块或IO模块
+                continue;
+            }
+
+            let subLines = this.getBoldLineDetails(item);
+            if (subLines.length == 0) {
+                logger.error('gra4 模块线描述格式错误!');
+                return;
+            }
+
+            if (this.isLineTiled(subLines, model_in, model_out)) {
+                for (let j = 0; j < subLines.length; j++) {
+                    const line = subLines[j];
+                    ports.push({
+                        id: (modelId == line.source.cell) ? line.source.port : line.target.port,
+                        group: (modelId == line.source.cell) ? consts.OutFlag : consts.InFlag
+                    });
+                }
+            } else {
+                ports.push({
+                    id: (modelId == inId) ? `${consts.OutPrefix}${item.Data._attributes.inport}` : `${consts.InPrefix}${item.Data._attributes.export}`,
+                    group: (modelId == inId) ? consts.OutFlag : consts.InFlag
+                });
+            }
+        }
+    }
+    return ports;
+}
+
+/**
+ * 线是否需要展开
+ * @param {*} subLine 线的详情
+ * @param {*} inUnit 线输入端模块
+ * @param {*} outUnit 线输出端模块
+ * @returns 
+ */
+pro.isLineTiled = function (subLine, inUnit, outUnit) {
+    if (subLine.length <= 1) {
+        // 细线
+        return false;
+    } else {
+        // 粗线
+        if (inUnit.SubBlock && outUnit.SubBlock) {
+            // 子系统与子系统连接
+           return false;
+        } else {
+            return true;
+        }
+    }
+}
+
+/**
+ * 获取模块gra4描述对象
+ * @param {*} modelId 模块ID
+ * @param {*} unitArray 模块所在面板所有模块数组
+ * @returns 
+ */
+pro.getModelGra4Info = function (modelId, unitArray) {
     for (let i = 0; i < unitArray.length; i++) {
         const unit = unitArray[i];
-        if (unit.SubBlock) {
-            index++;
-        }
-
-        if (unit._attributes.id == id) {
-            if (unit.SubBlock) {
-                return index + sysIndex;
-            } else {
-                return null;
-            }
+        if (unit._attributes.id == modelId) {
+            return unit;
         }
     }
     return null;
 }
 
 /**
- * 线是否连有子系统.
- * 当前逻辑规则如果粗线都是连的最小模型，那么把粗线连接关系都在当前模型展开，
- * 如果连有子系统，那么当前还是显示粗线，详情在子系统面板体现 TODO: 这种逻辑是否有问题？
- * @param {*} unitArray 当前面板所有模型数组(gra4对象)
- * @param {*} sid 线头模型ID
- * @param {*} tid 线尾模型ID
- * @returns 
+ * 展开连线内部详情
+ * @param {*} line 
  */
-pro.isSimpleModelLine = function (unitArray, sid, tid) {
-    for (let i = 0; i < unitArray.length; i++) {
-        const unit = unitArray[i];
-        if (unit._attributes.id == sid || unit._attributes.id == tid) {
-            if (unit.SubBlock) {
-                return false;
+pro.getBoldLineDetails = function (line) {
+    let subLine = [];   // 粗线详情
+    // dim顺序递增类型
+    let dim = line.Data._attributes.dim;
+    for (let i = 0; i < dim; i++) {
+        let inPort = Number(line.Data._attributes.inport) + i;
+        let outPort = Number(line.Data._attributes.export) + i;
+        subLine.push({
+            source: { "cell": line.Data._attributes.in, "port": `${consts.OutPrefix}${inPort}`},
+            target: { "cell": line.Data._attributes.out, "port": `${consts.InPrefix}${outPort}`}
+        })
+    }
+
+    // SubLine无序类型
+    let childLines = line.SubLine;
+    if (childLines) {
+        for (let i = 0; i < Number(childLines._attributes.Count); i++) {
+            const childLine = childLines['line' + i];
+            const childDim = Number(childLine._attributes.dim);
+            for (let j = 0; j < childDim; j++) {
+                let inPort = Number(childLine._attributes.inport) + j;
+                let outPort = Number(childLine._attributes.export) + j;
+                subLine.push({
+                    source: { "cell": childLine._attributes.in, "port": `${consts.OutPrefix}${inPort}` },
+                    target: { "cell": childLine._attributes.out, "port": `${consts.InPrefix}${outPort}` }
+                })
             }
         }
     }
-    return true;
+
+    return subLine;
 }
-    
+
 /**
  * 解析子系统
  * @param {*} uid 用户UID
  * @param {*} sysjson 当前画板json描述
- * @param {*} id  当前画板id, 按main.gra4顺序来, 从1开始
- * @param {*} pid 当前画板关联的父画板
- * @param {*} sysIndex 当前画板id头位置, 从1开始
+ * @param {*} panelId  当前画板id, 按main.gra4顺序来, 从1开始
+ * @param {*} pid 当前画板关联的父画板ID
  */
-pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
+pro.splitItem = function (uid, sysjson, panelId, pid) {
     let item = {};
-    item.id = id;
+    item.id = panelId;
     item.pid = pid;
     item.name = sysjson.Model.Title._text;
 
     // 模块
     item.block = [];
-    let unitArray = sysjson.Model.UnitGroup.Unit;
+    const lineArray = sysjson.Model.LineGroup.Line;
+    const unitArray = sysjson.Model.UnitGroup.Unit;
     for (let i = 0; i < unitArray.length; i++) {
         let model = {};
         const unit = unitArray[i];
         model.id = unit._attributes.id;
-        model.child = this.getModelChildId(unitArray, model.id, sysIndex);
+        if (unit.SubBlock) {
+            model.child = pomelo.app.db.genId();
+        }
         model.name = unit.Title._attributes.name;
         model.nodeType = Number(unit.Looking._attributes.Shape);
         model.position = { "x": Number(unit.Rect._attributes.left), "y": Number(unit.Rect._attributes.top) };
         model.size = { "width": Number(unit.Rect._attributes.width), "height": Number(unit.Rect._attributes.height) };
-
-        // 关联数字模型ID
-        if (unit.UserFct) {
-            let dllFile = unit.UserFct._attributes.Dllfile;
-            let fctName = unit.UserFct._attributes.Fctname;
-            dllFile = path.basename(dllFile, '.dll');
-            dllFile = dllFile.split('\\');
-            dllFile = dllFile[dllFile.length-1];
-            model.modelId = uid + '_' + dllFile + '_' + fctName;
-        }
-
-        model.items = [];
-        const lineArray = sysjson.Model.LineGroup.Line;
-        for (let n = 0; n < lineArray.length; n++) {
-            const line = lineArray[n];
-            if (model.id == line.Data._attributes.in || model.id == line.Data._attributes.out) {
-                // 模块与模块之间连线的粗线都平铺,只有带子系统之间连线有粗线
-                if (line.SubLine && this.isSimpleModelLine(unitArray, line.Data._attributes.in, line.Data._attributes.out)) {
-                    model.items.push({
-                        id: (model.id == line.Data._attributes.in) ? consts.OutPrefix + line.Data._attributes.inport : consts.InPrefix + line.Data._attributes.export,
-                        group: (model.id == line.Data._attributes.in) ? consts.OutFlag : consts.InFlag
-                    });
-                    for (let m = 0; m < Number(line.SubLine._attributes.Count); m++) {
-                        const element = line.SubLine['line' + m];
-                        model.items.push({
-                            id: (model.id == element._attributes.in) ? consts.OutPrefix + element._attributes.inport : consts.InPrefix + element._attributes.export,
-                            group: (model.id == element._attributes.in) ? consts.OutFlag : consts.InFlag
-                        });
-                    }
-                } else {
-                    model.items.push({
-                        id: (model.id == line.Data._attributes.in) ? consts.OutPrefix + line.Data._attributes.inport : consts.InPrefix + line.Data._attributes.export,
-                        group: (model.id == line.Data._attributes.in) ? consts.OutFlag : consts.InFlag
-                    });
-                }
-            }
-        }
-
-        // 去重
-        let result = [];
-        let obj = {};
-        for (let i = 0; i < model.items.length; i++) {
-            let key = model.items[i].id + '_' + model.items[i].group;
-            if (!obj[key]) {
-                result.push(model.items[i]);
-                obj[key] = true;
-            }
-        }
-        model.items = result;
+        model.modelId = this.getImportModelId(uid, unit);
+        model.items = this.parseModelPort(model.id, lineArray, unitArray);
         item.block.push(model);
     }
 
     // 连线
     item.line = [];
-    const lineArray = sysjson.Model.LineGroup.Line;
     for (let i = 0; i < lineArray.length; i++) {
         const line = lineArray[i];
-        let subLine = [];   // 粗线详情
-        // dim顺序递增类型
-        let dim = line.Data._attributes.dim;
-        if (dim > 1) {
-            for (let j = 0; j < dim; j++) {
-                let outPort = Number(line.Data._attributes.inport) + j;
-                let inPort = Number(line.Data._attributes.export) + j;
-                subLine.push({
-                    source: { "cell": line.Data._attributes.in, "port": consts.OutPrefix + outPort },
-                    target: { "cell": line.Data._attributes.out, "port": consts.InPrefix + inPort }
-                })
-            }
-        }
-        // SubLine无序类型
-        let childLines = line.SubLine;
-        if (childLines) {
-            // 用户的Subline是从第二条线开始, 默认Data里是第一条，而且dim=1.
-            subLine.push({
-                source: { "cell": line.Data._attributes.in, "port": consts.OutPrefix + line.Data._attributes.inport },
-                target: { "cell": line.Data._attributes.out, "port": consts.InPrefix + line.Data._attributes.export }
-            })
-
-            for (let i = 0; i < Number(childLines._attributes.Count); i++) {
-                const childLine = childLines['line' + i];
-                subLine.push({
-                    source: { "cell": childLine._attributes.in, "port": consts.OutPrefix + childLine._attributes.inport },
-                    target: { "cell": childLine._attributes.out, "port": consts.InPrefix + childLine._attributes.export }
-                })
-            }
+        const subLine = this.getBoldLineDetails(line);
+        const model_in = this.getModelGra4Info(line.Data._attributes.in, unitArray);
+        const model_out = this.getModelGra4Info(line.Data._attributes.out, unitArray);
+        if (!(model_in && model_out)) {
+            // 信号记录监控模块或IO模块
+            continue;
         }
 
-        // 
-        if (subLine.length > 0 && this.isSimpleModelLine(unitArray, line.Data._attributes.in, line.Data._attributes.out)) {
+        if (this.isLineTiled(subLine, model_in, model_out)) {
             for (let i = 0; i < subLine.length; i++) {
-                const cline = subLine[i];
+                const child_line = subLine[i];
                 item.line.push({
                     id: pomelo.app.db.genId(),
                     lineType: line.Data._attributes.dim > 1 ? 2 : 1,
-                    source: cline.source,
-                    target: cline.target,
+                    source: child_line.source,
+                    target: child_line.target,
                     subLine: [],
                 });
             }
@@ -186,11 +214,11 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
                 lineType: line.Data._attributes.dim > 1 ? 2 : 1,
                 source: {
                     "cell": line.Data._attributes.in,
-                    "port": consts.OutPrefix + line.Data._attributes.inport
+                    "port": `${consts.OutPrefix}${line.Data._attributes.inport}`
                 },
                 target: {
                     "cell": line.Data._attributes.out,
-                    "port": consts.InPrefix + line.Data._attributes.export
+                    "port": `${consts.InPrefix}${line.Data._attributes.export}`
                 },
                 subLine: subLine,
             });
@@ -200,368 +228,384 @@ pro.splitItem = function (uid, sysjson, id, pid, sysIndex) {
     return item;
 }
 
-/**
- * 
- * @param {*} sortData 带分组的线, 按是否是一对多/多对多端口分类
- * @param {*} inORout 输入/输出
- * @param {*} childPanel 子系统db结构
- * @param {*} cIOModel IO模块gra4结构
- * @returns 
- */
-pro._oneMoreSpecialCass = function (sortData, inORout, childPanel, cIOModel) {
-    const groupBy = (array, f) => {
-        let groups = {};
-        array.forEach((o) => {
-            let group = JSON.stringify(f(o));
-            groups[group] = groups[group] || [];
-            groups[group].push(o);
-        });
-        return Object.keys(groups).map((group) => {
-            return groups[group];
-        });
-    };
-    const sorted = groupBy(sortData, (item) => {
-        if (inORout == 1) {
-            return item.Data._attributes.in + '_' + item.Data._attributes.inport;
-        } else {
-            return item.Data._attributes.out + '_' + item.Data._attributes.export;
-        }
-    });
-
-    let oneMoreArray = [];
-    let recordArray = [];
-    for (let i = 0; i < sorted.length; i++) {
-        const item = sorted[i];
-        if (item.length > 1) {
-            oneMoreArray.push(item);
-        } else {
-            recordArray.push(item[0]);
-        }
-    }
-
-    if (inORout == 1) {
-        for (let i = 0; i < oneMoreArray.length; i++) {
-            const items = oneMoreArray[i];
-            const line = items[0];
-            // 添加输入模块
-            let portId = consts.OutPrefix + line.Data._attributes.inport;
-            let inputId = pomelo.app.db.genId() + '_' + portId;
-            childPanel.block.push({
-                id: inputId,
-                name: "输入",
-                nodeType: consts.ShapeType.Input,
-                position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
-                size: { "width": 40, "height": 20 },
-                items: [{ "id": portId, "group": consts.OutFlag }],
-            })
-
-            // 连线关联
-            for (let n = 0; n < childPanel.line.length; n++) {
-                let childLine = childPanel.line[n];
-                if (childLine.source.cell == line.Data._attributes.in && (childLine.source.port == portId)) {
-                    childLine.source.cell = inputId;
-                }
-            }
-        }
-    } else {
-        for (let i = 0; i < oneMoreArray.length; i++) {
-            const items = oneMoreArray[i];
-            const line = items[0];
-            // 添加输出模块
-            let portId = consts.InPrefix + line.Data._attributes.export;
-            let outputId = pomelo.app.db.genId() + '_' + portId;
-            childPanel.block.push({
-                id: outputId,
-                name: "输出",
-                nodeType: consts.ShapeType.Output,
-                position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
-                size: { "width": 40, "height": 20 },
-                items: [{ "id": consts.InPrefix + line.Data._attributes.export, "group": consts.InFlag }],
-            })
-
-            // 连线关联
-            for (let n = 0; n < childPanel.line.length; n++) {
-                let childLine = childPanel.line[n];
-                if (childLine.target.cell == line.Data._attributes.out && (childLine.target.port == portId)) {
-                    childLine.target.cell = outputId;
-                }
-            }
-        }
-    }
-    return recordArray;
-};
-
-/**
- * 
- * @param {*} pIOArray 父节点输入/输出连线数组
- * @param {*} cIOModel 子系统中IO模块gra4 json结构
- * @param {*} inORout 输入还是输出 1 输入 2 输出
- * @param {*} cLineArray 子系统中连线数组(gra4 json结构)
- * @param {*} childPanel 子系统面板(db结构)
- */
-pro._splitInterface = function (pIOArray, cIOModel, inORout, cLineArray, childPanel) {
-    for (let i = 0; i < pIOArray.length; i++) {
-        const line = pIOArray[i];
-        // 记录相关线
-        let ioID = cIOModel._attributes.id;
-        let record = [];
-        if (line.subLine.length <= 1) {
-            // 细线
-            let ioPort = null;
-            if (inORout == 1) {
-                ioPort = line.target.port;
-                for (let j = 0; j < cLineArray.length; j++) {
-                    const item = cLineArray[j];
-                    if (item.Data._attributes.in == ioID && ((consts.InPrefix + item.Data._attributes.inport) == ioPort)) {
-                        record.push(item);
-                    }
-                }
-            } else {
-                ioPort = line.source.port;
-                for (let j = 0; j < cLineArray.length; j++) {
-                    const item = cLineArray[j];
-                    if (item.Data._attributes.out == ioID && ((consts.OutPrefix + item.Data._attributes.export) == ioPort)) {
-                        record.push(item);
-                    }
-                }
+pro.findIOModel = function (isInput, cIoArray) {
+    for (let i = 0; i < cIoArray.length; i++) {
+        const item = cIoArray[i];
+        if (isInput) {
+            const ydim = Number(item.Dim._attributes.ydim);
+            if (ydim > 0) {
+                return item;
             }
         } else {
-            // 粗线
-            for (let m = 0; m < line.subLine.length; m++) {
-                const cLine = line.subLine[m];
-                let ioPort = null;
-                if (inORout == 1) {
-                    ioPort = cLine.target.port;
-                    for (let n = 0; n < cLineArray.length; n++) {
-                        const item = cLineArray[n];
-                        if (item.Data._attributes.in == ioID && ((consts.InPrefix + item.Data._attributes.inport) == ioPort)) {
-                            record.push(item);
-                            break;
-                        }
-                    }
-                } else {
-                    ioPort = cLine.source.port;
-                    for (let n = 0; n < cLineArray.length; n++) {
-                        const item = cLineArray[n];
-                        if (item.Data._attributes.out == ioID && ((consts.OutPrefix + item.Data._attributes.export) == ioPort)) {
-                            record.push(item);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        // 一个模块的输出连多个模块的输入或多个模块输出给一个模块输入情况
-        record = this._oneMoreSpecialCass(record, inORout, childPanel, cIOModel);
-        if (record.length == 0) {
-            continue;
-        }
-
-        // > 1才创建总线, 否则只需要输入/输出模块
-        if (record.length > 1) {
-            let blockId = pomelo.app.db.genId();
-            // 总线端口信息
-            let ports = [];
-            for (let z = 0; z < record.length; z++) {
-                const element = record[z];
-                ports.push({
-                    id: inORout == 1 ? (consts.OutPrefix + element.Data._attributes.inport) : (consts.InPrefix + element.Data._attributes.export),
-                    group: inORout == 1 ? consts.OutFlag : consts.InFlag
-                });
-
-                // 总线替换用户IO模块, 修改原连线关联ID
-                for (let n = 0; n < childPanel.line.length; n++) {
-                    let childLine = childPanel.line[n];
-                    if (inORout == 1) {
-                        if (childLine.source.cell == ioID && (childLine.source.port == (consts.OutPrefix + element.Data._attributes.inport))) {
-                            childLine.source.cell = blockId;
-                        }
-                    } else {
-                        if (childLine.target.cell == ioID && (childLine.target.port == (consts.InPrefix + element.Data._attributes.export))) {
-                            childLine.target.cell = blockId;
-                        }
-                    }
-                }
-            }
-            if (inORout == 1) {
-                ports.push({ id: consts.InPrefix + 0, group: consts.InFlag });
-
-                // 添加输入总线模块
-                childPanel.block.push({
-                    id: blockId,
-                    name: "一对多总线",
-                    nodeType: consts.ShapeType.OneMore,
-                    position: { "x": Number(cIOModel.Rect._attributes.left), "y": Number(cIOModel.Rect._attributes.top) },
-                    size: { "width": 20, "height": 80 },
-                    items: ports,
-                });
-
-                // 添加输入模块
-                let inputId = pomelo.app.db.genId() + '_' + line.target.port;
-                childPanel.block.push({
-                    id: inputId,
-                    name: "输入",
-                    nodeType: consts.ShapeType.Input,
-                    position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
-                    size: { "width": 40, "height": 20 },
-                    items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
-                })
-                childPanel.line.push({
-                    id: pomelo.app.db.genId(),
-                    lineType: 1,
-                    source: { "cell": inputId, "port": consts.OutPrefix + "0" },
-                    target: { "cell": blockId, "port": consts.InPrefix + "0" },
-                });
-            } else {
-                ports.push({ id: consts.OutPrefix + 0, group: consts.OutFlag });
-                // 输出总线
-                childPanel.block.push({
-                    id: blockId,
-                    name: "多对一总线",
-                    nodeType: consts.ShapeType.MoreOne,
-                    position: { "x": Number(cIOModel.Rect._attributes.left), "y": Number(cIOModel.Rect._attributes.top) },
-                    size: { "width": 20, "height": 80 },
-                    items: ports,
-                });
-                // 输出模块
-                let outputId = pomelo.app.db.genId() + '_' + line.source.port;
-                childPanel.block.push({
-                    id: outputId,
-                    name: "输出",
-                    nodeType: consts.ShapeType.Output,
-                    position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
-                    size: { "width": 40, "height": 20 },
-                    items: [{ "id": consts.InPrefix + "0", "group": consts.InFlag }],
-                })
-                childPanel.line.push({
-                    id: pomelo.app.db.genId(),
-                    lineType: 1,
-                    source: { "cell": blockId, "port": consts.OutPrefix + "0" },
-                    target: { "cell": outputId, "port": consts.InPrefix + "0" },
-                });
-            }
-        } else {
-            if (inORout == 1) {
-                // 添加输入模块
-                let inputId = pomelo.app.db.genId() + '_' + line.target.port;
-                childPanel.block.push({
-                    id: inputId,
-                    name: "输入",
-                    nodeType: consts.ShapeType.Input,
-                    position: { "x": Number(cIOModel.Rect._attributes.left) - 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
-                    size: { "width": 40, "height": 20 },
-                    items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
-                })
-                childPanel.line.push({
-                    id: pomelo.app.db.genId(),
-                    lineType: 1,
-                    source: { "cell": inputId, "port": consts.OutPrefix + "0" },
-                    target: { "cell": record[0].Data._attributes.out, "port": consts.InPrefix + record[0].Data._attributes.export },
-                });
-            } else {
-                // 添加输出模块
-                let outputId = pomelo.app.db.genId() + '_' + line.source.port;
-                childPanel.block.push({
-                    id: outputId,
-                    name: "输出",
-                    nodeType: consts.ShapeType.Output,
-                    position: { "x": Number(cIOModel.Rect._attributes.left) + 50, "y": Number(cIOModel.Rect._attributes.top) - 40 + i * 30 },
-                    size: { "width": 40, "height": 20 },
-                    items: [{ "id": consts.InPrefix + "0", "group": consts.InFlag }],
-                })
-                childPanel.line.push({
-                    id: pomelo.app.db.genId(),
-                    lineType: 1,
-                    source: { "cell": record[0].Data._attributes.in, "port": consts.OutPrefix + record[0].Data._attributes.export },
-                    target: { "cell": outputId, "port": consts.InPrefix + "0" },
-                });
+            const udim = Number(item.Dim._attributes.udim);
+            if (udim > 0) {
+                return item;
             }
         }
     }
 }
 
 /**
- * 
- * @param {*} parentPanel 父节点面板 db格式
- * @param {*} childjson 子系统面板gra4 json格式
- * @param {*} childPanel 子系统面板 db格式
- * @param {*} sysCpid  子系统在其父系统中的ID
+ * 创建输入/输出相关接口模型
+ * @param {*} parentJson 父面板gra4
+ * @param {*} childjson 子面板gra4
+ * @param {*} sysCpid 子面板在其父面板中的ID
+ * @param {*} childPanel 子面板DB
  * @returns 
  */
-pro.splitInterfaceModel = function (parentPanel, childjson, childPanel, sysCpid) {
-    let inputArray = [];
-    let outputArray = [];
-    for (let i = 0; i < parentPanel.line.length; i++) {
-        const line = parentPanel.line[i];
-        if (line.target.cell == sysCpid) {
-            inputArray.push(line);
-        }
-        if (line.source.cell == sysCpid) {
-            outputArray.push(line);
+pro.splitInterfaceModel = function (parentJson, childjson, sysCpid, childPanel) {
+    /**
+     * 1. 由于子系统内部输入/输出端口与其在父面板中的输入/输出肯定一致。
+     *    因此从父面板中找出子系统模块相关连线开始遍历。
+     * 
+     * 2. 在子系统内部找出所有与外部端口一致的相关连线, 注意内部多个同类IO模块端口按顺序递增。
+     * 3. 最后根据相关连线创建输入/输出/总线模块(外部subLine>1)
+     * 
+     */
+
+    IoCount = 0;
+    TransCount = 0;
+    const pUnitArray = parentJson.Model.UnitGroup.Unit;
+    const pLineArray = parentJson.Model.LineGroup.Line;
+    const cIoArray = childjson.Model.IoportGroup.Ioport;
+    const cLineArray = childjson.Model.LineGroup.Line;
+    for (let i = 0; i < pLineArray.length; i++) {
+        const pLine = pLineArray[i];
+        if (pLine.Data._attributes.in == sysCpid || pLine.Data._attributes.out == sysCpid) {
+            // 外部这根线是否展开
+            const pSubLine = this.getBoldLineDetails(pLine);
+            const model_in = this.getModelGra4Info(pLine.Data._attributes.in, pUnitArray);
+            const model_out = this.getModelGra4Info(pLine.Data._attributes.out, pUnitArray);
+            if (!(model_in && model_out)) {
+                // 信号记录监控模块或IO模块
+                continue;
+            }
+            const isInput = (pLine.Data._attributes.out == sysCpid) ? true : false;
+            const cIoItem = this.findIOModel(isInput, cIoArray);
+            const relArray = this.findRelIOLine(isInput, cIoArray, cLineArray);
+            const record = this.findRelOutLine(isInput, pSubLine, relArray);
+            if (this.isLineTiled(pSubLine, model_in, model_out)) {
+                for (let j = 0; j < record.length; j++) {
+                    const items = record[j];
+                    this.createIOModel(isInput, items, cIoItem, childPanel);
+                }
+            } else {
+                this.createTransferModel(isInput, record, cIoItem, childPanel, pSubLine);
+            }
         }
     }
+}
 
-    // 当前认为输入/输出模块只有一个
-    const ioArray = childjson.Model.IoportGroup.Ioport;
-    const lineArray = childjson.Model.LineGroup.Line;
-    if (ioArray.length > 2) {
-        console.error('非标准的gra4格式!');
-        return;
+/**
+ * 创建中转器模块
+ * @param {*} isInput 是否是输入
+ * @param {*} record 子系统内部所有与外边某条线相关连的线
+ * @param {*} cIoItem 子系统内部IO模块
+ * @param {*} childPanel 子系统DB格式
+ * @param {*} outLine 外边对应的线
+ */
+pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine) {
+    if (isInput) {
+        // 创建总线
+        let blockId = pomelo.app.db.genId();
+        let ports = [];
+        ports.push({ id: `${consts.InPrefix}0`, group: consts.InFlag });
+        for (let i = 0; i < record.length; i++) {
+            const items = record[i];
+            if (items.length > 1) {
+                this.createIOModel(isInput, items, cIoItem, childPanel);
+            } else {
+                ports.push({ id: items[0].source.port, group: consts.OutFlag });
+                childPanel.line.push({
+                    id: pomelo.app.db.genId(),
+                    lineType: 1,
+                    source: { "cell": blockId, "port": items[0].source.port },
+                    target: { "cell": items[0].target.cell, "port": items[0].target.port },
+                });
+            }
+        }
+
+        childPanel.block.push({
+            id: blockId,
+            name: "一对多总线",
+            nodeType: consts.ShapeType.OneMore,
+            position: { "x": Number(cIoItem.Rect._attributes.left), "y": Number(cIoItem.Rect._attributes.top) - 50 + TransCount * 90 },
+            size: { "width": 20, "height": 80 },
+            items: ports,
+        });
+        TransCount++;
+
+        // 创建IO模块
+        let inputId = outLine[0].target.port;
+        childPanel.block.push({
+            id: inputId,
+            name: "输入",
+            nodeType: consts.ShapeType.Input,
+            position: { "x": Number(cIoItem.Rect._attributes.left) - 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
+            size: { "width": 40, "height": 20 },
+            items: [{ "id": consts.OutPrefix + "0", "group": consts.OutFlag }],
+        })
+        childPanel.line.push({
+            id: pomelo.app.db.genId(),
+            lineType: 1,
+            source: { "cell": inputId, "port": consts.OutPrefix + "0" },
+            target: { "cell": blockId, "port": consts.InPrefix + "0" },
+        });
+        IoCount++;
+    } else {
+        // 创建总线
+        let blockId = pomelo.app.db.genId();
+        let ports = [];
+        ports.push({ id: `${consts.OutPrefix}0`, group: consts.OutFlag });
+        for (let i = 0; i < record.length; i++) {
+            const items = record[i];
+            if (items.length > 1) {
+                this.createIOModel(isInput, items, cIoItem, childPanel);
+            } else {
+                ports.push({ id: items[0].target.port, group: consts.InFlag });
+                childPanel.line.push({
+                    id: pomelo.app.db.genId(),
+                    lineType: 1,
+                    source: { "cell": items[0].source.cell, "port": items[0].source.port },
+                    target: { "cell": blockId, "port": items[0].target.port },
+                });
+            }
+        }
+
+        childPanel.block.push({
+            id: blockId,
+            name: "多对一总线",
+            nodeType: consts.ShapeType.MoreOne,
+            position: { "x": Number(cIoItem.Rect._attributes.left), "y": Number(cIoItem.Rect._attributes.top) - 50 + TransCount * 90 },
+            size: { "width": 20, "height": 80 },
+            items: ports,
+        });
+        TransCount++;
+
+        // 创建IO模块
+        let outputId = outLine[0].source.port;
+        childPanel.block.push({
+            id: outputId,
+            name: "输出",
+            nodeType: consts.ShapeType.Output,
+            position: { "x": Number(cIoItem.Rect._attributes.left) + 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
+            size: { "width": 40, "height": 20 },
+            items: [{ "id": `${consts.InPrefix}0`, "group": consts.InFlag }],
+        })
+        childPanel.line.push({
+            id: pomelo.app.db.genId(),
+            lineType: 1,
+            source: { "cell": blockId, "port": `${consts.OutPrefix}0` },
+            target: { "cell": outputId, "port": `${consts.InPrefix}0` },
+        });
+        IoCount++;
     }
+}
 
-    let inputIO = ioArray[0];
-    let outputIO = ioArray[1];
-    this._splitInterface(inputArray, inputIO, 1, lineArray, childPanel);
-    this._splitInterface(outputArray, outputIO, 2, lineArray, childPanel);
+/**
+ * 创建IO模块
+ * @param {*} isInput 是否是输入
+ * @param {*} items 子系统内部与外边某条线相关连的线
+ * @param {*} cIoItem 子系统内部IO模块
+ * @param {*} childPanel 子系统DB格式
+ */
+pro.createIOModel = function(isInput, items, cIoItem, childPanel) {
+    if (isInput) {
+        let inputId = items[0].source.port;
+        childPanel.block.push({
+            id: inputId,
+            name: "输入",
+            nodeType: consts.ShapeType.Input,
+            position: { "x": Number(cIoItem.Rect._attributes.left) - 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
+            size: { "width": 40, "height": 20 },
+            items: [{ "id": `${consts.OutPrefix}0`, "group": consts.OutFlag }],
+        })
+
+        // 连线
+        for (let n = 0; n < items.length; n++) {
+            const line = items[n];
+            childPanel.line.push({
+                id: pomelo.app.db.genId(),
+                lineType: 1,
+                source: { "cell": inputId, "port": `${consts.OutPrefix}0` },
+                target: { "cell": line.target.cell, "port": line.target.port },
+            });
+        }
+    } else {
+        let outputId = items[0].target.port;
+        childPanel.block.push({
+            id: outputId,
+            name: "输出",
+            nodeType: consts.ShapeType.Output,
+            position: { "x": Number(cIoItem.Rect._attributes.left) + 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
+            size: { "width": 40, "height": 20 },
+            items: [{ "id": `${consts.InPrefix}0`, "group": consts.InFlag }],
+        })
+
+        // 连线
+        for (let n = 0; n < items.length; n++) {
+            const line = items[n];
+            childPanel.line.push({
+                id: pomelo.app.db.genId(),
+                lineType: 1,
+                source: { "cell": line.source.cell, "port": line.source.port },
+                target: { "cell": outputId, "port": `${consts.InPrefix}0` },
+            });
+        }
+    }
+    IoCount++;
+}
+
+/**
+ * 找出子系统内与外边线端口一致的所有连线
+ * @param {*} isInput 是否是输入
+ * @param {*} subLine 外边线详情数组
+ * @param {*} relArray 里边IO模块数组
+ */
+pro.findRelOutLine = function(isInput, subLine, relArray) {
+    let record = [];
+    if (isInput) {
+        for (let i = 0; i < subLine.length; i++) {
+            const outLine = subLine[i];
+            let relitem = [];  // > 1 则表示一个输入模块直接连多个模块的同一个端口
+            for (let j = 0; j < relArray.length; j++) {
+                const inLine = relArray[j];
+                const iport = inLine.source.port.split('_')[1];
+                const oport = outLine.target.port.split('_')[1];
+                if (iport == oport) {
+                    relitem.push(inLine);
+                }
+            }
+            if (relitem.length > 1) {
+                record.push(relitem);
+            } else {
+                console.warn('关联线不存在, 可能是IO/监控模块!', isInput);
+            }
+        }
+    } else {
+        for (let i = 0; i < subLine.length; i++) {
+            const outLine = subLine[i];
+            let relitem = [];
+            for (let j = 0; j < relArray.length; j++) {
+                const inLine = relArray[j];
+                const iport = inLine.target.port.split('_')[1];
+                const oport = outLine.source.port.split('_')[1];
+                if (iport == oport) {
+                    relitem.push(inLine);
+                }
+            }
+            if (relitem.length > 1) {
+                record.push(relitem);
+            } else {
+                console.warn('关联线不存在, 可能是IO/监控模块!', isInput);
+            }
+        }
+    }
+    return record;
+}
+
+/**
+ * 找出子系统内部所有与IO模块相连的线(粗线已经展开)
+ * @param {*} isInput 是否是输入
+ * @param {*} ioArray 子系统IO模块数组
+ * @param {*} lineArray 子系统所有连线数组
+ * @returns 
+ */
+pro.findRelIOLine = function (isInput, ioArray, lineArray) {
+    let relArray = []; // 记录全部展开后相关线
+    let portIdx = 0;
+    if (isInput) {
+        for (let i = 0; i < ioArray.length; i++) {
+            const item = ioArray[i];
+            const ydim = Number(item.Dim._attributes.ydim);
+            // 输入模块
+            if (ydim > 0) {
+                for (let j = 0; j < lineArray.length; j++) {
+                    const line = lineArray[j];
+                    if (line.Data._attributes.in == item._attributes.id) {
+                        let subLine = this.getBoldLineDetails(line);
+                        for (let m = 0; m < subLine.length; m++) {
+                            const subitem = subLine[m];
+                            let sport = Number(subitem.source.port.split('_')[1]) + portIdx;
+                            let tport = Number(subitem.target.port.split('_')[1]) + portIdx;
+                            relArray.push({
+                                source: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport}`},
+                                target: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport}`}
+                            });
+                        }
+                    }
+                }
+                portIdx = portIdx + ydim;
+            }
+        }
+    } else {
+        for (let i = 0; i < ioArray.length; i++) {
+            const item = ioArray[i];
+            const udim = Number(item.Dim._attributes.udim);
+            // 输出模块
+            if (udim > 0) {
+                for (let j = 0; j < lineArray.length; j++) {
+                    const line = lineArray[j];
+                    if (line.Data._attributes.out == item._attributes.id) {
+                        let subLine = this.getBoldLineDetails(line);
+                        for (let m = 0; m < subLine.length; m++) {
+                            const subitem = subLine[m];
+                            let sport = Number(subitem.source.port.split('_')[1]) + portIdx;
+                            let tport = Number(subitem.target.port.split('_')[1]) + portIdx;
+                            relArray.push({
+                                source: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport}`},
+                                target: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport}`}
+                            });
+                        }
+                    }
+                }
+                portIdx = portIdx + udim;
+            }
+        }
+    }
+    return relArray;
 }
 
 /**
  * 递归拆子系统
  * @param {*} uid 用户UID
  * @param {*} projectList 解析后所有gra4 json对象
- * @param {*} sysArray 子系统数组容器
- * @param {*} sysJson  子系统json描述
- * @param {*} sysId    面板ID
- * @param {*} sysPid   子系统父ID
- * @param {*} sysCpid   子系统在其父系统中的ID
- * @param {*} sysIndex 当前层系统头位置(为了定义子系统ID, ID为顺序递增, 所以要记录每层ID的头位置)
+ * @param {*} sysArray 项目画板数组容器
+ * @param {*} parentJson  当前画板父面板json描述
+ * @param {*} sysJson  当前画板json描述
+ * @param {*} sysId    当前画板ID
+ * @param {*} sysPid   当前画板父ID
+ * @param {*} sysCpid   当前画板在其父画板中的模块ID
  */
-pro.splitChildSys = function (uid, projectList, sysArray, sysJson, sysId, sysPid, sysCpid, sysIndex) {
+pro.splitChildSys = function (uid, projectList, sysArray, parentJson, sysJson, sysId, sysPid, sysCpid) {
     // 当前层系统解析
-    let item = this.splitItem(uid, sysJson, sysId, sysPid, sysIndex);
+    let item = this.splitItem(uid, sysJson, sysId, sysPid);
     // 插入子系统中转器件
     if (sysCpid) {
-        let parentPanel = null;
-        for (let i = 0; i < sysArray.length; i++) {
-            let element = sysArray[i];
-            if (element.id == sysPid) {
-                parentPanel = element;
-            }
-        }
-        this.splitInterfaceModel(parentPanel, sysJson, item, sysCpid);
+        this.splitInterfaceModel(parentJson, sysJson, sysCpid, item);
     }
     sysArray.push(item);
 
-    // 记录当前层子系统
-    let childSys = [];
-    let units = sysJson.Model.UnitGroup.Unit;
-    for (let i = 0; i < units.length; i++) {
-        const element = units[i];
-        if (element.SubBlock) {
-            childSys.push(element);
+    // 子系统
+    let findCSysPanelId = function (id) {
+        for (let i = 0; i < item.block.length; i++) {
+            const block = item.block[i];
+            if (block.id == id) {
+                return block.child;
+            }
         }
     }
 
-    let curSysId = sysId;
-    sysIndex = sysIndex + childSys.length;
-    for (let i = 0; i < childSys.length; i++) {
-        const item = childSys[i];
-        let key = item.SubBlock._attributes.File;
-        xmlJson = projectList[key];
-        let id = ++sysId;
-        let pid = curSysId;
-        let cpid = item._attributes.id;
-        this.splitChildSys(uid, projectList, sysArray, xmlJson, id, pid, cpid, sysIndex);
+    let units = sysJson.Model.UnitGroup.Unit;
+    for (let i = 0; i < units.length; i++) {
+        const unit = units[i];
+        if (unit.SubBlock) {
+            let key = unit.SubBlock._attributes.File;
+            let xmlJson = projectList[key];
+            let cpid = unit._attributes.id;
+            let id = findCSysPanelId(cpid);
+            let pid = sysId;
+            this.splitChildSys(uid, projectList, sysArray, sysJson, xmlJson, id, pid, cpid);
+        }
     }
 }
