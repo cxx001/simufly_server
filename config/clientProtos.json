@@ -16,6 +16,9 @@
 	"connector.lobbyHandler.getHttpSrvInfo": {
 	},
 
+	"connector.lobbyHandler.getProjectList": {
+	},
+
 	"connector.lobbyHandler.enterProject": {
 		"required string id": 1
 	},
@@ -109,6 +112,7 @@
 		"required ModifyInfo modifyInfo": 3
 	},
 
+
 	"connector.assetsModelHandler.getModelInfo": {
 		"required string modelId": 1
 	},
@@ -135,6 +139,7 @@
 		"required ModifyInfo modifyInfo": 2
 	},
 
+	
 	"connector.simulateHandler.getSimulateInfo": {
 	},
 

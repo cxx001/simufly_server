@@ -126,6 +126,13 @@ pro.getHttpSrvInfo = function (next) {
     });
 }
 
+pro.getProjectList = function (next) {
+    next(null, {
+        code: consts.Code.OK,
+        projectList: this.entity.projectList
+    });
+}
+
 pro.enterProject = async function (id, next) {
     this.entity.logger.info('进入项目=> ', id);
     this.projectUUID = id;

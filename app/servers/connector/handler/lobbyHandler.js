@@ -18,6 +18,10 @@ handler.getHttpSrvInfo = function (msg, session, next) {
 	session.avatar.lobby.getHttpSrvInfo(next);
 }
 
+handler.getProjectList = function (msg, session, next) {
+	session.avatar.lobby.getProjectList(next);
+}
+
 handler.enterProject = function (msg, session, next) {
 	session.avatar.lobby.enterProject(msg.id, next);
 }
