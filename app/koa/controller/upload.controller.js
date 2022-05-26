@@ -64,9 +64,8 @@ const extractZipInfo = function (fileName) {
 
 /**
  * * 要求客户gra4格式约定:
- * 1. 文件、文件夹名不能是中文
- * 2. 项目要打包成zip, 压缩包名和解压的文件夹名一致
- * 3. 主gra4要命名为main.gra4
+ * 1. 文件格式不能是gb2312, 要转为utf-8
+ * 2. 一个项目所有gra4打包成一个zip包
  */
 class UploadController {
     async importProject(ctx, next) {
