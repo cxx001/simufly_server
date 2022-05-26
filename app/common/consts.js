@@ -22,6 +22,8 @@ module.exports = {
     InFlag: 'in',
     OutFlag: 'out',
 
+    EngineBasePath: "/home/simufly_tools/",
+
     Code: {
         OK: 0,
         FAIL: 1,

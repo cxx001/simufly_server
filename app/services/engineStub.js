@@ -13,8 +13,7 @@ const fs = require('fs');
 const messageService = require('../services/messageService');
 const child_process = require('child_process');
 
-// 配置
-const remotePackagePath = '/home/package/simufly_engine.zip';   // 文件夹目录名要为项目对应的UUID
+// 下位机临时配置
 const server = {
     host: '192.168.10.251',
     port: 22,
@@ -114,7 +113,7 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
     // 执行sh
     let count = 0;
     let packageName = `${uids.uid}_${projectUUID}`;
-    child_process.exec(`code_gen ${packageName}`, (error, stdout, stderr) => {
+    child_process.exec(`model_gen ${packageName}`, (error, stdout, stderr) => {
         if(error) {
             logger.warn(error);
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
@@ -126,11 +125,11 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
             count++;
             if (count == 1) {
                 pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeing, null);
+                messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                    code: consts.MsgFlowCode.GenCoding,
+                    des: '代码生成中...'
+                });
             }
-            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                code: consts.MsgFlowCode.GenCoding,
-                des: stdout
-            });
 
             if (stdout.indexOf('Code generation success') >= 0) {
                 pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
@@ -153,10 +152,10 @@ pro.deploy = async function (uids, projectUUID, cb) {
     utils.invokeCallback(cb);
 
     // 路径
-    projectUUID = 'simufly_engine';
-    let localPath = `./assets/${uids.uid}/${projectUUID}.zip`;
+    let packageName = `${uids.uid}_${projectUUID}`; 
+    let localPath = `${EngineBasePath}auto_gen/${packageName}.tar.gz`;
     let remoteDir = `/home/cxx/${uids.uid}/`;
-    let remotePath = `${remoteDir}${projectUUID}.zip`;
+    let remotePath = `${remoteDir}${packageName}.tar.gz`;
 
     if (!fs.existsSync(localPath)) {
         logger.warn("deploy local path[%s] not exist!", localPath);
@@ -207,10 +206,12 @@ pro.deploy = async function (uids, projectUUID, cb) {
         // 3. 解压、编译
         let triggerCount = 0;
         let pathCmd1 = `cd ${remoteDir};`;
-        let unzipCmd = `unzip -o ./${projectUUID}.zip;`;
-        let pathCmd2 = `cd ./${projectUUID}/demo2/;`;
-        let compileCmd = `./compile.sh;`;
-        let cmd = `${pathCmd1}${unzipCmd}${pathCmd2}${compileCmd}\r\nexit\r\n`;
+        let tarCmd = `tar -zxvf ${packageName}.tar.gz;`;
+        let pathCmd2 = `cd ./${packageName};`;
+        let decryCmd = `dd if=engine.des3 |openssl des3 -d -k keliang2022 | tar xzf -;`;
+        
+        // let compileCmd = `./compile.sh;`;
+        let cmd = `${pathCmd1}${tarCmd}${pathCmd2}${decryCmd}\r\nexit\r\n`;
         ssh2.Shell(server, cmd, (err, data) => {
             if (err) {
                 logger.warn('ssh shell commond fail! err: %o', err);
