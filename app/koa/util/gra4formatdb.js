@@ -179,7 +179,14 @@ pro.splitItem = function (uid, sysjson, panelId, pid) {
     // 模块
     item.block = [];
     const lineArray = sysjson.Model.LineGroup.Line;
-    const unitArray = sysjson.Model.UnitGroup.Unit;
+    const unitCount = sysjson.Model.UnitGroup._attributes.Count;
+    let unitArray = sysjson.Model.UnitGroup.Unit;
+    if (unitCount == 1) {
+        let array = [];
+        array.push(unitArray);
+        unitArray = array;
+        console.warn('数量为1时xml解析出来不是数组!', sysjson.Model.Title);
+    }
     for (let i = 0; i < unitArray.length; i++) {
         let model = {};
         const unit = unitArray[i];
