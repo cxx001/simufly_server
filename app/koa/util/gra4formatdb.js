@@ -47,10 +47,10 @@ pro.parseModelPort = function (modelId, lineArray, unitArray) {
         if (modelId == inId || modelId == outId) {
             const model_in = this.getModelGra4Info(inId, unitArray);
             const model_out = this.getModelGra4Info(outId, unitArray);
-            if (!(model_in && model_out)) {
-                // 信号记录监控模块或IO模块
-                continue;
-            }
+            // if (!(model_in && model_out)) {
+            //     // 信号记录监控模块或IO模块
+            //     continue;
+            // }
 
             let subLines = this.getBoldLineDetails(item);
             if (subLines.length == 0) {
@@ -98,6 +98,9 @@ pro.parseModelPort = function (modelId, lineArray, unitArray) {
 pro.isLineTiled = function (subLine, inUnit, outUnit) {
     if (subLine.length <= 1) {
         // 细线
+        return true;
+    } else if (!(inUnit && outUnit)) {
+        // 连着IO模块/监控模块，直接平铺
         return true;
     } else {
         // 粗线

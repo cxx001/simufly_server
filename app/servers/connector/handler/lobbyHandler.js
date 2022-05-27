@@ -43,6 +43,14 @@ handler.getModelList = function (msg, session, next) {
 	session.avatar.lobby.getModelList(next);
 }
 
+handler.getEntityList = function (msg, session, next) {
+	session.avatar.lobby.getEntityList(next);
+}
+
+handler.getProtocolList = function (msg, session, next) {
+    session.avatar.lobby.getProtocolList(next);
+}
+
 // 画板模型查看 -- block是画板模型
 handler.getBlockInfo = function (msg, session, next) {
 	session.avatar.lobby.getBlockInfo(msg.panelId, msg.blockId, msg.modelId, next);

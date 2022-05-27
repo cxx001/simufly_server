@@ -14,6 +14,7 @@ let persistProperties = {
     groupList: [],     // 数字模型分组列表
     modelList: [],     // 数字模型列表
     entityList: [],    // 实物模型列表
+    protocolList: [],  // 协议列表
 };
 
 module.exports = {

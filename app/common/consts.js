@@ -116,5 +116,14 @@ module.exports = {
     EngineRspErrorCode: {
         kOk: 0,
         KBadValue: 1,
+    },
+
+    ProtocolPortType: {
+        Input: 0,
+        Output: 1,
+    },
+
+    InterfaceType: {
+        VMIC: 0,
     }
 }

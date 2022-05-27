@@ -15,7 +15,7 @@ var AUTO_SAVE_TICK = 1000 * 60 * 3  // 自动存盘时间
 var Avatar = function (opts) {
     opts = opts || {};
     // avatar组件
-    opts.components = ['avatarProp', 'lobby', 'assetsModel', 'assetsEntity', 'simulate'];
+    opts.components = ['avatarProp', 'lobby', 'assetsModel', 'assetsEntity', 'assetsProtocol', 'simulate'];
     Entity.call(this, opts);
 
     this.logoutTimer = null;
@@ -126,6 +126,71 @@ pro.modifyModelGroup = function (modelId, groupId) {
         if (item.id == modelId) {
             item.groupId = groupId;
         }
+    }
+}
+
+/**
+ * 
+ * @param {*} entityInfo 
+ * entityInfo: {
+ *  id: string,
+    name: string,
+    modelId: string,
+ * }
+ */
+pro.setEntityGroup = function (entityInfo) {
+    // 根据modelId查找groupId
+    let groupId = null;
+    for (let i = 0; i < this.modelList.length; i++) {
+        const item = this.modelList[i];
+        if (entityInfo.modelId == item.id) {
+            groupId = item.groupId;
+            break;
+        }
+    }
+
+    if (!groupId) {
+        this.logger.warn('导入实物绑定的数字模型分组信息不存在!', entityInfo);
+        return groupId;
+    }
+
+    let isModify = false;
+    for (let i = 0; i < this.entityList.length; i++) {
+        let item = this.entityList[i];
+        if (item.id == entityInfo.id) {
+            isModify = true;
+            item.name = entityInfo.name;
+            item.groupId = groupId;
+            break;
+        }
+    }
+
+    if (!isModify) {
+        this.entityList.push({
+            id: entityInfo.id,
+            name: entityInfo.name,
+            groupId: groupId
+        });
+    }
+    return groupId;
+}
+
+pro.setProtocolList = function (protocolInfo) {
+    let isModify = false;
+    for (let i = 0; i < this.protocolList.length; i++) {
+        let item = this.protocolList[i];
+        if (item.id == protocolInfo.id) {
+            isModify = true;
+            item.name = protocolInfo.name;
+            break;
+        }
+    }
+
+    if (!isModify) {
+        this.protocolList.push({
+            id: protocolInfo.id,
+            name: protocolInfo.name
+        });
     }
 }
 

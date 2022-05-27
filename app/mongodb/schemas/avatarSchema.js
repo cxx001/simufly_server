@@ -12,6 +12,7 @@ var AvatarSchema = new Schema({
     groupList: [],
     modelList: [],
     entityList: [],
+    protocolList: [],
 });
 
 AvatarSchema.set('toObject', { getters: true });

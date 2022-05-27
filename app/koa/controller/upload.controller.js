@@ -172,9 +172,9 @@ class UploadController {
                     let modelInfo = {
                         id: id,
                         name: data.Name,
-                        width: 80,            // TODO: width, height, nodeType信息需要用户解答, 当前数字模型源代码中好像提取不出这些信息.
+                        width: 80,
                         height: 60,
-                        nodeType: 1,
+                        nodeType: consts.ShapeType.Block,
                         ports: splitPortInfo(data.U_Input.Datas, data.Y_Output.Datas)
                     }
 

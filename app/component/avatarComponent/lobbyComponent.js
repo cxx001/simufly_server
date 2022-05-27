@@ -381,6 +381,21 @@ pro.getModelList = function (next) {
     });
 }
 
+pro.getEntityList = function(next) {
+    next(null, {
+        code: consts.Code.OK,
+        groupList: this.entity.groupList,
+        entityList: this.entity.entityList
+    });
+}
+
+pro.getProtocolList = function(next) {
+    next(null, {
+        code: consts.Code.OK,
+        protocolList: this.entity.protocolList
+    });
+}
+
 pro.getBlockInfo = async function (panelId, blockId, modelId, next) {
     if (!this.projectUUID) {
         this.entity.logger.warn("项目ID不存在!");

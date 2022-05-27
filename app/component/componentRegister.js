@@ -9,6 +9,7 @@ let AvatarPropertyCtrl = require('./avatarComponent/avatarPropertyCtrl');
 let LobbyComponent = require('./avatarComponent/lobbyComponent');
 let AssetsModelComponent = require('./avatarComponent/assetsModelComponent');
 let AssetsEntityComponent = require('./avatarComponent/assetsEntityComponent');
+let AssetsProtocolComponent = require('./avatarComponent/assetsProtocolComponent');
 let SimulateComponent = require('./avatarComponent/simulateComponent');
 
 var componentClass = {
@@ -17,6 +18,7 @@ var componentClass = {
 	lobby: LobbyComponent,
 	assetsModel: AssetsModelComponent,
 	assetsEntity: AssetsEntityComponent,
+	assetsProtocol: AssetsProtocolComponent,
 	simulate: SimulateComponent,
 };
 
