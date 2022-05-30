@@ -249,6 +249,12 @@ pro.splitItem = function (uid, sysjson, panelId, pid) {
     return item;
 }
 
+/**
+ * TODO: 只是用于找IO模块的坐标信息，默认只用了第一个找到的IO模块的位置。
+ * @param {*} isInput 
+ * @param {*} cIoArray 
+ * @returns 
+ */
 pro.findIOModel = function (isInput, cIoArray) {
     for (let i = 0; i < cIoArray.length; i++) {
         const item = cIoArray[i];
@@ -336,12 +342,12 @@ pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine
             if (items.length > 1) {
                 this.createIOModel(isInput, items, cIoItem, childPanel);
             } else {
-                ports.push({ id: items[0].source.port, group: consts.OutFlag });
+                ports.push({ id: items[0].realSource.port, group: consts.OutFlag });
                 childPanel.line.push({
                     id: pomelo.app.db.genId(),
                     lineType: 1,
-                    source: { "cell": blockId, "port": items[0].source.port },
-                    target: { "cell": items[0].target.cell, "port": items[0].target.port },
+                    source: { "cell": blockId, "port": items[0].realSource.port },
+                    target: { "cell": items[0].realTarget.cell, "port": items[0].realTarget.port },
                 });
             }
         }
@@ -383,12 +389,12 @@ pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine
             if (items.length > 1) {
                 this.createIOModel(isInput, items, cIoItem, childPanel);
             } else {
-                ports.push({ id: items[0].target.port, group: consts.InFlag });
+                ports.push({ id: items[0].realTarget.port, group: consts.InFlag });
                 childPanel.line.push({
                     id: pomelo.app.db.genId(),
                     lineType: 1,
-                    source: { "cell": items[0].source.cell, "port": items[0].source.port },
-                    target: { "cell": blockId, "port": items[0].target.port },
+                    source: { "cell": items[0].realSource.cell, "port": items[0].realSource.port },
+                    target: { "cell": blockId, "port": items[0].realTarget.port },
                 });
             }
         }
@@ -449,7 +455,7 @@ pro.createIOModel = function(isInput, items, cIoItem, childPanel) {
                 id: pomelo.app.db.genId(),
                 lineType: 1,
                 source: { "cell": inputId, "port": `${consts.OutPrefix}0` },
-                target: { "cell": line.target.cell, "port": line.target.port },
+                target: { "cell": line.realTarget.cell, "port": line.realTarget.port },
             });
         }
     } else {
@@ -469,7 +475,7 @@ pro.createIOModel = function(isInput, items, cIoItem, childPanel) {
             childPanel.line.push({
                 id: pomelo.app.db.genId(),
                 lineType: 1,
-                source: { "cell": line.source.cell, "port": line.source.port },
+                source: { "cell": line.realSource.cell, "port": line.realSource.port },
                 target: { "cell": outputId, "port": `${consts.InPrefix}0` },
             });
         }
@@ -547,11 +553,13 @@ pro.findRelIOLine = function (isInput, ioArray, lineArray) {
                         let subLine = this.getBoldLineDetails(line);
                         for (let m = 0; m < subLine.length; m++) {
                             const subitem = subLine[m];
-                            let sport = Number(subitem.source.port.split('_')[1]) + portIdx;
-                            let tport = Number(subitem.target.port.split('_')[1]) + portIdx;
+                            let sport = Number(subitem.source.port.split('_')[1]);
+                            let tport = Number(subitem.target.port.split('_')[1]);
                             relArray.push({
-                                source: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport}`},
-                                target: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport}`}
+                                source: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport+portIdx}`},
+                                target: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport+portIdx}`},
+                                realSource: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport}`},
+                                realTarget: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport}`},
                             });
                         }
                     }
@@ -571,11 +579,13 @@ pro.findRelIOLine = function (isInput, ioArray, lineArray) {
                         let subLine = this.getBoldLineDetails(line);
                         for (let m = 0; m < subLine.length; m++) {
                             const subitem = subLine[m];
-                            let sport = Number(subitem.source.port.split('_')[1]) + portIdx;
-                            let tport = Number(subitem.target.port.split('_')[1]) + portIdx;
+                            let sport = Number(subitem.source.port.split('_')[1]);
+                            let tport = Number(subitem.target.port.split('_')[1]);
                             relArray.push({
-                                source: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport}`},
-                                target: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport}`}
+                                source: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport+portIdx}`},
+                                target: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport+portIdx}`},
+                                realSource: { "cell": subitem.source.cell, "port": `${consts.OutPrefix}${sport}`},
+                                realTarget: { "cell": subitem.target.cell, "port": `${consts.InPrefix}${tport}`},
                             });
                         }
                     }
