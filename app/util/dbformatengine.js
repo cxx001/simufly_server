@@ -115,7 +115,7 @@ pro.genLine = function (dbList, projectItem) {
         let lines = panelItem.line;
         for (let i = 0; i < lines.length; i++) {
             const lineItem = lines[i];
-            // 模块的输入线
+            // 模块的输出线
             if (lineItem.source.cell == blockId) {
                 for (let j = 0; j < panelItem.block.length; j++) {
                     // 找线的目标模块
@@ -193,6 +193,21 @@ pro.findBlockByChildId = function (childId, blockArray) {
 }
 
 /**
+ * 根据模块ID找模块
+ * @param {*} blockId 模块ID
+ * @param {*} blockArray 当前画板所有模块
+ */
+pro.findBlockByModelId = function(blockId, blockArray) {
+    for (let i = 0; i < blockArray.length; i++) {
+        const block = blockArray[i];
+        if (block.id == blockId) {
+            return block;
+        }
+    }
+    return null;
+}
+
+/**
  * 线连的对端是子系统情况
  * @param {*} panelId 对端子系统画板ID
  * @param {*} dbList 项目数据
@@ -212,26 +227,44 @@ pro.setChildSysLineType = function (panelId, dbList, targetItem, targetPanel, pr
         return;
     }
 
+    let inputBlock = null;
     for (let i = 0; i < panel.block.length; i++) {
         const blockItem = panel.block[i];
-        // 找到对应的输入模块
-        const ids = blockItem.id.split('_');
-        const portId = ids[ids.length-1];
-        let inPort = null;
-        for (let m = 0; m < targetPanel.line.length; m++) {
-            const line = targetPanel.line[m];
-            if (line.target.cell == targetItem.id) {
-                let ports = line.target.port.split('_');
-                inPort = ports[ports.length-1];
-                break;
+        if(blockItem.nodeType == consts.ShapeType.Input) {
+            const ids = blockItem.id.split('_');
+            const portId = ids[ids.length-1];
+            if (portId == inputPort) {
+                inputBlock = blockItem;
             }
         }
+    }
 
-        if ((blockItem.nodeType == consts.ShapeType.Input || blockItem.nodeType == consts.ShapeType.Output) && 
-            blockItem.items[0].group == 'out' && inPort == portId) {
-            // 递归找输入模块关联的最小模块连线
-            this.setTargetLine(blockItem, panel, inputPort, dbList, projectItem, blockEngineId, outLine);
-            break;
+
+    if (!inputBlock) {
+        console.warn('子系统[%s]有未找到的输入模块[%s]!', targetItem.name, inputPort);
+        return;
+    }
+
+    this.setTargetLine(inputBlock, panel, inputPort, dbList, projectItem, blockEngineId, outLine);
+}
+
+/**
+ * 查找多对一模块对端连的模块
+ * @param {*} blockId 多对一模块ID
+ * @param {*} blockArray 当前画板所有模块
+ * @param {*} lineArray 当前画板所有连线
+ * @returns 
+ */
+pro.findMoreOneToModel = function (blockId, blockArray, lineArray) {
+    for (let i = 0; i < lineArray.length; i++) {
+        const line = lineArray[i];
+        if (line.source.cell == blockId) {
+            for (let j = 0; j < blockArray.length; j++) {
+                const block = blockArray[j];
+                if (block.id == line.target.cell) {
+                    return block;
+                }
+            }
         }
     }
 }
@@ -256,17 +289,22 @@ pro.setIOBusLineType = function (targetItem, targetPanel, inputPort, dbList, pro
                 for (let j = 0; j < targetPanel.block.length; j++) {
                     const blockItem = targetPanel.block[j];
                     if (blockItem.id == line.target.cell) {
+                        inputPort = line.target.port.split('_');
+                        inputPort = inputPort[inputPort.length-1];
+                        this.setTargetLine(blockItem, targetPanel, inputPort, dbList, projectItem, blockEngineId, outLine);
+
+
                         // 如果是一对多总线
-                        if (targetItem.nodeType == consts.ShapeType.OneMore) {
-                            const ports = line.source.port.split('_');
-                            const port = ports[ports.length-1];
-                            if (port == inputPort) {
-                                inputPort = line.target.port.split('_')[1];
-                                this.setTargetLine(blockItem, targetPanel, inputPort, dbList, projectItem, blockEngineId, outLine);
-                            }
-                        } else {
-                            this.setTargetLine(blockItem, targetPanel, inputPort, dbList, projectItem, blockEngineId, outLine);
-                        }
+                        // if (targetItem.nodeType == consts.ShapeType.OneMore) {
+                        //     const ports = line.source.port.split('_');
+                        //     const port = ports[ports.length-1];
+                        //     if (port == inputPort) {
+                        //         inputPort = line.target.port.split('_')[1];
+                        //         this.setTargetLine(blockItem, targetPanel, inputPort, dbList, projectItem, blockEngineId, outLine);
+                        //     }
+                        // } else {
+                        //     this.setTargetLine(blockItem, targetPanel, inputPort, dbList, projectItem, blockEngineId, outLine);
+                        // }
                         break;
                     }
                 }
@@ -274,58 +312,46 @@ pro.setIOBusLineType = function (targetItem, targetPanel, inputPort, dbList, pro
         }
     } else {
         // 出去
-        const panelItem = this.findPanelById(targetPanel.pid, dbList);
-        if (!panelItem) {
-            console.error('父面板不存在!', targetPanel.pid);
-            return;
-        }
+        if (targetItem.nodeType == consts.ShapeType.MoreOne) {
+            // 多对一总线模块 
+            let toModel = this.findMoreOneToModel(targetItem.id, targetPanel.block, targetPanel.line);
+            if (!toModel) {
+                console.warn('多对一总线对端连的模块没有找到!');
+                return;
+            }
+            
+            if (toModel.nodeType == consts.ShapeType.Output) {
+                inputPort = toModel.id.split('_');
+                inputPort = inputPort[inputPort.length-1];
+            }
+            this.setTargetLine(toModel, targetPanel, inputPort, dbList, projectItem, blockEngineId, outLine);
+        } else {
+            // 输出模块
+            const panelItem = this.findPanelById(targetPanel.pid, dbList);
+            if (!panelItem) {
+                console.error('父面板不存在!', targetPanel.pid);
+                return;
+            }
 
-        const block = this.findBlockByChildId(targetPanel.id, panelItem.block);
-        if (!block) {
-            console.error('子画板模块在父画板中不存在!', targetPanel.id);
-            return;
-        }
+            const block = this.findBlockByChildId(targetPanel.id, panelItem.block);
+            if (!block) {
+                console.error('子画板模块在父画板中不存在!', targetPanel.id);
+                return;
+            }
 
-        for (let m = 0; m < panelItem.line.length; m++) {
-            const lineItem = panelItem.line[m];
-            if (lineItem.source.cell == block.id) {
-                if (lineItem.subLine && lineItem.subLine.length > 1) {
-                    // 粗线
-                    for (let n = 0; n < lineItem.subLine.length; n++) {
-                        const childLine = lineItem.subLine[n];
-                        const ports = childLine.source.port.split('_');
-                        const srcProt = ports[ports.length-1];
-                        if (srcProt == inputPort) {
-                            for (let n = 0; n < panelItem.block.length; n++) {
-                                const inblock = panelItem.block[n];
-                                if (inblock.id == lineItem.target.cell) {
-                                    let targetProts = childLine.target.port.split('_');
-                                    inputPort = targetProts[targetProts.length-1];
-                                    this.setTargetLine(inblock, panelItem, inputPort, dbList, projectItem, blockEngineId, outLine);
-                                    break;
-                                }
-                            }
-                            break;
-                        }
+            for (let i = 0; i < panelItem.line.length; i++) {
+                const line = panelItem.line[i];
+                let sport = line.source.port.split('_');
+                sport = sport[sport.length-1];
+                if (line.source.cell == block.id && sport == inputPort) {
+                    let toModel = this.findBlockByModelId(line.target.cell, panelItem.block);
+                    if (!toModel) {
+                        console.error('模块不存在!');
                     }
-
-                } else {
-                    // 细线
-                    const ports = lineItem.source.port.split('_');
-                    const srcProt = ports[ports.length-1];
-                    if (srcProt == inputPort) {
-                        for (let n = 0; n < panelItem.block.length; n++) {
-                            const inblock = panelItem.block[n];
-                            if (inblock.id == lineItem.target.cell) {
-                                let targetProts = lineItem.target.port.split('_');
-                                inputPort = targetProts[targetProts.length-1];
-                                this.setTargetLine(inblock, panelItem, inputPort, dbList, projectItem, blockEngineId, outLine);
-                                break;
-                            }
-                        }
-                        break;
-                    }
-
+                    inputPort = line.target.port.split('_');
+                    inputPort = inputPort[inputPort.length-1];
+                    this.setTargetLine(toModel, panelItem, inputPort, dbList, projectItem, blockEngineId, outLine);
+                    break;
                 }
             }
         }

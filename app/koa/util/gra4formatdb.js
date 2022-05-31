@@ -136,7 +136,7 @@ pro.getModelGra4Info = function (modelId, unitArray) {
 pro.getBoldLineDetails = function (line) {
     let subLine = [];   // 粗线详情
     // dim顺序递增类型
-    let dim = line.Data._attributes.dim;
+    let dim = Number(line.Data._attributes.dim);
     for (let i = 0; i < dim; i++) {
         let inPort = Number(line.Data._attributes.inport) + i;
         let outPort = Number(line.Data._attributes.export) + i;
@@ -182,9 +182,9 @@ pro.splitItem = function (uid, sysjson, panelId, pid) {
     // 模块
     item.block = [];
     const lineArray = sysjson.Model.LineGroup.Line;
-    const unitCount = sysjson.Model.UnitGroup._attributes.Count;
     let unitArray = sysjson.Model.UnitGroup.Unit;
-    if (unitCount == 1) {
+    let ioportArray = sysjson.Model.IoportGroup.Ioport;
+    if (!Array.isArray(unitArray)) {
         let array = [];
         array.push(unitArray);
         unitArray = array;
@@ -210,11 +210,14 @@ pro.splitItem = function (uid, sysjson, panelId, pid) {
     item.line = [];
     for (let i = 0; i < lineArray.length; i++) {
         const line = lineArray[i];
+        if (this.checkPortBeyond(line, unitArray, ioportArray)) {
+            continue;
+        }
         const subLine = this.getBoldLineDetails(line);
         const model_in = this.getModelGra4Info(line.Data._attributes.in, unitArray);
         const model_out = this.getModelGra4Info(line.Data._attributes.out, unitArray);
         if (!(model_in && model_out)) {
-            // 信号记录监控模块或IO模块
+            // 信号记录监控模块或IO模块, 这些由上层输入/输出连线创建
             continue;
         }
 
@@ -223,7 +226,7 @@ pro.splitItem = function (uid, sysjson, panelId, pid) {
                 const child_line = subLine[i];
                 item.line.push({
                     id: pomelo.app.db.genId(),
-                    lineType: line.Data._attributes.dim > 1 ? 2 : 1,
+                    lineType: Number(line.Data._attributes.dim) > 1 ? 2 : 1,
                     source: child_line.source,
                     target: child_line.target,
                     subLine: [],
@@ -232,7 +235,7 @@ pro.splitItem = function (uid, sysjson, panelId, pid) {
         } else {
             item.line.push({
                 id: pomelo.app.db.genId(),
-                lineType: line.Data._attributes.dim > 1 ? 2 : 1,
+                lineType: Number(line.Data._attributes.dim) > 1 ? 2 : 1,
                 source: {
                     "cell": line.Data._attributes.in,
                     "port": `${consts.OutPrefix}${line.Data._attributes.inport}`
@@ -292,21 +295,28 @@ pro.splitInterfaceModel = function (parentJson, childjson, sysCpid, childPanel) 
 
     IoCount = 0;
     TransCount = 0;
-    const pUnitArray = parentJson.Model.UnitGroup.Unit;
+    let pUnitArray = parentJson.Model.UnitGroup.Unit;
+    if (!Array.isArray(pUnitArray)) {
+        let array = [];
+        array.push(pUnitArray);
+        pUnitArray = array;
+        console.warn('数量为1时xml解析出来不是数组!', parentJson.Model.Title);
+    }
     const pLineArray = parentJson.Model.LineGroup.Line;
+    const pIoArray = parentJson.Model.IoportGroup.Ioport;
     const cIoArray = childjson.Model.IoportGroup.Ioport;
     const cLineArray = childjson.Model.LineGroup.Line;
     for (let i = 0; i < pLineArray.length; i++) {
         const pLine = pLineArray[i];
+        if (this.checkPortBeyond(pLine, pUnitArray, pIoArray)) {
+            continue;
+        }
+
         if (pLine.Data._attributes.in == sysCpid || pLine.Data._attributes.out == sysCpid) {
             // 外部这根线是否展开
             const pSubLine = this.getBoldLineDetails(pLine);
             const model_in = this.getModelGra4Info(pLine.Data._attributes.in, pUnitArray);
             const model_out = this.getModelGra4Info(pLine.Data._attributes.out, pUnitArray);
-            if (!(model_in && model_out)) {
-                // 信号记录监控模块或IO模块
-                continue;
-            }
             const isInput = (pLine.Data._attributes.out == sysCpid) ? true : false;
             const cIoItem = this.findIOModel(isInput, cIoArray);
             const relArray = this.findRelIOLine(isInput, cIoArray, cLineArray);
@@ -429,6 +439,29 @@ pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine
     }
 }
 
+pro.findDBIOModel = function (isInput, blockArray, ioModelId) {
+    for (let i = 0; i < blockArray.length; i++) {
+        const block = blockArray[i];
+        if (isInput) {
+            if (block.nodeType == consts.ShapeType.Input) {
+                let blockId = block.id.split('_');
+                blockId = blockId[blockId.length-1];
+                if (blockId == ioModelId) {
+                    return block;
+                }
+            }
+        } else {
+            if (block.nodeType == consts.ShapeType.Output) {
+                let blockId = block.id.split('_');
+                blockId = blockId[blockId.length-1];
+                if (blockId == ioModelId) {
+                    return block;
+                }
+            }
+        }
+    }
+}
+
 /**
  * 创建IO模块
  * @param {*} isInput 是否是输入
@@ -438,15 +471,22 @@ pro.createTransferModel = function(isInput, record, cIoItem, childPanel, outLine
  */
 pro.createIOModel = function(isInput, items, cIoItem, childPanel) {
     if (isInput) {
-        let inputId = `${pomelo.app.db.genId()}_${items[0].source.port}`;
-        childPanel.block.push({
-            id: inputId,
-            name: "输入",
-            nodeType: consts.ShapeType.Input,
-            position: { "x": Number(cIoItem.Rect._attributes.left) - 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
-            size: { "width": 40, "height": 20 },
-            items: [{ "id": `${consts.OutPrefix}0`, "group": consts.OutFlag }],
-        })
+        let ioModelId = items[0].source.port;
+        ioModelId = ioModelId.split('_');
+        ioModelId = ioModelId[ioModelId.length-1];
+        let ioModel = this.findDBIOModel(true, childPanel.block, ioModelId);
+        let inputId = ioModel ? ioModel.id : null;
+        if (!ioModel) {
+            inputId = `${pomelo.app.db.genId()}_${items[0].source.port}`;
+            childPanel.block.push({
+                id: inputId,
+                name: "输入",
+                nodeType: consts.ShapeType.Input,
+                position: { "x": Number(cIoItem.Rect._attributes.left) - 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
+                size: { "width": 40, "height": 20 },
+                items: [{ "id": `${consts.OutPrefix}0`, "group": consts.OutFlag }],
+            })
+        }
 
         // 连线
         for (let n = 0; n < items.length; n++) {
@@ -459,15 +499,22 @@ pro.createIOModel = function(isInput, items, cIoItem, childPanel) {
             });
         }
     } else {
-        let outputId = `${pomelo.app.db.genId()}_${items[0].target.port}`;
-        childPanel.block.push({
-            id: outputId,
-            name: "输出",
-            nodeType: consts.ShapeType.Output,
-            position: { "x": Number(cIoItem.Rect._attributes.left) + 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
-            size: { "width": 40, "height": 20 },
-            items: [{ "id": `${consts.InPrefix}0`, "group": consts.InFlag }],
-        })
+        let ioModelId = items[0].target.port;
+        ioModelId = ioModelId.split('_');
+        ioModelId = ioModelId[ioModelId.length-1];
+        let ioModel = this.findDBIOModel(false, childPanel.block, ioModelId);
+        let outputId = ioModel ? ioModel.id : null;
+        if (!ioModel) {
+            outputId = `${pomelo.app.db.genId()}_${items[0].target.port}`;
+            childPanel.block.push({
+                id: outputId,
+                name: "输出",
+                nodeType: consts.ShapeType.Output,
+                position: { "x": Number(cIoItem.Rect._attributes.left) + 50, "y": Number(cIoItem.Rect._attributes.top) - 40 + IoCount * 30 },
+                size: { "width": 40, "height": 20 },
+                items: [{ "id": `${consts.InPrefix}0`, "group": consts.InFlag }],
+            })
+        }
 
         // 连线
         for (let n = 0; n < items.length; n++) {
@@ -595,6 +642,71 @@ pro.findRelIOLine = function (isInput, ioArray, lineArray) {
         }
     }
     return relArray;
+}
+
+/**
+ * 根据模块ID查找模块的输入/输出端口信息
+ * @param {*} blockId 模块ID
+ * @param {*} unitArray 所有模块数组
+ * @param {*} ioportArray 所有IO模块数组
+ * @returns 
+ * 注意: xml2json元素只有一个的时候会转为对象, 需要统一为数组.
+ */
+pro.getBlockInOutInfo = function(blockId, unitArray, ioportArray) {
+    let info = null;
+    for (let i = 0; i < unitArray.length; i++) {
+        const unit = unitArray[i];
+        if (unit._attributes.id == blockId) {
+            info = unit.Dim._attributes;
+            break;
+        }
+    }
+
+    if (!info) {
+        ioportArray = ioportArray ? ioportArray : [];
+        for (let i = 0; i < ioportArray.length; i++) {
+            const ioport = ioportArray[i];
+            if (ioport._attributes.id == blockId) {
+                info = ioport.Dim._attributes;
+                break;
+            }
+        }
+    }
+    return info;
+}
+
+/**
+ * 检测连线端口是否超出
+ * @param {*} line 当前连线
+ * @param {*} unitArray 所有模块数组
+ * @param {*} ioportArray 所有IO模块数组
+ * @returns 
+ */
+pro.checkPortBeyond = function(line, unitArray, ioportArray) {
+    let isBeyond = false;
+    let lineInfo = this.getBoldLineDetails(line);
+    for (let i = 0; i < lineInfo.length; i++) {
+        const lineItem = lineInfo[i];
+        let srcId = lineItem.source.cell
+        let destId = lineItem.target.cell;
+        let srcPort = lineItem.source.port.split('_');
+        srcPort = Number(srcPort[srcPort.length-1]) + 1;
+        let destPort = lineItem.target.port.split('_');
+        destPort = Number(destPort[destPort.length-1]) + 1;
+        let srcDim = this.getBlockInOutInfo(srcId, unitArray, ioportArray);
+        let destDim = this.getBlockInOutInfo(destId, unitArray, ioportArray);
+        if (!(srcDim && destDim)) {
+            console.warn('模块不存在, 可能连接的是监控模块!');
+            continue;
+        }
+        let srcMaxDim = Number(srcDim.ydim);
+        let destMaxDim = Number(destDim.udim);
+        if (srcPort > srcMaxDim || destPort > destMaxDim) {
+            console.warn('连线端口超出!');
+            isBeyond = true;
+        }
+    }
+    return isBeyond;
 }
 
 /**

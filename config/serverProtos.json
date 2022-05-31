@@ -7,10 +7,11 @@
 		"required uInt32 state": 1
 	},
 	"onSimuData": {
-		"required uInt32 modelId": 1,
-		"required uInt32 portId": 2,
-		"required uInt32 step": 3,
-		"required uInt32 factor": 4,
-		"required double value": 3
+		"required string panel_id": 1,
+		"required uInt32 block_id": 2,
+		"required uInt32 port_index": 3,
+		"required uInt32 step": 4,
+		"required uInt32 factor": 5,
+		"repeated double value": 6
 	}
 }

@@ -11,8 +11,8 @@ python ./SimpleHTTP.py (跨域访问)
 3. 选择要调试的服务端口(launch.json),启动vscode远程调试(由于是多进程,每次只能调试一个进程)
 
 # 环境部署
-1. 安装nodejs(> -v 8.11.x)
-2. 安装python(--version 2.5<version<3.0)
+1. 安装nodejs(> -v 8.11.x, 当前14.16.0)
+2. 安装python(--version 2.5<version<3.0, 当前2.7.18)
 3. 安装pomelo(npm install pomelo -g)
 4. 安装mongodb 3.6.10
 
