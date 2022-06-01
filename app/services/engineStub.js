@@ -14,6 +14,13 @@ const messageService = require('../services/messageService');
 const child_process = require('child_process');
 
 // 下位机临时配置
+// const server = {
+//     host: '192.168.200.11',
+//     port: 22,
+//     username: 'root',
+//     password: '#5149352323OpRt',
+// }
+
 const server = {
     host: '192.168.10.251',
     port: 22,
@@ -153,8 +160,8 @@ pro.deploy = async function (uids, projectUUID, cb) {
 
     // 路径
     let packageName = `${uids.uid}_${projectUUID}`; 
-    let localPath = `${EngineBasePath}auto_gen/${packageName}.tar.gz`;
-    let remoteDir = `/home/cxx/${uids.uid}/`;
+    let localPath = `${consts.EngineBasePath}auto_gen/${packageName}.tar.gz`;
+    let remoteDir = `/home/${uids.uid}/`;
     let remotePath = `${remoteDir}${packageName}.tar.gz`;
 
     if (!fs.existsSync(localPath)) {
@@ -207,11 +214,11 @@ pro.deploy = async function (uids, projectUUID, cb) {
         let triggerCount = 0;
         let pathCmd1 = `cd ${remoteDir};`;
         let tarCmd = `tar -zxvf ${packageName}.tar.gz;`;
-        let pathCmd2 = `cd ./${packageName};`;
-        let decryCmd = `dd if=engine.des3 |openssl des3 -d -k keliang2022 | tar xzf -;`;
-        
+        let pathCmd2 = `cd ./${packageName}/engine;`;
+        // let decryCmd = `dd if=engine.des3 |openssl des3 -d -k keliang2022 | tar xzf -;`;
+        let compileCmd = './compile.sh &>build.log;';
         // let compileCmd = `./compile.sh;`;
-        let cmd = `${pathCmd1}${tarCmd}${pathCmd2}${decryCmd}\r\nexit\r\n`;
+        let cmd = `${pathCmd1}${tarCmd}${pathCmd2}${compileCmd}\r\nexit\r\n`;
         ssh2.Shell(server, cmd, (err, data) => {
             if (err) {
                 logger.warn('ssh shell commond fail! err: %o', err);

@@ -3,7 +3,7 @@ const consts = require('../common/consts');
 
 var pro = module.exports;
 
-const EnginePath = '/home/simufly_tools/config/project/project.json';
+const EnginePath = `${consts.EngineBasePath}config/project/project.json`;
 
 // 前端与引擎模块ID映射表 {panelID_modelID: indexID}.
 let mappingtbl = {};
