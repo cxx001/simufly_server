@@ -409,3 +409,7 @@ pro.setTargetLine = function (targetItem, targetPanel, inputPort, dbList, projec
         });
     }
 }
+
+pro.switchEntity = function (data) {
+    
+}

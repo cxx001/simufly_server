@@ -59,3 +59,7 @@ handler.getBlockInfo = function (msg, session, next) {
 handler.modifyBlockInfo = function (msg, session, next) {
 	session.avatar.lobby.modifyBlockInfo(msg.panelId, msg.blockId, msg.modifyInfo, next);
 }
+
+handler.setBlockEntity = function (msg, session, next) {
+	session.avatar.lobby.setBlockEntity(msg.panelId, msg.blockId, msg.entityId, next);
+}

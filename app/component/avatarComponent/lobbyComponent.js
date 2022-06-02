@@ -182,6 +182,7 @@ pro._formatDB2Vue = function (dbjson) {
             model.modelId = unit.modelId ? unit.modelId : null;
             model.name = unit.name;
             model.nodeType = unit.nodeType;
+            model.entity = unit.entity ? unit.entity : null;
             model.zIndex = j;
             item.data.cells.push(model);
         }
@@ -297,11 +298,12 @@ pro.insertCustomField = function (newPanelData, dbPanelData) {
     newPanelData.block = newPanelData.block || [];
     for (let i = 0; i < newPanelData.block.length; i++) {
         let item = newPanelData.block[i];
-        // 保留有的属性modifyAttr字段
+        // 保留有的属性modifyAttr字段、实物切换属性
         for (let j = 0; j < dbPanelData.block.length; j++) {
             const element = dbPanelData.block[j];
             if (element.id == item.id) {
                 item.modifyAttr = element.modifyAttr;
+                item.entity = element.entity;
                 break;
             }
         }
@@ -522,4 +524,37 @@ pro._modifyBlockParameter = function (db_params, modify_params) {
             db_params.push(modify_item);
         }
     }
+}
+
+pro.setBlockEntity = function (panelId, blockId, entityId, next) {
+    if (!this.projectUUID) {
+        this.entity.logger.warn("项目ID不存在!");
+        next(null, {code: consts.Code.FAIL});
+        return;
+    }
+
+    let project = await this.getEntry(this.projectUUID);
+    if (!project) {
+        this.entity.logger.warn('get project [%s] not exist!', this.projectUUID);
+        next(null, {code: consts.Code.FAIL});
+        return;
+    }
+
+    for (let i = 0; i < project.data.length; i++) {
+        let panelItem = project.data[i];
+        if (panelItem.id == panelId) {
+            for (let j = 0; j < panelItem.block.length; j++) {
+                let blockItem = panelItem.block[j];
+                if (blockItem.id == blockId) {
+                    blockItem.entity = entityId;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    this.projectsById[this.projectUUID] = project;
+    this.waitToUpdateDB.add(this.projectUUID);
+    next(null, {code: consts.Code.OK});
 }

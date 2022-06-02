@@ -76,7 +76,7 @@
 
 	"connector.lobbyHandler.deletePanel": {
 		"required string projectId": 1,
-		"required uInt32 panelId": 2
+		"required string panelId": 2
 	},
 
 	"connector.lobbyHandler.deleteProject": {
@@ -93,7 +93,7 @@
 	},
 
 	"connector.lobbyHandler.getBlockInfo": {
-		"required uInt32 panelId": 1,
+		"required string panelId": 1,
 		"required string blockId": 2,
 		"required string modelId": 3
 	},
@@ -113,9 +113,14 @@
 			"repeated Parameter U_Input": 7
 		},
 
-		"required uInt32 panelId": 1,
+		"required string panelId": 1,
 		"required string blockId": 2,
 		"required ModifyInfo modifyInfo": 3
+	},
+	"connector.lobbyHandler.setBlockEntity": {
+		"required string panelId": 1,
+		"required string blockId": 2,
+		"optional string entityId": 3
 	},
 
 
