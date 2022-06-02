@@ -211,12 +211,11 @@ pro.deploy = async function (uids, projectUUID, cb) {
         });
 
         // 3. 解压、编译、删除engine目录
-        let triggerCount = 0;
         let pathCmd1 = `cd ${remoteDir};`;
         let tarCmd = `tar -zxvf ${packageName}.tar.gz;`;
         let pathCmd2 = `cd ./${packageName};`;
         let decryCmd = `dd if=engine.des3 |openssl des3 -d -k keliang2022 | tar xzf -;`;
-        let compileCmd = './compile.sh &>build.log;';
+        let compileCmd = './compile.sh;';
         let rmEngine = 'rm -rf engine;';
         let cmd = `${pathCmd1}${tarCmd}${pathCmd2}${decryCmd}${compileCmd}${rmEngine}\r\nexit\r\n`;
         ssh2.Shell(server, cmd, (err, data) => {
@@ -237,17 +236,18 @@ pro.deploy = async function (uids, projectUUID, cb) {
             });
 
             // 完成
-            if (data.indexOf('logout') >= 0) {
-                triggerCount++;
-                if (triggerCount <= 1) {
-                    pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeploySus, null);
-                    messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-                        code: consts.MsgFlowCode.Deployed,
-                        des: '部署完成.'
-                    });
-                } else {
-                    logger.warn('logout执行标志有多次匹配!');
-                }
+            if (data.indexOf('Compile success') >= 0) {
+                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeploySus, null);
+                messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                    code: consts.MsgFlowCode.Deployed,
+                    des: '部署完成.'
+                });
+            } else if (data.indexOf('Compile failed') >= 0) {
+                pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
+                messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                    code: consts.MsgFlowCode.DeployFail,
+                    des: '部署失败!'
+                });
             }
         });
     });
@@ -259,7 +259,7 @@ pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
     // 路径
     let packageName = `${uids.uid}_${projectUUID}`; 
     let pathCmd = `cd /home/${uids.uid}/${packageName}/bin;`;
-    let startCmd = `./engine ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep} &`;
+    let startCmd = `./engine ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep}`;
     let cmd = `${pathCmd}${startCmd}\r\nexit\r\n`;
     ssh2.Shell(server, cmd, (err, data) => {
         if (err) {

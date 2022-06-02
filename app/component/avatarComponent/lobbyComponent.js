@@ -526,7 +526,7 @@ pro._modifyBlockParameter = function (db_params, modify_params) {
     }
 }
 
-pro.setBlockEntity = function (panelId, blockId, entityId, next) {
+pro.setBlockEntity = async function (panelId, blockId, entityId, next) {
     if (!this.projectUUID) {
         this.entity.logger.warn("项目ID不存在!");
         next(null, {code: consts.Code.FAIL});

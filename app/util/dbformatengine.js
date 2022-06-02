@@ -1,5 +1,6 @@
 const fs = require('fs');
 const consts = require('../common/consts');
+const pomelo = require('pomelo');
 
 var pro = module.exports;
 
@@ -33,7 +34,8 @@ pro.formatDb2Engine = function (assignList, dbList) {
         project.push(projectItem);
     }
 
-    fs.writeFile(EnginePath, JSON.stringify(project[0], null, '\t'), () => {});
+    let result = this.switchEntity(dbList, project[0]);
+    fs.writeFile(EnginePath, JSON.stringify(result, null, '\t'), () => {});
     console.log('write engine json complete.');
     return mappingtbl;
 }
@@ -410,6 +412,105 @@ pro.setTargetLine = function (targetItem, targetPanel, inputPort, dbList, projec
     }
 }
 
-pro.switchEntity = function (data) {
+//////////////////////////////////////////////////////////////////////
+/**
+ * TODO: 当前实物切换写死, 固定弹道模块切换
+ * @param {*} dbList 
+ * @param {*} resultData 
+ */
+pro.switchEntity = function (dbList, resultData) {
+    // 找出所有切换为实物的模型
+    let entityList = [];
+    for (let i = 0; i < dbList.length; i++) {
+        const panelItem = dbList[i];
+        for (let j = 0; j < panelItem.block.length; j++) {
+            const blockItem = panelItem.block[j];
+            if (blockItem.entity && blockItem.entity != "") {
+                entityList.push(blockItem);
+            }
+        }
+    }
+
+    // 实物模型列表中是否由弹道
+    let isEntity = false;
+    for (let i = 0; i < entityList.length; i++) {
+        const entity = entityList[i];
+        if (entity.name == "弹道") {
+            isEntity = true;
+            break;
+        }
+    }
+
+    if (!isEntity) {
+        return resultData;
+    }
+
+    // 找到弹道模块并替换为板卡
+    let testModelId = null;
+    let inputId = null;
+    let outputId = null;
+    for (let i = 0; i < resultData.PartitionGroup.length; i++) {
+        let partItem = resultData.PartitionGroup[i];
+        for (let j = 0; j < partItem.BlockGroup.length; j++) {
+            let blockItem = partItem.BlockGroup[j];
+            if (blockItem.Name == "弹道") {
+                testModelId = blockItem.Id;
+                inputId = pomelo.app.db.genId();
+                outputId = pomelo.app.db.genId();
+                partItem.BlockGroup.splice(j, 1);
+                partItem.BlockGroup.splice(j, 0, {
+                    "Id": inputId,
+                    "Name": "输入板块",
+                    "Model": "xxxxxx.json",
+                    "Order": j
+                }, {
+                    "Id": outputId,
+                    "Name": "输出板块",
+                    "Model": "xxxxxx.json",
+                    "Order": j + 1
+                });
+                break;
+            }
+        }
+        partItem.BlcokCount = partItem.BlockGroup.length;
+        if (testModelId || testModelId == 0) {
+            break;
+        }
+    }
+
+    // 替换连线
+    for (let i = 0; i < resultData.LineGroup.length; i++) {
+        let lineItem = resultData.LineGroup[i];
+        if (lineItem.Src == testModelId) {
+            // 输出板块
+            lineItem.Src = outputId;
+        } else if (lineItem.Dst == testModelId) {
+            // 输入板块
+            lineItem.Dst = inputId;
+        }
+    }
+
+    // 重新顺序排序
+    let count = 0;
+    for (let i = 0; i < resultData.PartitionGroup.length; i++) {
+        let partItem = resultData.PartitionGroup[i];
+        for (let j = 0; j < partItem.BlockGroup.length; j++) {
+            let blockItem = partItem.BlockGroup[j];
+            let oldId = blockItem.Id;
+            blockItem.Id = count++;
+            blockItem.Order = blockItem.Id;
+            // 对应连线修改
+            for (let m = 0; m < resultData.LineGroup.length; m++) {
+                let lineItem = resultData.LineGroup[m];
+                if (lineItem.Src == oldId) {
+                    lineItem.Src = blockItem.Id;
+                } else if (lineItem.Dst == oldId) {
+                    lineItem.Dst = blockItem.Id;
+                }
+            }
+        }
+    }
+    resultData.BlockTotal = count;
     
+    return resultData;
 }
