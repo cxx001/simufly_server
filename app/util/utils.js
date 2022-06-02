@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const {machineId, machineIdSync} = require('node-machine-id');
 
 var utils = module.exports;
 
@@ -227,4 +228,11 @@ utils.mkdirsSync = function (dirname) {
             return true;
         }
     }
+}
+
+utils.checkMachineId = function () {
+    let id = machineIdSync(true);
+    let legal = "44a15d82-4fc5-419f-acaf-9ed742a3af0e";
+    console.log('设备ID:', id);
+    return (id == legal);
 }

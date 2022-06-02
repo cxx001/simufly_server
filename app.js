@@ -28,7 +28,7 @@ var initDB = function (app) {
 
 // app configuration
 app.configure('production|development', 'gate', function () {
-	app.set('canLogin', true);
+	app.set('canLogin', utils.checkMachineId());
 	let curFilePath = path.resolve(__dirname);
 	app.set('connectorConfig',
 		{
@@ -45,7 +45,7 @@ app.configure('production|development', 'gate', function () {
 });
 
 app.configure('production|development', 'connector', function () {
-	app.set('canLogin', true);
+	app.set('canLogin', utils.checkMachineId());
 	app.before(avatarFilter());
 	let curFilePath = path.resolve(__dirname);
 	app.set('connectorConfig',
