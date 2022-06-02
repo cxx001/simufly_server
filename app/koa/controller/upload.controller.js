@@ -164,8 +164,8 @@ class UploadController {
                     const item = importResult[i];
                     const data = JSON.parse(fs.readFileSync(`${item.Path}`));
                     let key = item.Path.split('/');
-                    key = `${key[key.length-2]}_${key[key.length-1]}`;
-                    let id = uid + '_' + path.basename(key, '.json');
+                    key = `${key[key.length-2]}#${key[key.length-1]}`;
+                    let id = uid + '#' + path.basename(key, '.json');
 
                     // 获取/设置组, 同步用户表
                     let sid = ctx.userdata.sid;

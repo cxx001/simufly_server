@@ -81,6 +81,7 @@ pro.genPartition = function (threads, dbList, projectItem) {
             const item = blockList[j];
             let blockId = idx++;
             let modelName = item.modelId ? item.modelId.substring(25) : item.name;
+            modelName = modelName.replace(/#/g, "/");
             partitionItem.BlockGroup.push({
                 Id: blockId,
                 Name: item.name,

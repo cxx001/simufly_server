@@ -22,7 +22,7 @@ pro.getImportModelId = function (uid, entry) {
         dllFile = dllFile.split('\\');
         dllFile = dllFile[dllFile.length-1];
         let fctName = entry.UserFct._attributes.Fctname;
-        let key = `${uid}_${dllFile}/${fctName}`;
+        let key = `${uid}#${dllFile}#${fctName}`;
         return key;
     }
     return null;

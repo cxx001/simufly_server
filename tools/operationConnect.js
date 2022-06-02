@@ -7,8 +7,8 @@ let adminClient = require('pomelo-admin').adminClient;
 
 let DEFAULT_USERNAME = 'admin';
 let DEFAULT_PWD = 'admin';
-let DEFAULT_MASTER_HOST = '127.0.0.1';
-// let DEFAULT_MASTER_HOST = '111.229.200.111';
+// let DEFAULT_MASTER_HOST = '127.0.0.1';
+let DEFAULT_MASTER_HOST = 'x.x.x.x';
 let DEFAULT_MASTER_PORT = 3005;
 
 let CONNECT_ERROR = 'Fail to connect to admin console server.';

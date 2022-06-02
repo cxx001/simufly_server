@@ -210,15 +210,15 @@ pro.deploy = async function (uids, projectUUID, cb) {
             des: '代码上传完成.'
         });
 
-        // 3. 解压、编译
+        // 3. 解压、编译、删除engine目录
         let triggerCount = 0;
         let pathCmd1 = `cd ${remoteDir};`;
         let tarCmd = `tar -zxvf ${packageName}.tar.gz;`;
-        let pathCmd2 = `cd ./${packageName}/engine;`;
-        // let decryCmd = `dd if=engine.des3 |openssl des3 -d -k keliang2022 | tar xzf -;`;
+        let pathCmd2 = `cd ./${packageName};`;
+        let decryCmd = `dd if=engine.des3 |openssl des3 -d -k keliang2022 | tar xzf -;`;
         let compileCmd = './compile.sh &>build.log;';
-        // let compileCmd = `./compile.sh;`;
-        let cmd = `${pathCmd1}${tarCmd}${pathCmd2}${compileCmd}\r\nexit\r\n`;
+        let rmEngine = 'rm -rf engine;';
+        let cmd = `${pathCmd1}${tarCmd}${pathCmd2}${decryCmd}${compileCmd}${rmEngine}\r\nexit\r\n`;
         ssh2.Shell(server, cmd, (err, data) => {
             if (err) {
                 logger.warn('ssh shell commond fail! err: %o', err);
@@ -257,9 +257,9 @@ pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
     utils.invokeCallback(cb);
 
     // 路径
-    projectUUID = 'simufly_engine';
-    let pathCmd = `cd /home/cxx/${uids.uid}/${projectUUID}/demo2/;`;
-    let startCmd = `./start.sh ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep} &`;
+    let packageName = `${uids.uid}_${projectUUID}`; 
+    let pathCmd = `cd /home/${uids.uid}/${packageName}/bin;`;
+    let startCmd = `./engine ${this.zmqHost} ${this.zmqReqPort} ${this.zmqRspPort} ${uids.uid} ${simuTime} ${simuStep} &`;
     let cmd = `${pathCmd}${startCmd}\r\nexit\r\n`;
     ssh2.Shell(server, cmd, (err, data) => {
         if (err) {
