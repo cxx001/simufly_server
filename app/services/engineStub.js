@@ -18,7 +18,7 @@ const server = {
     host: '192.168.200.11',
     port: 22,
     username: 'root',
-    password: '#5149352323OpRt',
+    password: 'redhat',
 }
 
 // const server = {
@@ -271,6 +271,11 @@ pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
             });
             return;
         }
+
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.Connected,
+            des: data
+        });
     });
 }
 
