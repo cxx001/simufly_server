@@ -14,19 +14,19 @@ const messageService = require('../services/messageService');
 const child_process = require('child_process');
 
 // 下位机临时配置
-// const server = {
-//     host: '192.168.200.11',
-//     port: 22,
-//     username: 'root',
-//     password: '#5149352323OpRt',
-// }
-
 const server = {
-    host: '192.168.10.251',
+    host: '192.168.200.11',
     port: 22,
     username: 'root',
-    password: 'redhat',
+    password: '#5149352323OpRt',
 }
+
+// const server = {
+//     host: '192.168.10.251',
+//     port: 22,
+//     username: 'root',
+//     password: 'redhat',
+// }
 
 var instance = null;
 module.exports = function (app) {
