@@ -232,7 +232,7 @@ utils.mkdirsSync = function (dirname) {
 
 utils.checkMachineId = function () {
     let id = machineIdSync(true);
-    let legal = "44a15d82-4fc5-419f-acaf-9ed742a3af0e";
+    let legal = "62710d668f524e868d13f8d89a184776";
     console.log('设备ID:', id);
     return (id == legal);
 }
