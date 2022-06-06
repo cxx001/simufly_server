@@ -225,7 +225,7 @@
 			"required uInt32 record": 3,
 			"required string block_id": 4,
 			"required uInt32 port_index": 5,
-			"required uInt32 panel_id": 6,
+			"required string panel_id": 6,
 			"required string name": 7,
 			"required string source": 8
 		},

@@ -1,6 +1,6 @@
 /logs/
 /node_modules/
 /assets/
-/build/
+/dist/
 /test/
 .DS_Store
