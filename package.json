@@ -9,7 +9,8 @@
     "pkg": {
         "scripts": [
             "app/**/*.js",
-            "config/**/*.json"
+            "config/**/*.json",
+            "node_modules/zeromq/**/*.js"
         ],
         "assets": [
             "node_modules/**/*",
