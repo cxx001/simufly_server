@@ -1,25 +1,10 @@
 const zmq = require("zeromq")
 const basepb = require('../../proto/simufly_pb');
-
 let zmqReqSock = null;
 
-process.on('message', (m) => {
-    if (m.route == 'init') {
-        init(m.msg);
-    } else {
-        let uid = m.uid;
-        let route = m.route;
-        let msg = m.msg;
-        if (!(uid && route)) {
-            console.warn('协议格式错误! ', m);
-            return;
-        }
-        send(uid, route, msg);
-    }
-});
-
-async function init(params) {
+const zmqInit = async function (params) {
     // 绑定发送端口
+    const app = params.app;
     const zmqReqPort = params.zmqReqPort;
     zmqReqSock = new zmq.Publisher;
     await zmqReqSock.bind("tcp://0.0.0.0:" + zmqReqPort);
@@ -34,14 +19,22 @@ async function init(params) {
         let message = decode(msg);
         console.log('收到引擎消息: ', message);
         if (message) {
-            process.send(message);
+            app.onZmqMsg(this, message);
         } else {
             console.warn('decode fail!');
         }
     }
 }
 
-async function send(uid, route, msg) {
+const zmqSend = async function (m) {
+    let uid = m.uid;
+    let route = m.route;
+    let msg = m.msg;
+    if (!(uid && route)) {
+        console.warn('协议格式错误! ', m);
+        return;
+    }
+
     if (!zmqReqSock) {
         console.warn('zmq req sock null!');
         return;
@@ -198,4 +191,9 @@ function decode(buffer) {
     }
 
     return msg;
+}
+
+module.exports = {
+    zmqInit,
+    zmqSend,
 }

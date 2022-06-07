@@ -12,21 +12,22 @@ const ssh2 = require('../util/ssh2');
 const fs = require('fs');
 const messageService = require('../services/messageService');
 const child_process = require('child_process');
+const {zmqInit, zmqSend} = require('../util/zmq');
 
 // 下位机临时配置
-const server = {
-    host: '192.168.200.11',
-    port: 22,
-    username: 'root',
-    password: 'redhat',
-}
-
 // const server = {
-//     host: '192.168.10.251',
+//     host: '192.168.200.11',
 //     port: 22,
 //     username: 'root',
 //     password: 'redhat',
 // }
+
+const server = {
+    host: '192.168.10.251',
+    port: 22,
+    username: 'root',
+    password: 'redhat',
+}
 
 var instance = null;
 module.exports = function (app) {
@@ -43,55 +44,18 @@ var EngineStub = function (app) {
     this.zmqHost = engineCfg.zmqHost;
     this.zmqReqPort = engineCfg.zmqReqPort;
     this.zmqRspPort = engineCfg.zmqRspPort;
-
-    // 创建zmq通信子进程
-    this.zmqProcess = null;
-    this._createChildProcess();
     this.uid2sid = {};
+    zmqInit({app: this, zmqReqPort: this.zmqReqPort, zmqRspPort: this.zmqRspPort });
 };
 
 var pro = EngineStub.prototype;
 
-pro._createChildProcess = function () {
-    this.zmqProcess = child_process.spawn('node', ['./app/util/zmq.js'], { stdio: [null, null, null, 'ipc'] });
-    this.zmqProcess.stdout.on('data', function (data) {
-        logger.info('zmq进程日志: ' + data);
-    });
-
-    this.zmqProcess.stderr.on('data', function (data) {
-        logger.warn('zmq进程错误: ' + data);
-    });
-
-    this.zmqProcess.on('close', function (code) {
-        logger.info('zmq进程已退出, 退出码: ' + code);
-    });
-
-    this.zmqProcess.on('message', (m) => {
-        // onXxxx
-        let funcName = 'on' + m.route;
-        let fn = pro[funcName];
-        if (fn) {
-            fn.call(this, m.uid, m.msg);
-        }
-    });
-
-    let msg = {
-        route: 'init',
-        msg: { zmqReqPort: this.zmqReqPort, zmqRspPort: this.zmqRspPort }
+pro.onZmqMsg = function (m) {
+    let funcName = 'on' + m.route;
+    let fn = pro[funcName];
+    if (fn) {
+        fn.call(this, m.uid, m.msg);
     }
-    this.zmqProcess.send(msg);
-
-    // 模拟向引擎发送
-    // setInterval(() => {
-    //     this.zmqProcess.send({
-    //         uid: "A",
-    //         route: 'ModifyParameter',
-    //         msg: {
-    //             name: "1232343254325",
-    //             value: 100
-    //         }
-    //     });
-    // }, 5000);
 }
 
 pro.updateUserState = function (uid, sid, cb) {
@@ -272,10 +236,10 @@ pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
             return;
         }
 
-        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-            code: consts.MsgFlowCode.Connected,
-            des: data
-        });
+        // messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+        //     code: consts.MsgFlowCode.Connected,
+        //     des: data
+        // });
     });
 }
 
@@ -283,7 +247,7 @@ pro.sendControlCmd = function (uids, cmdtype, cb) {
     utils.invokeCallback(cb);
 
     // 向引擎发命令
-    this.zmqProcess.send({
+    zmqSend({
         uid: uids.uid,
         route: 'ControlCmd',
         msg: {
@@ -304,7 +268,7 @@ pro.modifyParameter = function (uids, parameter, cb) {
         item._type = 'Parameter';
     }
 
-    this.zmqProcess.send({
+    zmqSend({
         uid: uids.uid,
         route: 'ModifyParameter',
         msg: {
@@ -333,7 +297,7 @@ pro.signalManage = function (uids, signal, cb) {
         engineSignal.push(tmp);
     }
 
-    this.zmqProcess.send({
+    zmqSend({
         uid: uids.uid,
         route: 'SignalManage',
         msg: {
@@ -345,7 +309,7 @@ pro.signalManage = function (uids, signal, cb) {
 pro.triggerSetting = function (uids, triggerInfo, cb) {
     utils.invokeCallback(cb);
 
-    this.zmqProcess.send({
+    zmqSend({
         uid: uids.uid,
         route: 'TriggerSetting',
         msg: {
