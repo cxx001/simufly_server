@@ -236,10 +236,10 @@ pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
             return;
         }
 
-        // messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
-        //     code: consts.MsgFlowCode.Connected,
-        //     des: data
-        // });
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.Connected,
+            des: data
+        });
     });
 }
 
