@@ -1,10 +1,9 @@
 const fs = require('fs');
 const consts = require('../common/consts');
 const pomelo = require('pomelo');
+const path = require('path');
 
 var pro = module.exports;
-
-const EnginePath = `${consts.EngineBasePath}config/project/project.json`;
 
 // 前端与引擎模块ID映射表 {panelID_modelID: indexID}.
 let mappingtbl = {};
@@ -33,10 +32,20 @@ pro.formatDb2Engine = function (assignList, dbList) {
         projectItem.LineTotal = projectItem.LineGroup.length;
         project.push(projectItem);
     }
-
     let result = this.switchEntity(dbList, project[0]);
-    fs.writeFile(EnginePath, JSON.stringify(result, null, '\t'), () => {});
-    console.log('write engine json complete.');
+
+    // pkg打包写文件只有带process.cwd的路径才会写到外边(可执行程序是只读环境, 不能写)
+    // pkg生成的包要求放引擎环境根目录(home/simufly_tools)
+    let pkgPath = path.join(process.cwd(), `/config/project/`);
+    let fileName = 'project.json';
+    let jsonPath = "";
+    if (fs.existsSync(pkgPath)) {
+        jsonPath = pkgPath + fileName;
+    } else {
+        jsonPath = `${consts.EngineBasePath}config/project/project.json`;
+    }
+    fs.writeFileSync(jsonPath, JSON.stringify(result, null, '\t'));
+    console.log('write engine json complete. path:%s', jsonPath);
     return mappingtbl;
 }
 
@@ -461,12 +470,12 @@ pro.switchEntity = function (dbList, resultData) {
                 partItem.BlockGroup.splice(j, 0, {
                     "Id": inputId,
                     "Name": "输入板块",
-                    "Model": "xxxxxx.json",
+                    "Model": "vmic_demo_send.json",
                     "Order": j
                 }, {
                     "Id": outputId,
                     "Name": "输出板块",
-                    "Model": "xxxxxx.json",
+                    "Model": "vmic_demo_recv.json",
                     "Order": j + 1
                 });
                 break;

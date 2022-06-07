@@ -19,7 +19,7 @@ const utils = require('../util/utils');
 const app = new Koa();
 
 const router = require('./router')
-const uploadFolder = path.join(__dirname, '../../assets/cache/');
+const uploadFolder = path.join(process.cwd(), '/assets/cache/');
 
 app.use(KoaBody({
     multipart: true,
