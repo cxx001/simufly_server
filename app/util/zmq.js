@@ -19,7 +19,7 @@ const zmqInit = async function (params) {
         let message = decode(msg);
         console.log('收到引擎消息: ', message);
         if (message) {
-            app.onZmqMsg(this, message);
+            app.onZmqMsg(message);
         } else {
             console.warn('decode fail!');
         }

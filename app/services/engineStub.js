@@ -315,20 +315,30 @@ pro.signalManage = function (uids, signal, cb) {
 pro.triggerSetting = function (uids, triggerInfo, cb) {
     utils.invokeCallback(cb);
 
+    let comtext = {};
+    comtext.status = triggerInfo.status ? true : false;
+    comtext.source = triggerInfo.source;
+    comtext.mode = triggerInfo.mode;
+    comtext.collect_factor = triggerInfo.collect_factor;
+    comtext.collect_count = triggerInfo.collect_count;
+    // protobuf要求optional没有传递的值就不能创建,赋null也不行
+    if (triggerInfo.block_id || triggerInfo.block_id == 0) {
+        comtext.block_id = triggerInfo.block_id;
+    }
+    if (triggerInfo.port_index || triggerInfo.port_index == 0) {
+        comtext.port_index = triggerInfo.port_index;
+    }
+    if (triggerInfo.direction || triggerInfo.direction == 0) {
+        comtext.direction = triggerInfo.direction;
+    }
+    if (triggerInfo.value || triggerInfo.value == 0) {
+        comtext.value = triggerInfo.value;
+    }
+
     zmqSend({
         uid: uids.uid,
         route: 'TriggerSetting',
-        msg: {
-            status: triggerInfo.status ? true : false,
-            source: triggerInfo.source,
-            mode: triggerInfo.mode,
-            collect_factor: triggerInfo.collect_factor,
-            collect_count: triggerInfo.collect_count,
-            block_id: triggerInfo.block_id,
-            port_index: triggerInfo.port_index,
-            direction: triggerInfo.direction,
-            value: triggerInfo.value
-        }
+        msg: comtext
     });
 }
 
