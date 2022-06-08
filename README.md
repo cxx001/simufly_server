@@ -16,6 +16,14 @@ python ./SimpleHTTP.py (跨域访问)
 3. 安装pomelo(npm install pomelo -g)
 4. 安装mongodb 3.6.10
 
+# 打包
+1. npm run pkg
+2. 后台运行 
+```
+nohup ./sumu-fly &>server.log & 
+exit
+```
+
 # 常用命令
 1. 启动 
 ```
