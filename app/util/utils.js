@@ -232,7 +232,14 @@ utils.mkdirsSync = function (dirname) {
 
 utils.checkMachineId = function () {
     let id = machineIdSync(true);
-    let legal = "62710d668f524e868d13f8d89a184776";
     console.log('设备ID:', id);
-    return (id == legal);
+    let listPath = path.join(__dirname, '../../config/machineWhiteList.json');
+    let whiteList = JSON.parse(fs.readFileSync(listPath));
+    for (let i = 0; i < whiteList.length; i++) {
+        const legal = whiteList[i];
+        if (legal == id) {
+            return true;
+        }
+    }
+    return false;
 }
