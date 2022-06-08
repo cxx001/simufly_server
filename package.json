@@ -2,12 +2,13 @@
     "name": "sumu-fly",
     "version": "0.0.1",
     "private": false,
-    "bin": "./app.js",
+    "bin": "./app_pkg.js",
     "scripts": {
         "pkg": "pkg . -t  node14-linux-x64 --out-path dist/"
     },
     "pkg": {
         "scripts": [
+            "app.js",
             "app/**/*.js",
             "config/**/*.json",
             "node_modules/zeromq/**/*.js"
