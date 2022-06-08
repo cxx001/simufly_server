@@ -154,6 +154,7 @@ class UploadController {
                 let fileName = path.basename(file.name, '.zip');
                 let result = await execImportCmd(fileName);
                 if (!result) {
+                    console.warn('执行[buildfly_block_gen %s]失败!', fileName);
                     ctx.app.emit('error', fileUploadError, ctx);
                     return;
                 }
@@ -162,6 +163,7 @@ class UploadController {
                 let importResult = JSON.parse(fs.readFileSync(`${consts.EngineBasePath}result.json`));
                 for (let i = 0; i < importResult.length; i++) {
                     const item = importResult[i];
+                    console.log('数字模型JSON路径: %s', item.Path);
                     const data = JSON.parse(fs.readFileSync(`${item.Path}`));
                     let key = item.Path.split('/');
                     key = `${key[key.length-2]}#${key[key.length-1]}`;
