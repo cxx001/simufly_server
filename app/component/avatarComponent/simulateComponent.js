@@ -408,8 +408,24 @@ pro.onEngineSimuData = async function (msg) {
     }
 }
 
-pro.modifyParameter = function (parameter, next) {
+pro.modifyParameter = async function (parameter, next) {
     next(null, { code: consts.Code.OK });
+    let projectId = this.entity.lobby.projectUUID;
+    let project = await this.entity.lobby.getEntry(projectId);
+    let mappingtbl = project.mappingtbl || [];
+    for (let i = 0; i < parameter.length; i++) {
+        let item = parameter[i];
+        for (const key in mappingtbl) {
+            const value = mappingtbl[key];
+            let keys = key.split('_');
+            let panelId = keys[0];
+            let blockId = keys[1];
+            if (panelId == item.panel_id && blockId == item.block_id) {
+                item.engineBlockId = value;
+                break;
+            }
+        }
+    }
     this._callEngineRemote('modifyParameter', parameter, null);
 }
 

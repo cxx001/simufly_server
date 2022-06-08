@@ -234,9 +234,10 @@
 
 	"connector.simulateHandler.modifyParameter": {
 		"message Parameter": {
-			"required uInt32 block_id": 1,
-			"required uInt32 port_index": 2,
-			"required double value": 3
+			"required string panel_id": 1,
+			"required string block_id": 2,
+			"required uInt32 port_index": 3,
+			"required double value": 4
 		},
 		"repeated Parameter parameter": 1
 	},

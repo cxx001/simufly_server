@@ -263,16 +263,22 @@ pro.modifyParameter = function (uids, parameter, cb) {
         return;
     }
 
+    let msg = [];
     for (let i = 0; i < parameter.length; i++) {
-        let item = parameter[i];
-        item._type = 'Parameter';
+        const item = parameter[i];
+        let unit = {};
+        unit._type = 'Parameter';
+        unit.block_id = item.engineBlockId;
+        unit.port_index = item.port_index;
+        unit.value = item.value;
+        msg.push(unit);
     }
 
     zmqSend({
         uid: uids.uid,
         route: 'ModifyParameter',
         msg: {
-            parameter: parameter,
+            parameter: msg,
         }
     });
 }
