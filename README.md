@@ -17,9 +17,9 @@ python ./SimpleHTTP.py (跨域访问)
 4. 安装mongodb 3.6.10
 
 # 打包
+```
 1. npm run pkg
 2. 后台运行 
-```
 nohup ./sumu-fly &>server.log & 
 exit
 ```
@@ -36,4 +36,9 @@ pomelo stop
 3. 获取服务器信息 
 ```
 pomelo list
+```
+
+4. 帮助
+```
+pomelo --help
 ```
