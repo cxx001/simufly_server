@@ -5,6 +5,8 @@
  */
 'use strict';
 
+const path = require('path');
+
 module.exports = {
     // entity state
     ENTITY_STATE_INITED: 1,
@@ -22,7 +24,7 @@ module.exports = {
     InFlag: 'in',
     OutFlag: 'out',
 
-    EngineBasePath: "/home/simufly_tools/",
+    EngineBasePath: path.join(process.cwd(), `../simufly_tools/`),
 
     Code: {
         OK: 0,

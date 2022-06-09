@@ -35,7 +35,7 @@ pro.formatDb2Engine = function (assignList, dbList) {
     let result = this.switchEntity(dbList, project[0]);
 
     // pkg打包写文件只有带process.cwd的路径才会写到外边(可执行程序是只读环境, 不能写)
-    // pkg生成的包要求放引擎环境根目录(home/simufly_tools)
+    // pkg生成的包要求放引擎环境根目录(./simufly_tools)
     let pkgPath = path.join(process.cwd(), `/config/project/`);
     let fileName = 'project.json';
     let jsonPath = "";
