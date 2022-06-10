@@ -349,7 +349,7 @@ pro.updateSignalList = async function (signal, next) {
             }
         }
 
-        if (isNew) {
+        if (isNew && !newItem.cancel) {
             // 新插入
             signalSet.push(newItem);
         }
@@ -360,6 +360,10 @@ pro.updateSignalList = async function (signal, next) {
     next(null, { code: consts.Code.OK });
 
     // blockId转换为引擎下标id
+    let curState = entry.state;
+    if (curState != consts.SimulateState.Start) {
+        return;
+    }
     let project = await this.entity.lobby.getEntry(projectId);
     let mappingtbl = project.mappingtbl;
     for (let i = 0; i < signal.length; i++) {
