@@ -84,7 +84,7 @@ app.configure('production|development', function () {
 	app.route('auth', routeUtil.auth);
 
 	// 下位机配置
-	app.loadConfig('underMachine', app.getBase() + '/config/underMachine.json');
+	app.loadConfig('underMachine', path.join(process.cwd(), '/config/underMachine.json'));
 
 	// message缓冲
 	app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer, flushInterval: 20 });

@@ -1,0 +1,5 @@
+{
+    "zmqHost": "127.0.0.1",
+    "zmqReqPort": 25150,
+    "zmqRspPort": 25151
+}

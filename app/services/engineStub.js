@@ -10,6 +10,7 @@ const utils = require('../util/utils')
 const logger = require('pomelo-logger').getLogger('cskl', '__filename');
 const ssh2 = require('../util/ssh2');
 const fs = require('fs');
+const path = require('path');
 const messageService = require('../services/messageService');
 const child_process = require('child_process');
 const {zmqInit, zmqSend} = require('../util/zmq');
@@ -23,11 +24,16 @@ module.exports = function (app) {
 };
 
 var EngineStub = function (app) {
-    let engines = app.get('servers').engine;
-    let engineCfg = utils.find2key('id', app.get('serverId'), engines);
-    this.zmqHost = engineCfg.zmqHost;
-    this.zmqReqPort = engineCfg.zmqReqPort;
-    this.zmqRspPort = engineCfg.zmqRspPort;
+    // let engines = app.get('servers').engine;
+    // let engineCfg = utils.find2key('id', app.get('serverId'), engines);
+    /**
+     * TODO: 为了兼容pkg打包config有些pomelo框架内默认配置不能提外边, 临时加个配置提到外边
+     */
+    let pkgTest = path.join(process.cwd(), '/config/pkg_test.json');
+    pkgTest = JSON.parse(fs.readFileSync(pkgTest));
+    this.zmqHost = pkgTest.zmqHost;
+    this.zmqReqPort = pkgTest.zmqReqPort;
+    this.zmqRspPort = pkgTest.zmqRspPort;
     this.uid2sid = {};
     zmqInit({app: this, zmqReqPort: this.zmqReqPort, zmqRspPort: this.zmqRspPort });
 };
