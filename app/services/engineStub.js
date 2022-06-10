@@ -14,21 +14,6 @@ const messageService = require('../services/messageService');
 const child_process = require('child_process');
 const {zmqInit, zmqSend} = require('../util/zmq');
 
-// 下位机临时配置
-// const server = {
-//     host: '192.168.200.11',
-//     port: 22,
-//     username: 'root',
-//     password: 'redhat',
-// }
-
-const server = {
-    host: '192.168.10.251',
-    port: 22,
-    username: 'root',
-    password: 'redhat',
-}
-
 var instance = null;
 module.exports = function (app) {
     if (instance) {
@@ -38,7 +23,6 @@ module.exports = function (app) {
 };
 
 var EngineStub = function (app) {
-    this.app = app;
     let engines = app.get('servers').engine;
     let engineCfg = utils.find2key('id', app.get('serverId'), engines);
     this.zmqHost = engineCfg.zmqHost;
@@ -119,7 +103,7 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
     })
 }
 
-pro.deploy = async function (uids, projectUUID, cb) {
+pro.deploy = async function (uids, projectUUID, underIP, cb) {
     utils.invokeCallback(cb);
 
     // 路径
@@ -136,6 +120,25 @@ pro.deploy = async function (uids, projectUUID, cb) {
             des: '部署失败!'
         });
         return;
+    }
+
+    // 配置中查找下位机
+    let server = null;
+    let underMachine = pomelo.app.get('underMachine');
+    for (let i = 0; i < underMachine.length; i++) {
+        const item = underMachine[i];
+        if (underIP == item.host) {
+            server = item;
+            break;
+        }
+    }
+    if (!server) {
+        logger.warn("deploy underMachine[%s] not exist!", underIP);
+        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.DeployFail, null);
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.DeployFail,
+            des: '部署失败!'
+        });
     }
 
     // 1. 创建远程目录
@@ -217,8 +220,28 @@ pro.deploy = async function (uids, projectUUID, cb) {
     });
 }
 
-pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
+pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, underIP, cb) {
     utils.invokeCallback(cb);
+
+    // 配置中查找下位机
+    let server = null;
+    let underMachine = pomelo.app.get('underMachine');
+    for (let i = 0; i < underMachine.length; i++) {
+        const item = underMachine[i];
+        if (underIP == item.host) {
+            server = item;
+            break;
+        }
+    }
+    if (!server) {
+        logger.warn('initSimulation underMachine[%s] not exist!', underIP);
+        pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.ConnectFail, null);
+        messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+            code: consts.MsgFlowCode.ConnectFail,
+            des: '连接引擎失败!'
+        });
+        return;
+    }
 
     // 路径
     let packageName = `${uids.uid}_${projectUUID}`; 

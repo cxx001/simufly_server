@@ -196,7 +196,8 @@ pro.deploy = async function (next) {
     next(null, { code: consts.Code.OK });
 
     entry.state = consts.SimulateState.Deploying;
-    this._callEngineRemote('deploy', projectId, null);
+    let underIP = entry.assignTask[0].ip;   // TODO: 临时默认只能支持一台下位机
+    this._callEngineRemote('deploy', projectId, underIP, null);
 }
 
 pro.connectEngine = async function(simuTime, simuStep, next) {
@@ -218,7 +219,8 @@ pro.connectEngine = async function(simuTime, simuStep, next) {
 
     entry.simuTime = simuTime;
     entry.simuStep = simuStep;
-    this._callEngineRemote('initSimulation', projectId, simuTime, simuStep, null);
+    let underIP = entry.assignTask[0].ip; 
+    this._callEngineRemote('initSimulation', projectId, simuTime, simuStep, underIP, null);
 }
 
 pro.disconnectEngine = async function (next) {

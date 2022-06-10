@@ -558,3 +558,16 @@ pro.setBlockEntity = async function (panelId, blockId, entityId, next) {
     this.waitToUpdateDB.add(this.projectUUID);
     next(null, {code: consts.Code.OK});
 }
+
+pro.getSimulateNodeList = function (next) {
+    let nodeList = [];
+    let underMachine = pomelo.app.get('underMachine');
+    for (let i = 0; i < underMachine.length; i++) {
+        const item = underMachine[i];
+        nodeList.push(item.host);
+    }
+    next(null, {
+        code: consts.Code.OK,
+        nodeList: nodeList
+    });
+}

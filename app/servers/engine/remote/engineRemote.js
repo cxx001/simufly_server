@@ -22,12 +22,12 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
     this.app.engineStub.generateCode(uids, projectUUID, genCodeInfo, cb);
 }
 
-pro.deploy = function (uids, projectUUID, cb) {
-    this.app.engineStub.deploy(uids, projectUUID, cb);
+pro.deploy = function (uids, projectUUID, underIP, cb) {
+    this.app.engineStub.deploy(uids, projectUUID, underIP, cb);
 }
 
-pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, cb) {
-    this.app.engineStub.initSimulation(uids, projectUUID, simuTime, simuStep, cb);
+pro.initSimulation = function (uids, projectUUID, simuTime, simuStep, underIP, cb) {
+    this.app.engineStub.initSimulation(uids, projectUUID, simuTime, simuStep, underIP, cb);
 }
 
 pro.sendControlCmd = function (uids, cmdtype, cb) {

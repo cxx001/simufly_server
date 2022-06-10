@@ -63,3 +63,7 @@ handler.modifyBlockInfo = function (msg, session, next) {
 handler.setBlockEntity = function (msg, session, next) {
 	session.avatar.lobby.setBlockEntity(msg.panelId, msg.blockId, msg.entityId, next);
 }
+
+handler.getSimulateNodeList = function (msg, session, next) {
+	session.avatar.lobby.getSimulateNodeList(next);
+}
