@@ -6,6 +6,8 @@ var logger = require('pomelo-logger').getLogger('cskl', __filename);
 var entityManager = require('../../../services/entityManager');
 var entityFactory = require('../../../entity/entityFactory');
 var consts = require('../../../common/consts');
+var path = require('path');
+var fs = require('fs');
 
 module.exports = function (app) {
     return new Handler(app);
@@ -129,9 +131,13 @@ var doLogin = function (app, session, next, openid, session_key, userInfo) {
                         logger.warn('user not same prossise. curServerID:[%s], userServerID:[%s]', app.get('serverId'), formerSid);
                         next(null, {code: consts.Login.FAIL});
                     } else {
+                        // TODO: 临时写死上位机地址, 因为pkg打包这里要可配
+                        let pkgTest = path.join(process.cwd(), '/config/pkg_test.json');
+                        pkgTest = JSON.parse(fs.readFileSync(pkgTest));
+
                         next(null, {
                             code: consts.Login.RELAY,
-                            host: server.clientHost,
+                            host: pkgTest.zmqHost,
                             port: server.clientPort
                         });
                     }

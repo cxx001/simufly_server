@@ -1,6 +1,8 @@
 'use strict';
 var consts = require('../../../common/consts');
 var dispatcher = require('../../../util/dispatcher');
+var path = require('path');
+var fs = require('fs');
 
 module.exports = function (app) {
     return new Handler(app);
@@ -38,11 +40,16 @@ handler.queryEntry = function (msg, session, next) {
 		next(null, {code: consts.Login.FAIL});
 		return;
 	}
+
+	// TODO: 临时写死上位机地址, 因为pkg打包这里要可配
+	let pkgTest = path.join(process.cwd(), '/config/pkg_test.json');
+    pkgTest = JSON.parse(fs.readFileSync(pkgTest));
+
 	// select connector
 	var res = dispatcher.dispatch(code, connectors);
 	next(null, {
 		code: consts.Login.OK,
-		host: res.clientHost,
+		host: pkgTest.zmqHost,
 		port: res.clientPort
 	});
 };
