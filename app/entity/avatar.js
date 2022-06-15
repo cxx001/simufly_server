@@ -182,6 +182,8 @@ pro.setProtocolList = function (protocolInfo) {
         if (item.id == protocolInfo.id) {
             isModify = true;
             item.name = protocolInfo.name;
+            item.portType = protocolInfo.portType;
+            item.interfaceType = protocolInfo.interfaceType;
             break;
         }
     }
@@ -189,7 +191,9 @@ pro.setProtocolList = function (protocolInfo) {
     if (!isModify) {
         this.protocolList.push({
             id: protocolInfo.id,
-            name: protocolInfo.name
+            name: protocolInfo.name,
+            portType: protocolInfo.portType,
+            interfaceType: protocolInfo.interfaceType
         });
     }
 }

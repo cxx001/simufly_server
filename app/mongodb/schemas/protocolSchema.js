@@ -8,8 +8,8 @@ var ProtocolSchema = new Schema({
     des: String,
     portType: Number,
     interfaceType: Number,
-    interfaceList: [],
-    dataList: []
+    interfaces: [],
+    datas: []
 });
 
 ProtocolSchema.set('toObject', { getters: true });

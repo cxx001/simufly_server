@@ -215,6 +215,9 @@
 	},
 	"connector.assetsProtocolHandler.getProtocolList": {
 	},
+	"connector.assetsProtocolHandler.getProtocolInfo": {
+		"required string protocolId": 1
+	},
 
 	
 	"connector.simulateHandler.getSimulateInfo": {

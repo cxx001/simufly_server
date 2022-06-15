@@ -18,6 +18,10 @@ handler.getProtocolList = function (msg, session, next) {
     session.avatar.assetsProtocol.getProtocolList(next);
 }
 
+handler.getProtocolInfo = function (msg, session, next) {
+    session.avatar.assetsProtocol.getProtocolInfo(msg.protocolId, next);
+}
+
 handler.setEntityProtocol = function (msg, session, next) {
     session.avatar.assetsProtocol.setEntityProtocol(msg.protocolId, msg.protocolInfo, next);
 }

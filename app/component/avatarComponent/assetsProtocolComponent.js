@@ -62,8 +62,8 @@ pro.getEntry = function (id, data) {
                 des: data.des,
                 portType: data.portType,
                 interfaceType: data.interfaceType,
-                interfaceList: data.interfaceList,
-                dataList: data.dataList,
+                interfaces: data.interfaces,
+                datas: data.datas,
             }
 
             self.protocolById[id] = entry;
@@ -101,12 +101,33 @@ pro.getProtocolList = function (next) {
     });
 }
 
+pro.getProtocolInfo = async function (protocolId, next) {
+    let entry = await this.getEntry(protocolId);
+    if (!entry) {
+        this.entity.logger.warn('get entry [%s] not exist!', protocolId);
+        next(null, { code: consts.Code.FAIL });
+        return;
+    }
+
+    next(null, {
+        code: consts.Code.OK,
+        name: entry.name,
+        des: entry.des,
+        portType: entry.portType,
+        interfaceType: entry.interfaceType,
+        interfaces: entry.interfaces,
+        datas: entry.datas,
+    });
+}
+
 // 新建/修改协议
 pro.setEntityProtocol = async function (protocolId, protocolInfo, next) {
     let entry = await this.getEntry(protocolId, protocolInfo);
     let info = {
         id: entry._id,
-        name: entry.name
+        name: entry.name,
+        portType: entry.portType,
+        interfaceType: entry.interfaceType,
     }
     this.entity.setProtocolList(info);
     next(null, { code: consts.Code.OK });
