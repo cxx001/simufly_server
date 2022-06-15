@@ -13,3 +13,11 @@ var Handler = function (app) {
 };
 
 var handler = Handler.prototype;
+
+handler.getEntityInfo = function (msg, session, next) {
+	session.avatar.assetsEntity.getEntityInfo(msg.entityId, next);
+}
+
+handler.setEntityInfo = function (msg, session, next) {
+	session.avatar.assetsEntity.setEntityInfo(msg.entityId, msg.modifyInfo, next);
+}

@@ -6,11 +6,10 @@ var EntitySchema = new Schema({
 	uid: String,
     name: String,
     modelId: String,
-    groupId: Number,
     iconUrl: String,
     des: String,
     nodeList: [],
-    mapList: [],
+    mapping: {},
 });
 
 EntitySchema.set('toObject', { getters: true });

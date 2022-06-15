@@ -64,7 +64,7 @@ pro.getEntry = function (id, data) {
             } else {
                 self.db.findById(id, function (err, doc) {
                     if (err) {
-                        self.entity.logger.error("db find project info error: " + err);
+                        self.entity.logger.error("db find model info error: " + err);
                         return;
                     }
                     // 新项目

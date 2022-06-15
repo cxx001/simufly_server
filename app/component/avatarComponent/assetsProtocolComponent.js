@@ -36,6 +36,9 @@ pro._onSaveToDB = function () {
     let entry;
     for (let id of this.waitToUpdateDB) {
         entry = this.protocolById[id];
+        if (!entry) {
+            continue;
+        }
         this.db.update({ _id: id }, entry, { upsert: true }, (err, raw) => {
             if (err) {
                 this.entity.logger.error(id + " save db error: " + err);
@@ -91,6 +94,13 @@ pro.getEntry = function (id, data) {
     })
 }
 
+pro.getProtocolList = function (next) {
+    next(null, {
+        code: consts.Code.OK,
+        protocolList: this.entity.protocolList
+    });
+}
+
 // 新建/修改协议
 pro.setEntityProtocol = async function (protocolId, protocolInfo, next) {
     let entry = await this.getEntry(protocolId, protocolInfo);
@@ -103,5 +113,10 @@ pro.setEntityProtocol = async function (protocolId, protocolInfo, next) {
 }
 
 pro.deleteEntityProtocol = function (protocolId, next) {
-    
+    delete this.protocolById[protocolId];
+    this.db.deleteOne({_id: protocolId}, (err, obj) => {
+        if (err) throw err;
+        this.entity.logger.info('delete protocol successful.');
+    });
+    next(null, { code: consts.Code.OK });
 }

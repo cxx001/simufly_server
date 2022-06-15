@@ -89,9 +89,6 @@
 	"connector.lobbyHandler.getEntityList": {
 	},
 
-	"connector.lobbyHandler.getProtocolList": {
-	},
-
 	"connector.lobbyHandler.getBlockInfo": {
 		"required string panelId": 1,
 		"required string blockId": 2,
@@ -152,6 +149,42 @@
 		"required ModifyInfo modifyInfo": 2
 	},
 
+	"connector.assetsEntityHandler.getEntityInfo": {
+		"required string entityId": 1
+	},
+
+	"connector.assetsEntityHandler.setEntityInfo": {
+		"message ModifyInfo": {
+			"message NodeInfo": {
+				"required string ip": 1,
+				"required uInt32 interfaceType": 2,
+				"required string protocolId": 3
+			},
+
+			"message MappingInfo": {
+				"message MapStruct": {
+					"required string protocolId": 1,
+					"required uInt32 protocolIndex": 2,
+					"required string portId": 3,
+					"required string portName": 4
+				},
+
+				"repeated MapStruct input": 1,
+				"repeated MapStruct output": 2
+			},
+
+			"required string name": 1,
+			"required string modelId": 2,
+			"required string iconUrl": 3,
+			"required string des": 4,
+			"repeated NodeInfo nodeList": 5,
+			"required MappingInfo mapping": 6
+		},
+
+		"optional string entityId": 1,
+		"required ModifyInfo modifyInfo": 2
+	},
+
 	"connector.assetsProtocolHandler.setEntityProtocol": {
 		"message ProtocolInfo": {
 			"message InterfaceInfo": {
@@ -170,12 +203,17 @@
 			"required string des": 2,
 			"required uInt32 portType": 3,
 			"required uInt32 interfaceType": 4,
-			"repeated InterfaceInfo interfaceList": 5,
-			"repeated DataInfo dataList": 6
+			"repeated InterfaceInfo interfaces": 5,
+			"repeated DataInfo datas": 6
 		},
 
 		"optional string protocolId": 1,
 		"required ProtocolInfo protocolInfo": 2
+	},
+	"connector.assetsProtocolHandler.deleteEntityProtocol": {
+		"required string protocolId": 1
+	},
+	"connector.assetsProtocolHandler.getProtocolList": {
 	},
 
 	

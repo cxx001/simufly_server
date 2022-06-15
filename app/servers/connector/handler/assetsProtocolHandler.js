@@ -14,6 +14,10 @@ var Handler = function (app) {
 
 var handler = Handler.prototype;
 
+handler.getProtocolList = function (msg, session, next) {
+    session.avatar.assetsProtocol.getProtocolList(next);
+}
+
 handler.setEntityProtocol = function (msg, session, next) {
     session.avatar.assetsProtocol.setEntityProtocol(msg.protocolId, msg.protocolInfo, next);
 }
