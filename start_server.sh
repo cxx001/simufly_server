@@ -1,2 +1,3 @@
 #!/bin/sh
-pomelo start -e production -D
+cd /home/simufly_server
+pomelo start -e production
