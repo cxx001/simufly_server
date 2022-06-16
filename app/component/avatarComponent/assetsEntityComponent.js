@@ -106,8 +106,8 @@ pro.getEntityInfo = async function (entityId, next) {
                 mapInpullList.push({
                     protocolId: protocolId,
                     protocolName: protocolInfo.name,
-                    fieldIndex: j,
-                    fieldName: field.name
+                    protocolIndex: j,
+                    name: field.name
                 });
             }
         } else {
@@ -116,8 +116,8 @@ pro.getEntityInfo = async function (entityId, next) {
                 mapOutpullList.push({
                     protocolId: protocolId,
                     protocolName: protocolInfo.name,
-                    fieldIndex: j,
-                    fieldName: field.name
+                    protocolIndex: j,
+                    name: field.name
                 });
             }
         }
