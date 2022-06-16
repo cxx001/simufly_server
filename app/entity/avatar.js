@@ -149,7 +149,7 @@ pro.setEntityGroup = function (entityInfo) {
         }
     }
 
-    if (!groupId) {
+    if (groupId == null) {
         this.logger.warn('导入实物绑定的数字模型分组信息不存在!', entityInfo);
         return groupId;
     }
