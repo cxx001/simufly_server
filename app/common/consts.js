@@ -121,8 +121,8 @@ module.exports = {
     },
 
     ProtocolPortType: {
-        Input: 0,
-        Output: 1,
+        Input: 1,
+        Output: 2,
     },
 
     InterfaceType: {

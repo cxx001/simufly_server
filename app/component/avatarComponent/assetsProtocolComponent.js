@@ -137,7 +137,7 @@ pro.deleteEntityProtocol = function (protocolId, next) {
     delete this.protocolById[protocolId];
     this.db.deleteOne({_id: protocolId}, (err, obj) => {
         if (err) throw err;
-        this.entity.logger.info('delete protocol successful...');
+        this.entity.logger.info('delete protocol successful.');
     });
     next(null, { code: consts.Code.OK });
 }

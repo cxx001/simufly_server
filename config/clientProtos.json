@@ -163,10 +163,9 @@
 
 			"message MappingInfo": {
 				"message MapStruct": {
-					"required string protocolId": 1,
-					"required uInt32 protocolIndex": 2,
-					"required string portId": 3,
-					"required string portName": 4
+					"optional string protocolId": 1,
+					"optional uInt32 protocolIndex": 2,
+					"required string Name": 3
 				},
 
 				"repeated MapStruct input": 1,

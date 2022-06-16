@@ -89,6 +89,40 @@ pro.getEntityInfo = async function (entityId, next) {
         return;
     }
 
+    let mapInpullList = [];
+    let mapOutpullList = [];
+    for (let i = 0; i < entry.nodeList.length; i++) {
+        const item = entry.nodeList[i];
+        let protocolId = item.protocolId;
+        let protocolInfo = await this.entity.assetsProtocol.getEntry(protocolId);
+        if (!protocolInfo) {
+            this.entity.logger.warn('协议[%s]不存在!', protocolId);
+            continue;
+        }
+
+        if (protocolInfo.portType == consts.ProtocolPortType.Input) {
+            for (let j = 0; j < protocolInfo.datas.length; j++) {
+                const field = protocolInfo.datas[j];
+                mapInpullList.push({
+                    protocolId: protocolId,
+                    protocolName: protocolInfo.name,
+                    fieldIndex: j,
+                    fieldName: field.name
+                });
+            }
+        } else {
+            for (let j = 0; j < protocolInfo.datas.length; j++) {
+                const field = protocolInfo.datas[j];
+                mapOutpullList.push({
+                    protocolId: protocolId,
+                    protocolName: protocolInfo.name,
+                    fieldIndex: j,
+                    fieldName: field.name
+                });
+            }
+        }
+    }
+
     next(null, {
         code: consts.Code.OK,
         name: entry.name,
@@ -97,6 +131,10 @@ pro.getEntityInfo = async function (entityId, next) {
         des: entry.des,
         nodeList: entry.nodeList,
         mapping: entry.mapping,
+        mapDownList: {
+            input: mapInpullList,
+            output: mapOutpullList,
+        }
     });
 }
 
