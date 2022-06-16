@@ -1,5 +1,13 @@
 {
-    "zmqHost": "192.168.10.50",
-    "zmqReqPort": 25150,
-    "zmqRspPort": 25151
+    "development": {
+        "upperHost": "192.168.10.50",
+        "zmqReqPort": 25150,
+        "zmqRspPort": 25151
+    },
+
+    "production": {
+        "upperHost": "192.168.20.11",
+        "zmqReqPort": 25150,
+        "zmqRspPort": 25151
+    }
 }

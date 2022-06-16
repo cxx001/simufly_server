@@ -44,12 +44,13 @@ handler.queryEntry = function (msg, session, next) {
 	// TODO: 临时写死上位机地址, 因为pkg打包这里要可配
 	let pkgTest = path.join(process.cwd(), '/config/pkg_test.json');
     pkgTest = JSON.parse(fs.readFileSync(pkgTest));
+	pkgTest = pkgTest[this.app.get('env')];
 
 	// select connector
 	var res = dispatcher.dispatch(code, connectors);
 	next(null, {
 		code: consts.Login.OK,
-		host: pkgTest.zmqHost,
+		host: pkgTest.upperHost,
 		port: res.clientPort
 	});
 };

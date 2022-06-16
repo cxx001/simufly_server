@@ -31,7 +31,8 @@ var EngineStub = function (app) {
      */
     let pkgTest = path.join(process.cwd(), '/config/pkg_test.json');
     pkgTest = JSON.parse(fs.readFileSync(pkgTest));
-    this.zmqHost = pkgTest.zmqHost;
+    pkgTest = pkgTest[app.get('env')];
+    this.zmqHost = pkgTest.upperHost;
     this.zmqReqPort = pkgTest.zmqReqPort;
     this.zmqRspPort = pkgTest.zmqRspPort;
     this.uid2sid = {};
