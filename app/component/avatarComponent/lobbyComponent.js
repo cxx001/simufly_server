@@ -11,7 +11,8 @@ let consts = require('../../common/consts');
 let messageService = require('../../services/messageService');
 let dispatcher = require('../../util/dispatcher');
 let utils = require('../../util/utils');
-const response = require('koa/lib/response');
+const path = require('path');
+const fs = require('fs');
 
 const SAVE_DB_TIME = 60 * 1000 * 5;
 
@@ -119,9 +120,14 @@ pro.getEntry = function (id, createData) {
 pro.getHttpSrvInfo = function (next) {
     let connectors = pomelo.app.get('servers').connector;
 	let serverCfg = utils.find2key('id', pomelo.app.get('serverId'), connectors);
+
+    let pkgTest = path.join(process.cwd(), '/config/pkg_test.json');
+    pkgTest = JSON.parse(fs.readFileSync(pkgTest));
+	pkgTest = pkgTest[this.app.get('env')];
+
 	next(null, {
         code: consts.Code.OK,
-        host: serverCfg.httpHost,
+        host: pkgTest.upperHost,
         port: serverCfg.httpPort
     });
 }
