@@ -230,8 +230,6 @@ pro.clientLoginInfo = function () {
 	return {
         uid: this.id,
 		projectList: this.projectList,
-        groupList: this.groupList,
-        modelList: this.modelList,
 	}
 };
 

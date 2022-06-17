@@ -123,7 +123,7 @@ pro.getHttpSrvInfo = function (next) {
 
     let pkgTest = path.join(process.cwd(), '/config/pkg_test.json');
     pkgTest = JSON.parse(fs.readFileSync(pkgTest));
-	pkgTest = pkgTest[this.app.get('env')];
+	pkgTest = pkgTest[pomelo.app.get('env')];
 
 	next(null, {
         code: consts.Code.OK,
