@@ -14,6 +14,11 @@ let mappingtbl = {};
  * @param {*} dbList 数据库工程文件
  */
 pro.formatDb2Engine = function (assignList, dbList) {
+    let jsonPath = `${consts.EngineBasePath}config/project/`;
+    if (!fs.existsSync(jsonPath)) {
+        return null;
+    }
+
     mappingtbl = {};
     let project = [];
     for (let i = 0; i < assignList.length; i++) {
@@ -33,7 +38,7 @@ pro.formatDb2Engine = function (assignList, dbList) {
         project.push(projectItem);
     }
     let result = this.switchEntity(dbList, project[0]);
-    let jsonPath = `${consts.EngineBasePath}config/project/project.json`;
+    jsonPath = `${jsonPath}project.json`;
     fs.writeFileSync(jsonPath, JSON.stringify(result, null, '\t'));
     console.log('write engine json complete. path:%s', jsonPath);
     return mappingtbl;

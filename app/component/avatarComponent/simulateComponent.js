@@ -149,6 +149,12 @@ pro.assignTask = async function (assignInfos, next) {
     // TODO: 对分配节点做检测(如: 是否都是子系统、是否所有节点都分配了等)
     let project = await this.entity.lobby.getEntry(projectId);
     let mappingtbl = dbformatengine.formatDb2Engine(assignInfos, project.data);
+    if (!mappingtbl) {
+        this.entity.logger.warn('engine env install fail!');
+        next(null, { code: consts.Code.FAIL });
+        return;
+    }
+
     await this.entity.lobby.setMappingTbl(projectId, mappingtbl);
     entry.state = consts.SimulateState.GenCode;
     entry.assignTask = assignInfos;
