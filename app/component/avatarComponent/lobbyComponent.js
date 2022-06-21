@@ -263,7 +263,7 @@ pro.savePanel = async function (projectId, panelDatas, next) {
         next(null, {code: consts.Code.FAIL});
         return;
     }
-    
+
     // 删除子系统模型, 对应子系统面板也要移除
     let delPanelList = this.getDelPanelList(panelDatas, project);
     for (let i = 0; i < delPanelList.length; i++) {
@@ -281,7 +281,7 @@ pro.savePanel = async function (projectId, panelDatas, next) {
         let item = panelDatas[i];
         let isCreate = true;
         for (let j = 0; j < project.data.length; j++) {
-            const dbitem = project.data[j];
+            let dbitem = project.data[j];
             if (item.id == dbitem.id) {
                 // 插入客户端没有传的自定义字段
                 this.insertCustomField(item, dbitem);
@@ -293,6 +293,7 @@ pro.savePanel = async function (projectId, panelDatas, next) {
         if (isCreate) {
             project.data.push(item);
         }
+        this.checkChildSysPid(item, project.data);
     }
 
     this.projectsById[projectId] = project;
@@ -316,14 +317,33 @@ pro.insertCustomField = function (newPanelData, dbPanelData) {
     }
 }
 
+pro.checkChildSysPid = function (newPanelData, dbPanelArray) {
+    newPanelData.block = newPanelData.block || [];
+    for (let i = 0; i < newPanelData.block.length; i++) {
+        const item = newPanelData.block[i];
+        if (item.child) {
+            for (let j = 0; j < dbPanelArray.length; j++) {
+                let pPanel = dbPanelArray[j];
+                if (pPanel.id == item.child) {
+                    pPanel.pid = newPanelData.id;
+                    break;
+                }
+            }
+        }
+    }
+}
+
 pro.getDelPanelList = function (modifyPanels, dbProject) {
     let delPanelList = [];
+    let newPanelList = [];
     for (let i = 0; i < modifyPanels.length; i++) {
+        let isCreate = true;
         const modifyPanel = modifyPanels[i];
         for (let j = 0; j < dbProject.data.length; j++) {
             const dbPanel = dbProject.data[j];
             if (modifyPanel.id == dbPanel.id) {
                 // 子画板
+                isCreate = false;
                 modifyPanel.block = modifyPanel.block || [];
                 for (let m = 0; m < dbPanel.block.length; m++) {
                     const dbItem = dbPanel.block[m];
@@ -342,10 +362,35 @@ pro.getDelPanelList = function (modifyPanels, dbProject) {
                 break;
             }
         }
+        if (isCreate) {
+            newPanelList.push(modifyPanel);
+        }
+    }
+
+    // 如果待删除的面板在新面板中存在则不删除(创建子系统创建)
+    for (let i = 0; i < delPanelList.length; i++) {
+        let panelId = delPanelList[i];
+        for (let j = 0; j < newPanelList.length; j++) {
+            const newPanelItem = newPanelList[j];
+            if (this._checkChildPanel(panelId, newPanelItem.block)) {
+                delPanelList.splice(i, 1);
+                break;
+            }
+        }
     }
 
     this.entity.logger.info("待删除的画板列表: ", delPanelList);
     return delPanelList;
+}
+
+pro._checkChildPanel = function (childId, blockArray) {
+    for (let i = 0; i < blockArray.length; i++) {
+        const block = blockArray[i];
+        if (block.child == childId) {
+            return true;
+        }
+    }
+    return false;
 }
 
 pro.deletePanel = async function (projectId, panelId, next) {

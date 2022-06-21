@@ -96,24 +96,6 @@ app.configure('production|development', function () {
 		lazyConnection: true
 		// enableRpcLog: true
 	});
-
-	// remote configures
-	app.set('remoteConfig', {
-		bufferMsg: true,
-		interval: 20
-	});
-
-	// handler 热更新开关
-	app.set('serverConfig',
-		{
-			reloadHandlers: false
-		});
-
-	// remote 热更新开关
-	app.set('remoteConfig',
-		{
-			reloadRemotes: false
-		});
 });
 
 app.configure('production|development', 'auth', function () {
