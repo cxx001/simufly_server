@@ -81,6 +81,10 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
             pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeFail, null);
             messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
                 code: consts.MsgFlowCode.GenCodeFail,
+                des: error
+            });
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.GenCodeFail,
                 des: '生成代码失败!'
             });
         } else {
@@ -92,6 +96,10 @@ pro.generateCode = function (uids, projectUUID, genCodeInfo, cb) {
                     des: '代码生成中...'
                 });
             }
+            messageService.pushMessageToPlayer(uids, 'onFlowMsg', {
+                code: consts.MsgFlowCode.GenCoding,
+                des: stdout
+            });
 
             if (stdout.indexOf('Code generation success') >= 0) {
                 pomelo.app.rpc.connector.entryRemote.onEngineResponse.toServer(uids.sid, uids.uid, consts.EngineRspType.GenCodeSus, null);
