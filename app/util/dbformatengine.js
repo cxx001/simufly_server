@@ -149,9 +149,11 @@ pro.genLine = function (dbList, projectItem) {
  * @returns 
  */
 pro.getMinBlockList = function (blockItem, dbList, blockList, panelId) {
-    if (!blockItem.child && blockItem.nodeType < consts.ShapeType.Input) {
-        blockItem.panelId = panelId;
-        blockList.push(blockItem);
+    if (!blockItem.child) {
+        if (blockItem.nodeType < consts.ShapeType.Input) {
+            blockItem.panelId = panelId;
+            blockList.push(blockItem);
+        }
         return;
     }
 
