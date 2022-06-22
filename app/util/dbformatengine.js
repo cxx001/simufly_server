@@ -338,7 +338,7 @@ pro.setIOBusLineType = function (targetItem, targetPanel, inputPort, dbList, pro
             // 输出模块
             const panelItem = this.findPanelById(targetPanel.pid, dbList);
             if (!panelItem) {
-                console.error('父面板不存在!', targetPanel.pid);
+                console.warn('父面板不存在!', targetPanel.pid);
                 return;
             }
 
